@@ -1,6 +1,7 @@
 package project.board.post.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ public class PostDto {
 
     @Getter
     @NoArgsConstructor //todo: 사용하는 이유?
+    @AllArgsConstructor
     public static class CreateRequest {
 
         @NotBlank(message = "제목은 필수입니다.")
@@ -31,6 +33,7 @@ public class PostDto {
 
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class UpdateRequest {
 
         private String title;
