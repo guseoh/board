@@ -1,10 +1,7 @@
 package project.board.post.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import project.board.comment.dto.CommentDto;
 import project.board.member.dto.MemberDto;
 import project.board.post.entity.Post;
@@ -34,6 +31,7 @@ public class PostDto {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    @Setter
     public static class UpdateRequest {
 
         private String title;
