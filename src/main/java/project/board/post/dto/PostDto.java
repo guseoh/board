@@ -23,9 +23,9 @@ public class PostDto {
         @NotBlank(message = "내용은 필수입니다.")
         private String content;
 
-        public static Post toEntity(CreateRequest request) {
-            return Post.createPost(request.title, request.content);
-        }
+//        public static Post toEntity(CreateRequest request) {
+//            return Post.createPost(request.title, request.content);
+//        }
 
     }
 
@@ -36,9 +36,9 @@ public class PostDto {
         private String title;
         private String content;
 
-        public static Post toEntity(UpdateRequest request) {
-            return Post.createPost(request.title, request.content);
-        }
+//        public static Post toEntity(UpdateRequest request) {
+//            return Post.createPost(request.title, request.content);
+//        }
 
     }
 
