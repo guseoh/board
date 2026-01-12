@@ -1,9 +1,7 @@
 package project.board.post.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import project.board.comment.entity.Comment;
 import project.board.global.entity.BaseEntity;
 import project.board.member.entity.Member;

@@ -1,9 +1,7 @@
 package project.board.post.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import project.board.comment.dto.CommentDto;
 import project.board.member.dto.MemberDto;
 import project.board.post.entity.Post;
@@ -15,6 +13,7 @@ public class PostDto {
 
     @Getter
     @NoArgsConstructor //todo: 사용하는 이유?
+    @AllArgsConstructor
     public static class CreateRequest {
 
         @NotBlank(message = "제목은 필수입니다.")
@@ -23,22 +22,24 @@ public class PostDto {
         @NotBlank(message = "내용은 필수입니다.")
         private String content;
 
-        public static Post toEntity(CreateRequest request) {
-            return Post.createPost(request.title, request.content);
-        }
+//        public static Post toEntity(CreateRequest request) {
+//            return Post.createPost(request.title, request.content);
+//        }
 
     }
 
     @Getter
     @NoArgsConstructor
+    @AllArgsConstructor
+    @Setter
     public static class UpdateRequest {
 
         private String title;
         private String content;
 
-        public static Post toEntity(UpdateRequest request) {
-            return Post.createPost(request.title, request.content);
-        }
+//        public static Post toEntity(UpdateRequest request) {
+//            return Post.createPost(request.title, request.content);
+//        }
 
     }
 
