@@ -1,9 +1,9 @@
 package project.board.member.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.*;
 import project.board.comment.dto.CommentDto;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
@@ -16,10 +16,24 @@ public class MemberDto {
 
     @Getter
     @NoArgsConstructor
+    @Setter
     public static class CreateRequest {
 
+        @Pattern(
+                regexp = "^[a-zA-Z0-9가-힣]{2,12}$",
+                message = "닉네임은 2~12자, 영문/숫자/한글만 가능합니다.")
+        @NotBlank(message = "닉네임은 필수입니다.")
         private String nickname;
+
+        @Pattern(
+                regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$",
+                message = "비밀번호는 8~20자, 영문과 숫자를 각각 1개 이상 포함해야 합니다."
+        )
+        @NotBlank(message = "비밀번호는 필수입니다.")
         private String password;
+
+        @Email(message = "이메일 형식이 올바르지 않습니다.")
+        @NotBlank(message = "이메일은 필수입니다.")
         private String email;
     }
 
@@ -27,8 +41,18 @@ public class MemberDto {
     @NoArgsConstructor
     public static class UpdateRequest {
 
+        @Pattern(
+                regexp = "^[a-zA-Z0-9가-힣]{2,12}$",
+                message = "닉네임은 2~12자, 영문/숫자/한글만 가능합니다.")
         private String nickname;
+
+        @Pattern(
+                regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$",
+                message = "비밀번호는 8~20자, 영문과 숫자를 각각 1개 이상 포함해야 합니다."
+        )
         private String password;
+
+        @Email(message = "이메일 형식이 올바르지 않습니다.")
         private String email;
     }
 
