@@ -48,6 +48,10 @@ public class Member extends BaseEntity {
         return m;
     }
 
+    public void changeEmail(String email) {
+        this.email = email;
+    }
+
     public void changeNickname(String nickname) {
         this.nickname = nickname;
     }
