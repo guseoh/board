@@ -26,10 +26,16 @@ public class MemberController {
         return "member/signup";
     }
 
+    @GetMapping("/loginForm")
+    public String loginForm() {
+        return "loginForm";
+    }
+
     @PostMapping("/signup")
     public String signup(@Valid @ModelAttribute MemberDto.CreateRequest request,
                          BindingResult bindingResult,
                          RedirectAttributes redirectAttributes) {
+
         if (bindingResult.hasErrors()) {
             return "member/signup";
         }
