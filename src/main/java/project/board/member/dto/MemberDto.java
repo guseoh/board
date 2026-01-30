@@ -39,6 +39,7 @@ public class MemberDto {
 
     @Getter
     @NoArgsConstructor
+    @Setter
     public static class UpdateRequest {
 
         @Pattern(
