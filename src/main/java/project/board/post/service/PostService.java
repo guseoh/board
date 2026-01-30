@@ -44,15 +44,17 @@ public class PostService {
     }
 
     @Transactional
-    public PostDto.Response update(PostDto.UpdateRequest request, Long id) {
-        Post find = postRepository.findById(id).orElseThrow(() ->
+    public void update(PostDto.UpdateRequest request, Long postId, Long memberId) {
+        Post post = postRepository.findById(postId).orElseThrow(() ->
                 new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
-        //todo: 통합으로 개선
-        find.changeTitle(request.getTitle());
-        find.changeContent(request.getContent());
+        if (!post.getId().equals(memberId)) {
+            throw new IllegalStateException("수정 권한이 없습니다.");
+        }
 
-        return PostDto.Response.from(find);
+        //todo: 통합으로 개선
+        post.changeTitle(request.getTitle());
+        post.changeContent(request.getContent());
     }
 
     @Transactional

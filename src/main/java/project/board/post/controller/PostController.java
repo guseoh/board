@@ -6,11 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import project.board.global.security.user.CustomUserDetails;
 import project.board.post.dto.PostDto;
 import project.board.post.service.PostService;
 
@@ -23,7 +25,7 @@ public class PostController {
     private final PostService postService;
 
     // 전체 조회
-    @GetMapping()
+    @GetMapping({"", "/"})
     public String list(@PageableDefault(size = 10) Pageable pageable, Model model) {
         Page<PostDto.Response> page = postService.findAll(pageable);
 
@@ -43,23 +45,17 @@ public class PostController {
         return "post/detail";
     }
 
-    @GetMapping("/new")
-    public String createForm(Model model) {
-        model.addAttribute("request", new PostDto.CreateRequest());
-
-        return "post/create";
-    }
-
+    //todo: 작성도 인증된 사람만
     @PostMapping("/new")
-    public String create(@Valid @ModelAttribute("request") PostDto.CreateRequest request,
+    public String create(@Valid @ModelAttribute("form") PostDto.CreateRequest request,
                          BindingResult bindingResult,
+                         @AuthenticationPrincipal CustomUserDetails customUserDetails,
                          RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            return "post/create";
+            return "post/form";
         }
 
-        Long memberId = 1L; // 임시 -> Security에서 추출
-
+        Long memberId = customUserDetails.getMemberId();
         PostDto.Response post = postService.save(request, memberId);
         redirectAttributes.addAttribute("id", post.getId());
         redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
@@ -67,34 +63,50 @@ public class PostController {
         return "redirect:/post/{id}";
     }
 
+    @GetMapping("/new")
+    public String createForm(Model model) {
+        model.addAttribute("mode", "create");
+        model.addAttribute("form", new PostDto.CreateRequest());
+        model.addAttribute("actionUrl", "/post/new");
+        model.addAttribute("submitLabel", "등록");
+        return "post/form";
+    }
+
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         PostDto.Response post = postService.findOne(id);
 
         // todo: 정리
-        PostDto.UpdateRequest request = new PostDto.UpdateRequest();
-        request.setTitle(post.getTitle());
-        request.setContent(post.getContent());
-        
-        model.addAttribute("postId", id);
-        model.addAttribute("request", request);
-        model.addAttribute("post", post);
+        PostDto.UpdateRequest form = new PostDto.UpdateRequest();
 
-        return "post/edit";
+        model.addAttribute("mode", "edit");
+        model.addAttribute("form", form);
+        model.addAttribute("actionUrl", "/post" + id + "/edit");
+        model.addAttribute("submitLabel", "수정");
+
+        return "post/form";
     }
 
     @PostMapping("/{id}/edit")
     public String edit(@PathVariable Long id,
-                       @Valid @ModelAttribute("request") PostDto.UpdateRequest request,
+                       @Valid @ModelAttribute("form") PostDto.UpdateRequest form,
                        BindingResult bindingResult,
+                       @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                       Model model,
                        RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             //todo: 에러 시 기존 게시글 정보 추가
-            return "post/edit";
+            model.addAttribute("mode", "edit");
+            model.addAttribute("actionUrl", "/post/" + id + "/edit");
+            model.addAttribute("submitLabel", "수정");
+            return "post/form";
         }
 
-        postService.update(request, id);
+        Long memberId = customUserDetails.getMemberId();
+
+        postService.update(form, id, memberId);
+
         redirectAttributes.addAttribute("id", id);
         redirectAttributes.addFlashAttribute("message", "게시글 수정 완료");
 
