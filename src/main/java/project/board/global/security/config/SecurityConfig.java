@@ -4,6 +4,7 @@ package project.board.global.security.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,13 +24,15 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login","/loginForm", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/", "/login", "/loginForm", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/post/**").permitAll()   // 조회는 공개
+                        .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/loginForm")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true)
+                        .defaultSuccessUrl("/post")   // true 제거
                         .failureUrl("/login?error=true").permitAll()
                 )
                 .logout(logout -> logout

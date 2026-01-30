@@ -26,13 +26,8 @@ public class MemberController {
         return "member/signup";
     }
 
-    @GetMapping("/loginForm")
-    public String loginForm() {
-        return "loginForm";
-    }
-
     @PostMapping("/signup")
-    public String signup(@Valid @ModelAttribute MemberDto.CreateRequest request,
+    public String signup(@Valid @ModelAttribute("form") MemberDto.CreateRequest form,
                          BindingResult bindingResult,
                          RedirectAttributes redirectAttributes) {
 
@@ -42,13 +37,18 @@ public class MemberController {
 
         //todo: ControllerAdvice로 개선
         try {
-            memberService.signUp(request);
+            memberService.signUp(form);
             redirectAttributes.addFlashAttribute("msg", "회원가입 완료");
-            return "redirect:/login";
+            return "redirect:/loginForm";
         } catch (IllegalArgumentException e) {
             bindingResult.reject("signupFail", e.getMessage());
             return "member/signup";
         }
+    }
+
+    @GetMapping("/loginForm")
+    public String loginForm() {
+        return "loginForm";
     }
 
     @GetMapping("/members/me")
