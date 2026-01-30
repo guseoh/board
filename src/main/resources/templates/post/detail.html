@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${post != null ? post.title : '게시글'})}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('post')}"></div>
+
+<div class="page-wrap">
+    <div class="container py-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="mb-1" th:text="${post.title}">제목</h3>
+                <div class="text-muted small">
+                    <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">-</span>
+                    <span class="mx-2">•</span>
+                    조회 <span th:text="${post.viewCount != null ? post.viewCount : 0}">0</span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary" th:href="@{/post}">목록</a>
+                <a class="btn btn-outline-primary" th:href="@{/post/{id}/edit(id=${post.id})}">수정</a>
+
+                <form th:action="@{/post/{id}/delete(id=${post.id})}" method="post"
+                      onsubmit="return confirm('정말 삭제할까요?');">
+                    <button class="btn btn-outline-danger" type="submit">삭제</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <pre class="content mb-0" th:text="${post.content}">내용</pre>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
