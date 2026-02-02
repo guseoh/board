@@ -16,7 +16,12 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
+
     private final Member member;
+
+    public String getNickname() {
+        return member.getNickname();
+    }
 
     public CustomUserDetails(Member member) {
         this.member = member;

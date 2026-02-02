@@ -18,7 +18,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <a class="btn btn-outline-secondary" th:href="@{/post}">목록</a>
+                <a class="btn btn-outline-secondary" th:href="@{/}">목록</a>
                 <a class="btn btn-outline-primary" th:href="@{/post/{id}/edit(id=${post.id})}">수정</a>
 
                 <form th:action="@{/post/{id}/delete(id=${post.id})}" method="post"

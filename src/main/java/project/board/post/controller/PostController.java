@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -82,7 +83,7 @@ public class PostController {
 
         model.addAttribute("mode", "edit");
         model.addAttribute("form", form);
-        model.addAttribute("actionUrl", "/post" + id + "/edit");
+        model.addAttribute("actionUrl", "/post/" + id + "/edit");
         model.addAttribute("submitLabel", "수정");
 
         return "post/form";
@@ -115,13 +116,13 @@ public class PostController {
         return "redirect:/post/{id}";
     }
 
-    @PostMapping("/post /{id}/delete")
+    @PostMapping("/post/{id}/delete")
     public String delete(@PathVariable Long id,
                          RedirectAttributes redirectAttributes) {
         postService.delete(id);
 
         redirectAttributes.addFlashAttribute("message", "게시글이 삭제되었습니다.");
 
-        return "redirect:/post";
+        return "redirect:/";
     }
 }

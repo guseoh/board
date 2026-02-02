@@ -22,7 +22,7 @@ public class BaseEntity {
     private LocalDateTime createdAt;    // 생성일
 
     @CreatedBy
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     private String createdBy;   // 생성자
 
 
@@ -30,5 +30,6 @@ public class BaseEntity {
     private LocalDateTime updatedAt;    // 수정일
 
     @LastModifiedBy
+    @Column(nullable = false)
     private String updatedBy;   // 수정자
 }
