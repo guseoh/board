@@ -19,7 +19,6 @@
                 <p class="text-muted mb-4">정보를 입력하고 계정을 생성하세요.</p>
 
                 <form th:action="@{/signup}" method="post" th:object="${form}">
-                    <!-- 글로벌 에러 -->
                     <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
                         <div th:each="err : ${#fields.globalErrors()}" th:text="${err}">에러</div>
                     </div>
