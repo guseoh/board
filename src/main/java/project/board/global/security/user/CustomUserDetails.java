@@ -1,5 +1,6 @@
 package project.board.global.security.user;
 
+import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * 사용자 조회 + 비밀번호 검증 (User Dto)
  */
+@Getter
 public class CustomUserDetails implements UserDetails {
 
     private final Member member;
