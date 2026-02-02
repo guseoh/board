@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import project.board.comment.dto.CommentDto;
 import project.board.member.dto.MemberDto;
+import project.board.member.entity.Member;
 import project.board.post.entity.Post;
 
 import java.time.LocalDateTime;
@@ -58,7 +59,7 @@ public class PostDto {
         private String updatedBy;
 
         private List<CommentDto.Response> comments;
-        private MemberDto.Response member;
+        private MemberSummary member;
 
         public static Response from(Post post) {
             return Response.builder()
@@ -70,12 +71,26 @@ public class PostDto {
                     .createdBy(post.getCreatedBy())
                     .updatedAt(post.getUpdatedAt())
                     .updatedBy(post.getUpdatedBy())
-                    .member(MemberDto.Response.from(post.getMember()))
+                    .member(MemberSummary.from(post.getMember()))
+//                    .member(MemberDto.Response.from(post.getMember()))
                     .comments(post.getComments().stream()
                             .map(CommentDto.Response::from)
                             .toList())
                     .build();
         }
+    }
 
+    @Getter
+    @Builder
+    public static class MemberSummary {
+        private Long id;
+        private String nickname;
+
+        public static MemberSummary from(Member member) {
+            return MemberSummary.builder()
+                    .id(member.getId())
+                    .nickname(member.getNickname())
+                    .build();
+        }
     }
 }
