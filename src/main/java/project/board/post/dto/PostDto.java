@@ -14,6 +14,7 @@ public class PostDto {
     @Getter
     @NoArgsConstructor //todo: 사용하는 이유?
     @AllArgsConstructor
+    @Setter
     public static class CreateRequest {
 
         @NotBlank(message = "제목은 필수입니다.")

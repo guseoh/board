@@ -18,7 +18,7 @@ import project.board.post.service.PostService;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/post")
+//@RequestMapping("/post")
 @Slf4j
 public class PostController {
 
@@ -36,7 +36,7 @@ public class PostController {
     }
 
     // 단일 조회
-    @GetMapping("/{id}")
+    @GetMapping("/post/{id}")
     public String detail(@PathVariable Long id, Model model) {
         PostDto.Response post = postService.findOne(id);
 
@@ -46,7 +46,7 @@ public class PostController {
     }
 
     //todo: 작성도 인증된 사람만
-    @PostMapping("/new")
+    @PostMapping("/post/new")
     public String create(@Valid @ModelAttribute("form") PostDto.CreateRequest request,
                          BindingResult bindingResult,
                          @AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -59,11 +59,12 @@ public class PostController {
         PostDto.Response post = postService.save(request, memberId);
         redirectAttributes.addAttribute("id", post.getId());
         redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
+        log.info("게시글이 등록되었습니다.");
 
         return "redirect:/post/{id}";
     }
 
-    @GetMapping("/new")
+    @GetMapping("/post/new")
     public String createForm(Model model) {
         model.addAttribute("mode", "create");
         model.addAttribute("form", new PostDto.CreateRequest());
@@ -72,7 +73,7 @@ public class PostController {
         return "post/form";
     }
 
-    @GetMapping("/{id}/edit")
+    @GetMapping("/post/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         PostDto.Response post = postService.findOne(id);
 
@@ -87,7 +88,7 @@ public class PostController {
         return "post/form";
     }
 
-    @PostMapping("/{id}/edit")
+    @PostMapping("/post/{id}/edit")
     public String edit(@PathVariable Long id,
                        @Valid @ModelAttribute("form") PostDto.UpdateRequest form,
                        BindingResult bindingResult,
@@ -103,6 +104,7 @@ public class PostController {
             return "post/form";
         }
 
+        log.info("게시글 수정이 완료되었습니다.");
         Long memberId = customUserDetails.getMemberId();
 
         postService.update(form, id, memberId);
@@ -113,7 +115,7 @@ public class PostController {
         return "redirect:/post/{id}";
     }
 
-    @PostMapping("/{id}/delete")
+    @PostMapping("/post /{id}/delete")
     public String delete(@PathVariable Long id,
                          RedirectAttributes redirectAttributes) {
         postService.delete(id);
