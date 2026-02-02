@@ -83,9 +83,9 @@ public class MemberDto {
                     .comments(member.getComments().stream()
                             .map(CommentDto.Response::from)
                             .toList())
-                    .posts(member.getPosts().stream()
-                            .map(PostDto.Response::from)
-                            .toList())
+//                    .posts(member.getPosts().stream()
+//                            .map(PostDto.Response::from)
+//                            .toList())
                     .build();
         }
     }

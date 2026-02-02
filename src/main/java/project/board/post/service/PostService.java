@@ -1,8 +1,11 @@
 package project.board.post.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.board.member.entity.Member;
@@ -14,6 +17,7 @@ import project.board.post.repository.PostRepository;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class PostService {
 
     private final PostRepository postRepository;
@@ -40,7 +44,7 @@ public class PostService {
 
     public Page<PostDto.Response> findAll(Pageable pageable) {
         return postRepository.findAll(pageable)
-                .map(PostDto.Response::from);   //todo:
+                .map(PostDto.Response::from);
     }
 
     @Transactional
@@ -48,13 +52,14 @@ public class PostService {
         Post post = postRepository.findById(postId).orElseThrow(() ->
                 new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
-        if (!post.getId().equals(memberId)) {
+        if (!post.getMember().getId().equals(memberId)) {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
 
-        //todo: 통합으로 개선
-        post.changeTitle(request.getTitle());
-        post.changeContent(request.getContent());
+        post.change(
+                request.getTitle(),
+                request.getContent()
+        );
     }
 
     @Transactional
@@ -63,6 +68,13 @@ public class PostService {
                 new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
         postRepository.delete(find);
+    }
+
+    private static void authorizeAuthor(Post post) {
+        String nickname = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!post.getCreatedBy().equals(nickname)) {
+            throw new IllegalArgumentException("다른 사용자 입니다.");
+        }
     }
 
 }
