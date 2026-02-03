@@ -32,15 +32,11 @@ public class PostService {
 
         Post saved = postRepository.save(Post.create(request.getTitle(), request.getContent(), member));
 
-//        Post saved = postRepository.save(PostDto.CreateRequest.toEntity(request));
-
         return PostDto.Response.from(saved);
     }
 
     public PostDto.Response findOne(Long id){
-        Post post = postRepository.findById(id).orElseThrow(() ->
-                new CustomException(POST_NOT_FOUND));
-
+        Post post = getPost(id);
         return PostDto.Response.from(post);
     }
 
@@ -51,12 +47,8 @@ public class PostService {
 
     @Transactional
     public void update(PostDto.UpdateRequest request, Long postId, Long memberId) {
-        Post post = postRepository.findById(postId).orElseThrow(() ->
-                new CustomException(POST_NOT_FOUND));
 
-//        if (!post.getMember().getId().equals(memberId)) {
-//            throw new IllegalStateException("수정 권한이 없습니다.");
-//        }
+        Post post = getPost(postId);
         validateWriter(post, memberId);
 
         post.change(
@@ -67,11 +59,21 @@ public class PostService {
 
     @Transactional
     public void delete(Long id, Long memberId)  {
-        Post find = postRepository.findById(id).orElseThrow(() ->
-                new CustomException(POST_NOT_FOUND));
+        Post find = getPost(id);
 
         validateWriter(find, memberId);
         postRepository.delete(find);
+    }
+
+    @Transactional
+    public void viewCount(Long id) {
+        getPost(id).increaseViewCount();
+    }
+
+    private Post getPost(Long id) {
+        Post find = postRepository.findById(id).orElseThrow(() ->
+                new CustomException(POST_NOT_FOUND));
+        return find;
     }
 
     private void validateWriter(Post post, Long memberId) {

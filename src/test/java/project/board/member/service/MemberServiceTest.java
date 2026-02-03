@@ -68,7 +68,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("회원가입 실패 테스트")
+    @DisplayName("회원가입 실패 이메일 중복 테스트")
     void 회원가입_실패() {
 
         memberService.signUp(createRequest("테스트", "test@te.com", "1234"));
@@ -77,6 +77,17 @@ class MemberServiceTest {
                 memberService.signUp(createRequest("실패", "test@te.com", "1234")))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 가입된 이메일입니다.");
+    }
+    @Test
+    @DisplayName("회원가입 실패 닉네임 중복 테스트")
+    void 회원가입_실패2() {
+
+        memberService.signUp(createRequest("테스트", "test@te.com", "1234"));
+
+        assertThatThrownBy(() ->
+                memberService.signUp(createRequest("테스트", "st@te.com", "1234")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("이미 가입된 닉네임입니다.");
     }
 
     @Test

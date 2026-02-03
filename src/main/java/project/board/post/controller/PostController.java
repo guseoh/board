@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,7 +18,6 @@ import project.board.post.service.PostService;
 
 @Controller
 @RequiredArgsConstructor
-//@RequestMapping("/post")
 @Slf4j
 public class PostController {
 
@@ -39,6 +37,9 @@ public class PostController {
     // 단일 조회
     @GetMapping("/post/{id}")
     public String detail(@PathVariable Long id, Model model) {
+
+        //todo: service 두 번 호출
+        postService.viewCount(id);
         PostDto.Response post = postService.findOne(id);
 
         model.addAttribute("post", post);
