@@ -4,15 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.board.global.exception.CustomException;
+import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.dto.PostDto;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
+
+import static project.board.global.exception.ErrorCode.POST_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class PostService {
     @Transactional
     public PostDto.Response save(PostDto.CreateRequest request, Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() ->
-                new IllegalArgumentException("해당 사용자는 존재하지 않습니다."));
+                new CustomException(POST_NOT_FOUND));
 
         Post saved = postRepository.save(Post.create(request.getTitle(), request.getContent(), member));
 
@@ -35,9 +37,9 @@ public class PostService {
         return PostDto.Response.from(saved);
     }
 
-    public PostDto.Response findOne(Long id) {
+    public PostDto.Response findOne(Long id){
         Post post = postRepository.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+                new CustomException(POST_NOT_FOUND));
 
         return PostDto.Response.from(post);
     }
@@ -50,11 +52,12 @@ public class PostService {
     @Transactional
     public void update(PostDto.UpdateRequest request, Long postId, Long memberId) {
         Post post = postRepository.findById(postId).orElseThrow(() ->
-                new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+                new CustomException(POST_NOT_FOUND));
 
-        if (!post.getMember().getId().equals(memberId)) {
-            throw new IllegalStateException("수정 권한이 없습니다.");
-        }
+//        if (!post.getMember().getId().equals(memberId)) {
+//            throw new IllegalStateException("수정 권한이 없습니다.");
+//        }
+        validateWriter(post, memberId);
 
         post.change(
                 request.getTitle(),
@@ -63,17 +66,18 @@ public class PostService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, Long memberId)  {
         Post find = postRepository.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+                new CustomException(POST_NOT_FOUND));
 
+        validateWriter(find, memberId);
         postRepository.delete(find);
     }
 
-    private static void authorizeAuthor(Post post) {
-        String nickname = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!post.getCreatedBy().equals(nickname)) {
-            throw new IllegalArgumentException("다른 사용자 입니다.");
+    private void validateWriter(Post post, Long memberId) {
+        Long writerId = post.getMember().getId();
+        if (writerId == null || memberId == null || !writerId.equals(memberId)) {
+            throw new CustomException(ErrorCode.NOT_POST_OWNER);
         }
     }
 

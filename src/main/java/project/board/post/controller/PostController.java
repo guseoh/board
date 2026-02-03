@@ -59,7 +59,7 @@ public class PostController {
         Long memberId = customUserDetails.getMemberId();
         PostDto.Response post = postService.save(request, memberId);
         redirectAttributes.addAttribute("id", post.getId());
-        redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
+        redirectAttributes.addFlashAttribute("msg", "게시글이 등록되었습니다.");
         log.info("게시글이 등록되었습니다.");
 
         return "redirect:/post/{id}";
@@ -75,11 +75,15 @@ public class PostController {
     }
 
     @GetMapping("/post/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model) {
+    public String editForm(@PathVariable Long id,
+                           @AuthenticationPrincipal CustomUserDetails user,
+                           Model model) {
+
         PostDto.Response post = postService.findOne(id);
 
-        // todo: 정리
         PostDto.UpdateRequest form = new PostDto.UpdateRequest();
+        form.setTitle(post.getTitle());
+        form.setContent(post.getContent());
 
         model.addAttribute("mode", "edit");
         model.addAttribute("form", form);
@@ -93,12 +97,11 @@ public class PostController {
     public String edit(@PathVariable Long id,
                        @Valid @ModelAttribute("form") PostDto.UpdateRequest form,
                        BindingResult bindingResult,
-                       @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                       @AuthenticationPrincipal CustomUserDetails user,
                        Model model,
                        RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            //todo: 에러 시 기존 게시글 정보 추가
             model.addAttribute("mode", "edit");
             model.addAttribute("actionUrl", "/post/" + id + "/edit");
             model.addAttribute("submitLabel", "수정");
@@ -106,22 +109,23 @@ public class PostController {
         }
 
         log.info("게시글 수정이 완료되었습니다.");
-        Long memberId = customUserDetails.getMemberId();
 
-        postService.update(form, id, memberId);
+        postService.update(form, id, user.getMemberId());
 
         redirectAttributes.addAttribute("id", id);
-        redirectAttributes.addFlashAttribute("message", "게시글 수정 완료");
+        redirectAttributes.addFlashAttribute("msg", "게시글 수정 완료");
 
         return "redirect:/post/{id}";
     }
 
     @PostMapping("/post/{id}/delete")
     public String delete(@PathVariable Long id,
+                         @AuthenticationPrincipal CustomUserDetails user,
                          RedirectAttributes redirectAttributes) {
-        postService.delete(id);
 
-        redirectAttributes.addFlashAttribute("message", "게시글이 삭제되었습니다.");
+        postService.delete(id, user.getMemberId());
+
+        redirectAttributes.addFlashAttribute("msg", "게시글이 삭제되었습니다.");
 
         return "redirect:/";
     }
