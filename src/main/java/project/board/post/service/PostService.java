@@ -65,6 +65,11 @@ public class PostService {
         postRepository.delete(find);
     }
 
+    @Transactional
+    public void viewCount(Long id) {
+        getPost(id).increaseViewCount();
+    }
+
     private Post getPost(Long id) {
         Post find = postRepository.findById(id).orElseThrow(() ->
                 new CustomException(POST_NOT_FOUND));
