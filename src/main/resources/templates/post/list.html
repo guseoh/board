@@ -7,11 +7,16 @@
 <div class="page-wrap">
     <div class="container py-4">
 
-        <!-- 플래시 메시지 -->
         <div th:if="${msg}" class="alert alert-success alert-dismissible fade show" role="alert">
             <span th:text="${msg}">완료</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}">오류</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="mb-0">게시판</h3>
