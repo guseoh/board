@@ -1,11 +1,9 @@
 package project.board.global.security.user;
 
 import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import project.board.member.entity.Member;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,28 +14,29 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
+    private final String nickname;
+    private final String password;
+    private final Long memberId;
+    private final String email;
+    private final String role;
 
-    private final Member member;
+    //private final Member member;
 
-    public String getNickname() {
-        return member.getNickname();
-    }
-
-    public CustomUserDetails(Member member) {
-        this.member = member;
-    }
-
-    public Long getMemberId() {
-        return member.getId();
+    public CustomUserDetails(String nickname, String password, Long memberId, String email, String role) {
+        this.nickname = nickname;
+        this.password = password;
+        this.memberId = memberId;
+        this.email = email;
+        this.role = role;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(member.getRole().getKey()));
+        return List.of(new SimpleGrantedAuthority(role));
     }
 
-    @Override public String getPassword() { return member.getPassword(); }
-    @Override public String getUsername() { return member.getEmail(); }
+    @Override public String getPassword() { return password; }
+    @Override public String getUsername() { return email; }
 
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }
