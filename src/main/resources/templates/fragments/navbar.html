@@ -30,7 +30,7 @@
 <!--                    <span class="text-light small" th:text="${#authentication.principal.getClass().name}"></span>-->
 
                     <span class="text-light small">
-                    <span th:text="${#authentication.principal.member.nickname}"></span>님
+                    <span th:text="${#authentication.principal.nickname}"></span>님
                     </span>
 
                     <form th:action="@{/logout}" method="post" class="m-0">
