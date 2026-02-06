@@ -12,29 +12,21 @@
         </button>
 
         <div class="collapse navbar-collapse" id="nav">
-<!--            <ul class="navbar-nav me-auto mb-2 mb-lg-0">-->
-<!--                <li class="nav-item">-->
-<!--                    <a class="nav-link"-->
-<!--                       th:classappend="${activeMenu}=='post' ? 'active' : ''"-->
-<!--                       th:href="@{/post}">게시판</a>-->
-<!--                </li>-->
-<!--            </ul>-->
 
-            <div class="d-flex align-items-center gap-2">
+            <!-- 오른쪽 영역: ms-auto 핵심 -->
+            <div class="d-flex align-items-center gap-2 ms-auto">
                 <div sec:authorize="isAnonymous()" class="d-flex gap-2">
-                    <a class="btn btn-outline-light btn-sm" th:href="@{/loginForm}">로그인</a>
-                    <a class="btn btn-warning btn-sm" th:href="@{/signup}">회원가입</a>
+                    <a class="btn btn-login btn-sm" th:href="@{/loginForm}">로그인</a>
+                    <a class="btn btn-signup btn-sm" th:href="@{/signup}">회원가입</a>
                 </div>
 
                 <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2">
-<!--                    <span class="text-light small" th:text="${#authentication.principal.getClass().name}"></span>-->
-
                     <span class="text-light small">
-                    <span th:text="${#authentication.principal.nickname}"></span>님
+                        <span th:text="${#authentication.principal.nickname}"></span>님
                     </span>
 
                     <form th:action="@{/logout}" method="post" class="m-0">
-                        <button class="btn btn-outline-light btn-sm" type="submit">로그아웃</button>
+                        <button class="btn btn-login btn-sm" type="submit">로그아웃</button>
                     </form>
                 </div>
             </div>
