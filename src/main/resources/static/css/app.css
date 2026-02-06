@@ -1,2 +1,219 @@
 .page-wrap { min-height: calc(100vh - 56px); }
 pre.content { white-space: pre-wrap; word-break: break-word; }
+
+
+/* =========================================
+   Soft Dark refinement for Board (no pure black)
+   - nicer spacing, table, badges, buttons, typography
+   ========================================= */
+:root[data-bs-theme="dark"] {
+    /* Base */
+    --bs-body-bg: #1c1f26;      /* charcoal */
+    --bs-body-color: #e6e8ee;   /* soft white */
+    --bs-border-color: rgba(255,255,255,.08);
+
+    /* Brand / Accent (subtle) */
+    --bs-primary: #8b93a7;
+    --bs-primary-rgb: 139,147,167;
+
+    /* Links */
+    --bs-link-color: #9bbcff;
+    --bs-link-hover-color: #c7d7ff;
+}
+
+/* Background: gentle, not flat */
+body {
+    background: radial-gradient(1200px 500px at 10% -10%, rgba(155,188,255,.10), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(139,147,167,.10), transparent 55%),
+    linear-gradient(180deg, #1c1f26 0%, #181b21 100%);
+    color: var(--bs-body-color);
+}
+
+/* Layout: a bit narrower + readable spacing */
+.container, .container-fluid {
+    max-width: 1120px; /* 과하게 넓지 않게 */
+}
+
+/* Page title (게시판) */
+h1, h2, .h1, .h2 {
+    letter-spacing: -0.02em;
+}
+h1 {
+    font-weight: 750;
+    margin-bottom: 18px;
+}
+
+/* Navbar tone */
+.navbar {
+    background-color: #2b303b !important;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+/* Navbar brand spacing */
+.navbar .navbar-brand {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* Buttons: keep bootstrap shapes but soften */
+.btn {
+    border-radius: 10px;
+}
+.btn-primary {
+    background-color: #6c7488;
+    border-color: #6c7488;
+    color: #121318;
+}
+.btn-primary:hover {
+    background-color: #7b849a;
+    border-color: #7b849a;
+}
+.btn-outline-light {
+    border-color: rgba(255,255,255,.22);
+}
+.btn-outline-light:hover {
+    background-color: rgba(255,255,255,.10);
+}
+
+/* “글쓰기” 버튼이 너무 튀면(secondary로 차분하게) */
+.btn-secondary {
+    background-color: #3a3f4b;
+    border-color: #3a3f4b;
+}
+.btn-secondary:hover {
+    background-color: #4a5060;
+    border-color: #4a5060;
+}
+
+/* Cards / blocks (if used) */
+.card {
+    background-color: #262a35;
+    border-color: rgba(255,255,255,.06);
+    border-radius: 12px;
+    box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+
+/* Table wrapper: make it feel like a component */
+.table {
+    background-color: #262a35;
+    border-radius: 12px;
+    overflow: hidden;          /* round corners apply */
+    margin-top: 10px;
+    box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+
+/* Table header */
+.table thead th {
+    background-color: #2f3441;
+    color: #f1f3f5;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+/* Table cells: more breathing room */
+.table > :not(caption) > * > * {
+    border-color: rgba(255,255,255,.06);
+    padding: 14px 14px; /* 기본 0.5rem보다 넉넉하게 */
+}
+
+/* Row hover: subtle lift */
+.table tbody tr {
+    transition: background-color .15s ease, transform .15s ease;
+}
+.table tbody tr:hover {
+    background-color: #2a2f3b;
+}
+
+/* Make title column link stand out but not neon */
+.table a {
+    text-decoration: none;
+}
+.table a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* 조회수 “0/1/11” pill: use badge-like style even if it's not badge component */
+.badge, .pill, .view-count {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background-color: rgba(255,255,255,.10);
+    color: #eaecef;
+    font-weight: 650;
+    font-size: 0.85rem;
+}
+
+/* If you're using <span class="badge bg-secondary">, tone it down */
+.badge.bg-secondary {
+    background-color: rgba(255,255,255,.12) !important;
+}
+
+/* Forms (login/signup/post form) */
+.form-control, .form-select, textarea {
+    background-color: #1f2330 !important;
+    border-color: rgba(255,255,255,.10) !important;
+    color: #e6e8ee !important;
+    border-radius: 10px;
+}
+.form-control::placeholder, textarea::placeholder {
+    color: rgba(230,232,238,.55);
+}
+
+/* Focus ring: subtle blue-gray */
+.form-control:focus, .form-select:focus, textarea:focus {
+    box-shadow: 0 0 0 .2rem rgba(155,188,255,.18);
+}
+
+/* Small quality-of-life: horizontal rule */
+hr {
+    border-color: rgba(255,255,255,.08);
+}
+
+
+/* navbar 오른쪽 버튼 스타일 */
+.btn-login {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.22);
+    color: #e6e8ee;
+    border-radius: 10px;
+    padding: 6px 12px;
+}
+.btn-login:hover {
+    background: rgba(255,255,255,.10);
+    border-color: rgba(255,255,255,.30);
+    color: #ffffff;
+}
+
+/* 회원가입은 포인트 컬러(OKKY 느낌) */
+.btn-signup {
+    background: #3b82f6;   /* 포인트 블루 */
+    border: 1px solid #3b82f6;
+    color: #fff;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-weight: 700;
+}
+.btn-signup:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+/* footer */
+.app-footer {
+    border-top: 1px solid rgba(255,255,255,.06);
+    background: rgba(20, 24, 36, .55);
+    backdrop-filter: blur(6px);
+}
+.footer-link {
+    color: #c7d7ff;
+    text-decoration: none;
+}
+.footer-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+

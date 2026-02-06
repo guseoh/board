@@ -1,6 +1,24 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <body th:fragment="footer">
+<footer class="app-footer mt-5">
+    <div class="container py-4 d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
+        <div>
+            <div class="fw-bold">Board Project</div>
+            <div class="text-muted small">Spring Boot + Thymeleaf 게시판</div>
+        </div>
+
+        <div class="d-flex flex-column align-items-start">
+            <a class="footer-link" href="https://github.com/guseoh" target="_blank" rel="noopener">
+                GitHub Repository
+            </a>
+            <span class="text-muted small">
+                © <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2026</span> 오지훈
+            </span>
+        </div>
+    </div>
+</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
