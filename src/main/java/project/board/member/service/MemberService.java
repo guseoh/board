@@ -5,6 +5,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import project.board.global.exception.CustomException;
+import project.board.global.exception.ErrorCode;
 import project.board.member.dto.MemberDto;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
@@ -21,11 +23,11 @@ public class MemberService {
     @Transactional
     public Long signUp(MemberDto.CreateRequest request) {
         if (memberRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalStateException("이미 가입된 이메일입니다.");
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         if (memberRepository.existsByNickname(request.getNickname())) {
-            throw new IllegalStateException("이미 가입된 닉네임입니다.");
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
         String encoded = passwordEncoder.encode(request.getPassword());
@@ -42,7 +44,7 @@ public class MemberService {
 
     public MemberDto.Response getMyProfile(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new
-                IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         return MemberDto.Response.from(member);
     }
@@ -50,7 +52,7 @@ public class MemberService {
     @Transactional
     public void updateMyProfile(Long memberId, MemberDto.UpdateRequest request) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new
-                IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         //이메일 변경
         if (StringUtils.hasText(request.getEmail())) {
@@ -59,7 +61,7 @@ public class MemberService {
             if (!newEmail.equals(member.getEmail())
                     && memberRepository.existsByEmailAndIdNot(newEmail, memberId)
             ) {
-                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+                throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
             }
 
             member.changeEmail(newEmail);
@@ -70,7 +72,7 @@ public class MemberService {
             String newNickName = request.getNickname().trim();
 
             if (!newNickName.equals(request.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
-                throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
             }
             member.changeNickname(newNickName);
         }
