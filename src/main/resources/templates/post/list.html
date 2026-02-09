@@ -19,6 +19,18 @@
 
 
         <div class="d-flex justify-content-end align-items-center mb-3">
+
+            <form th:action="@{/posts/search}" method="get" class="d-flex" style="max-width: 320px;">
+                <input type="text"
+                       name="keyword"
+                       class="form-control me-2"
+                       placeholder="제목 검색"
+                       th:value="${keyword}">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </form>
+
             <a class="btn btn-signup" th:href="@{/post/new}">
                 <i class="bi bi-pencil-square"></i> 작성하기
             </a>
@@ -31,6 +43,7 @@
                     <tr>
                         <th style="width: 90px;">번호</th>
                         <th>제목</th>
+                        <th style="width: 140px;">작성자</th>
                         <th style="width: 140px;">조회</th>
                         <th style="width: 180px;">작성일</th>
                     </tr>
@@ -49,8 +62,12 @@
                                th:text="${post.title}">제목</a>
                         </td>
                         <td>
-              <span class="badge text-bg-secondary"
-                    th:text="${post.viewCount != null ? post.viewCount : 0}">0</span>
+                            <span class="badge text-bg-secondary"
+                                  th:text="${post.getMember().getNickname()}">작성자</span>
+                        </td>
+                        <td>
+                            <span class="badge text-bg-secondary"
+                                  th:text="${post.viewCount != null ? post.viewCount : 0}">0</span>
                         </td>
                         <td class="text-muted"
                             th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">

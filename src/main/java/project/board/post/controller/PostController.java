@@ -16,6 +16,8 @@ import project.board.global.security.user.CustomUserDetails;
 import project.board.post.dto.PostDto;
 import project.board.post.service.PostService;
 
+import java.util.List;
+
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -47,12 +49,23 @@ public class PostController {
         return "post/detail";
     }
 
+    @GetMapping("/posts/search")
+    public String search(@RequestParam String keyword, Model model) {
+        List<PostDto.Response> posts = postService.search(keyword);
+        model.addAttribute("posts", posts);
+        model.addAttribute("keyword", keyword);
+
+        return "post/list";
+    }
+
+
     //todo: 작성도 인증된 사람만
     @PostMapping("/post/new")
     public String create(@Valid @ModelAttribute("form") PostDto.CreateRequest request,
                          BindingResult bindingResult,
                          @AuthenticationPrincipal CustomUserDetails customUserDetails,
                          RedirectAttributes redirectAttributes) {
+
         if (bindingResult.hasErrors()) {
             return "post/form";
         }

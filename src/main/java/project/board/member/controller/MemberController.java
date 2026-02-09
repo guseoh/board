@@ -35,15 +35,11 @@ public class MemberController {
             return "member/signup";
         }
 
-        //todo: ControllerAdvice로 개선
-        try {
-            memberService.signUp(form);
-            redirectAttributes.addFlashAttribute("msg", "회원가입 완료");
-            return "redirect:/loginForm";
-        } catch (IllegalArgumentException e) {
-            bindingResult.reject("signupFail", e.getMessage());
-            return "member/signup";
-        }
+        memberService.signUp(form);
+
+        redirectAttributes.addFlashAttribute("msg", "회원가입 완료");
+
+        return "redirect:/lofinForm";
     }
 
     @GetMapping("/loginForm")
