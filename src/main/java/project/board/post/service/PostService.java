@@ -14,6 +14,9 @@ import project.board.post.dto.PostDto;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static project.board.global.exception.ErrorCode.POST_NOT_FOUND;
 
 @Service
@@ -68,6 +71,13 @@ public class PostService {
     @Transactional
     public void viewCount(Long id) {
         getPost(id).increaseViewCount();
+    }
+
+    public List<PostDto.Response> search(String keyword) {
+        return postRepository.findByTitleContaining(keyword)
+                .stream()
+                .map(PostDto.Response::from)
+                .toList();
     }
 
     private Post getPost(Long id) {
