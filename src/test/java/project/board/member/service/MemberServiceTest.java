@@ -1,6 +1,5 @@
 package project.board.member.service;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,13 +7,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import project.board.global.exception.CustomException;
 import project.board.member.dto.MemberDto;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -75,8 +74,8 @@ class MemberServiceTest {
 
         assertThatThrownBy(() ->
                 memberService.signUp(createRequest("실패", "test@te.com", "1234")))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 가입된 이메일입니다.");
+                .isInstanceOf(CustomException.class)
+                .hasMessage("이미 사용중인 이메일입니다.");
     }
     @Test
     @DisplayName("회원가입 실패 닉네임 중복 테스트")
@@ -86,8 +85,8 @@ class MemberServiceTest {
 
         assertThatThrownBy(() ->
                 memberService.signUp(createRequest("테스트", "st@te.com", "1234")))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 가입된 닉네임입니다.");
+                .isInstanceOf(CustomException.class)
+                .hasMessage("이미 사용중인 닉네임입니다.");
     }
 
     @Test
@@ -95,7 +94,7 @@ class MemberServiceTest {
     void 정보조회() {
         assertThatThrownBy(() ->
                 memberService.getMyProfile(9999L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(CustomException.class)
                 .hasMessage("해당 사용자가 존재하지 않습니다.");
     }
 

@@ -30,6 +30,10 @@ public class MemberService {
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
+        if (!request.getPassword().equals(request.getPasswordConfirm())) {
+            throw new CustomException(ErrorCode.PASSWORD_MISMATCH);
+        }
+
         String encoded = passwordEncoder.encode(request.getPassword());
 
         Member member = Member.create(
