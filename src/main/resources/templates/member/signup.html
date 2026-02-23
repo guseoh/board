@@ -1,22 +1,27 @@
 <!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('회원가입')}"></head>
-<body>
+
+<body class="login-page">
 <div th:replace="~{fragments/navbar :: navbar('')}"></div>
 
 <div class="page-wrap">
-    <div class="container py-4" style="max-width: 720px;">
-
-        <!-- 플래시 메시지 -->
-        <div th:if="${msg}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="container login-container">
+        <div th:if="${msg}" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
             <span th:text="${msg}">완료</span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-body p-4">
-                <h3 class="mb-1">회원가입</h3>
-                <p class="text-muted mb-4">정보를 입력하고 계정을 생성하세요.</p>
+        <div class="card shadow-sm login-card signup-card">
+            <div class="card-body">
+                <div class="signup-hero text-center mb-4">
+                    <h2 class="signup-title mb-2">Board에 오신 것을 환영합니다.</h2>
+                    <p class="signup-subtitle mb-0">기본 정보를 입력하고 계정을 생성하세요.</p>
+                </div>
+
+                <div class="signup-divider my-4">
+                    <span>회원가입에 필요한 기본정보를 입력해주세요.</span>
+                </div>
 
                 <form th:action="@{/signup}" method="post" th:object="${form}">
                     <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
@@ -24,52 +29,59 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">닉네임</label>
-                        <input type="text" class="form-control" th:field="*{nickname}" placeholder="닉네임">
+                        <label class="form-label" for="nickname">닉네임 <span class="text-danger">*</span></label>
+                        <input id="nickname"
+                               type="text"
+                               class="form-control"
+                               th:field="*{nickname}"
+                               placeholder="닉네임을 입력해주세요">
                         <div class="text-danger small mt-1"
-                             th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}">
+                             th:if="${#fields.hasErrors('nickname')}"
+                             th:errors="*{nickname}">
                             닉네임 에러
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">이메일</label>
-                        <input type="email" class="form-control" th:field="*{email}" placeholder="example@email.com">
+                        <label class="form-label" for="email">이메일 <span class="text-danger">*</span></label>
+                        <input id="email"
+                               type="email"
+                               class="form-control"
+                               th:field="*{email}"
+                               placeholder="example@email.com">
                         <div class="text-danger small mt-1"
-                             th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
+                             th:if="${#fields.hasErrors('email')}"
+                             th:errors="*{email}">
                             이메일 에러
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">비밀번호</label>
-                        <input type="password" class="form-control" th:field="*{password}" placeholder="비밀번호">
+                    <div class="mb-2">
+                        <label class="form-label" for="password">비밀번호 <span class="text-danger">*</span></label>
+                        <input id="password"
+                               type="password"
+                               class="form-control"
+                               th:field="*{password}"
+                               placeholder="비밀번호를 입력해주세요">
                         <div class="text-danger small mt-1"
-                             th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                             th:if="${#fields.hasErrors('password')}"
+                             th:errors="*{password}">
                             비밀번호 에러
                         </div>
-                        <div class="form-text">8자 이상, 영문/숫자 조합 권장</div>
+                        <div class="form-text mt-2">8자 이상, 영문/숫자 조합 권장</div>
                     </div>
 
-<!--                    &lt;!&ndash; 비밀번호 확인을 DTO에 넣을지 말지는 선택 &ndash;&gt;-->
-<!--                    <div class="mb-4"-->
-<!--                         th:if="${#fields.hasFieldErrors('passwordConfirm') or (form != null and form.getClass().declaredFields.?[name=='passwordConfirm'].size()>0)}">-->
-<!--                        <label class="form-label">비밀번호 확인</label>-->
-<!--                        <input type="password" class="form-control" th:field="*{passwordConfirm}" placeholder="비밀번호 확인">-->
-<!--                        <div class="text-danger small mt-1"-->
-<!--                             th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}">-->
-<!--                            비밀번호 확인 에러-->
-<!--                        </div>-->
-<!--                    </div>-->
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-signup signup-submit-btn" type="submit">회원가입</button>
+                    </div>
 
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-primary" type="submit">회원가입</button>
-                        <a class="btn btn-outline-secondary" th:href="@{/loginForm}">이미 계정이 있어요 (로그인)</a>
+                    <div class="text-center mt-4 signup-login-text">
+                        이미 회원이신가요?
+                        <a class="ms-1" th:href="@{/loginForm}">로그인</a>
                     </div>
                 </form>
             </div>
         </div>
-
     </div>
 </div>
 
