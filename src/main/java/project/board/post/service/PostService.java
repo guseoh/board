@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.board.global.dto.PageRequestDto;
+import project.board.global.dto.PageResultDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
@@ -15,6 +18,7 @@ import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static project.board.global.exception.ErrorCode.POST_NOT_FOUND;
@@ -43,9 +47,14 @@ public class PostService {
         return PostDto.Response.from(post);
     }
 
-    public Page<PostDto.Response> findAll(Pageable pageable) {
-        return postRepository.findAll(pageable)
-                .map(PostDto.Response::from);
+    public PageResultDto<PostDto.Response, Post> findAll(PageRequestDto pageRequestDto) {
+        Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
+
+        Page<Post> result = postRepository.findAll(pageable);
+
+        Function<Post, PostDto.Response> fn = PostDto.Response::from;
+
+        return new PageResultDto<>(result, fn);
     }
 
     @Transactional

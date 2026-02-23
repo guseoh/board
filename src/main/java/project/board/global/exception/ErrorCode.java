@@ -15,7 +15,8 @@ public enum ErrorCode {
     // member
     MEMBER_NOT_FOUND("/", "해당 사용자가 존재하지 않습니다."),
     DUPLICATE_EMAIL("/signup", "이미 사용중인 이메일입니다."),
-    DUPLICATE_NICKNAME("/signup", "이미 사용중인 닉네임입니다.");
+    DUPLICATE_NICKNAME("/signup", "이미 사용중인 닉네임입니다."),
+    PASSWORD_MISMATCH("/signup", "비밀번호가 일치해야합니다.");
 
     private final String redirectUrl;
     private final String message;

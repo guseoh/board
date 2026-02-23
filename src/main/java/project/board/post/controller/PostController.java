@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,8 +13,11 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import project.board.global.dto.PageRequestDto;
+import project.board.global.dto.PageResultDto;
 import project.board.global.security.user.CustomUserDetails;
 import project.board.post.dto.PostDto;
+import project.board.post.entity.Post;
 import project.board.post.service.PostService;
 
 import java.util.List;
@@ -27,11 +31,16 @@ public class PostController {
 
     // 전체 조회
     @GetMapping({"", "/"})
-    public String list(@PageableDefault(size = 10) Pageable pageable, Model model) {
-        Page<PostDto.Response> page = postService.findAll(pageable);
+    public String list(PageRequestDto request, Model model) {
+//        PageResultDto<PostDto.Response, Post> page = postService.findAll(request);
+
+        log.info("request page: " + request.getPage());
+        log.info("request size: " + request.getSize());
+
+        var page = postService.findAll(request);    //todo: var
 
         model.addAttribute("page", page);
-        model.addAttribute("posts", page.getContent());
+        model.addAttribute("posts", page.getDtoList());
 
         return "post/list";
     }

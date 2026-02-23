@@ -1,219 +1,467 @@
 .page-wrap { min-height: calc(100vh - 56px); }
 pre.content { white-space: pre-wrap; word-break: break-word; }
 
-
-/* =========================================
-   Soft Dark refinement for Board (no pure black)
-   - nicer spacing, table, badges, buttons, typography
-   ========================================= */
 :root[data-bs-theme="dark"] {
-    /* Base */
-    --bs-body-bg: #1c1f26;      /* charcoal */
-    --bs-body-color: #e6e8ee;   /* soft white */
-    --bs-border-color: rgba(255,255,255,.08);
+  --bs-body-bg: #1c1f26;
+  --bs-body-color: #e6e8ee;
+  --bs-border-color: rgba(255,255,255,.08);
 
-    /* Brand / Accent (subtle) */
-    --bs-primary: #8b93a7;
-    --bs-primary-rgb: 139,147,167;
+  --bs-primary: #8b93a7;
+  --bs-primary-rgb: 139,147,167;
 
-    /* Links */
-    --bs-link-color: #9bbcff;
-    --bs-link-hover-color: #c7d7ff;
+  --bs-link-color: #9bbcff;
+  --bs-link-hover-color: #c7d7ff;
 }
 
-/* Background: gentle, not flat */
 body {
-    background: radial-gradient(1200px 500px at 10% -10%, rgba(155,188,255,.10), transparent 60%),
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(155,188,255,.10), transparent 60%),
     radial-gradient(900px 500px at 90% 0%, rgba(139,147,167,.10), transparent 55%),
     linear-gradient(180deg, #1c1f26 0%, #181b21 100%);
-    color: var(--bs-body-color);
+  color: var(--bs-body-color);
 }
 
-/* Layout: a bit narrower + readable spacing */
 .container, .container-fluid {
-    max-width: 1120px; /* 과하게 넓지 않게 */
+  max-width: 1120px;
 }
 
-/* Page title (게시판) */
 h1, h2, .h1, .h2 {
-    letter-spacing: -0.02em;
+  letter-spacing: -0.02em;
 }
+
 h1 {
-    font-weight: 750;
-    margin-bottom: 18px;
+  font-weight: 750;
+  margin-bottom: 18px;
 }
 
-/* Navbar tone */
 .navbar {
-    background-color: #2b303b !important;
-    border-bottom: 1px solid rgba(255,255,255,.06);
+  background-color: #2b303b !important;
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
-/* Navbar brand spacing */
 .navbar .navbar-brand {
-    font-weight: 800;
-    letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
-/* Buttons: keep bootstrap shapes but soften */
 .btn {
-    border-radius: 10px;
+  border-radius: 10px;
 }
+
 .btn-primary {
-    background-color: #6c7488;
-    border-color: #6c7488;
-    color: #121318;
+  background-color: #6c7488;
+  border-color: #6c7488;
+  color: #121318;
 }
+
 .btn-primary:hover {
-    background-color: #7b849a;
-    border-color: #7b849a;
+  background-color: #7b849a;
+  border-color: #7b849a;
 }
+
 .btn-outline-light {
-    border-color: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.22);
 }
+
 .btn-outline-light:hover {
-    background-color: rgba(255,255,255,.10);
+  background-color: rgba(255,255,255,.10);
 }
 
-/* “글쓰기” 버튼이 너무 튀면(secondary로 차분하게) */
 .btn-secondary {
-    background-color: #3a3f4b;
-    border-color: #3a3f4b;
+  background-color: #3a3f4b;
+  border-color: #3a3f4b;
 }
+
 .btn-secondary:hover {
-    background-color: #4a5060;
-    border-color: #4a5060;
+  background-color: #4a5060;
+  border-color: #4a5060;
 }
 
-/* Cards / blocks (if used) */
 .card {
-    background-color: #262a35;
-    border-color: rgba(255,255,255,.06);
-    border-radius: 12px;
-    box-shadow: 0 10px 22px rgba(0,0,0,.22);
+  background-color: #262a35;
+  border-color: rgba(255,255,255,.06);
+  border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
 }
 
-/* Table wrapper: make it feel like a component */
 .table {
-    background-color: #262a35;
-    border-radius: 12px;
-    overflow: hidden;          /* round corners apply */
-    margin-top: 10px;
-    box-shadow: 0 10px 22px rgba(0,0,0,.22);
+  background-color: #262a35;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 10px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
 }
 
-/* Table header */
 .table thead th {
-    background-color: #2f3441;
-    color: #f1f3f5;
-    font-weight: 700;
-    border-bottom: 1px solid rgba(255,255,255,.10);
-    padding-top: 14px;
-    padding-bottom: 14px;
+  background-color: #2f3441;
+  color: #f1f3f5;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  padding-top: 14px;
+  padding-bottom: 14px;
 }
 
-/* Table cells: more breathing room */
 .table > :not(caption) > * > * {
-    border-color: rgba(255,255,255,.06);
-    padding: 14px 14px; /* 기본 0.5rem보다 넉넉하게 */
+  border-color: rgba(255,255,255,.06);
+  padding: 14px 14px;
 }
 
-/* Row hover: subtle lift */
 .table tbody tr {
-    transition: background-color .15s ease, transform .15s ease;
+  transition: background-color .15s ease, transform .15s ease;
 }
+
 .table tbody tr:hover {
-    background-color: #2a2f3b;
+  background-color: #2a2f3b;
 }
 
-/* Make title column link stand out but not neon */
 .table a {
-    text-decoration: none;
+  text-decoration: none;
 }
+
 .table a:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-/* 조회수 “0/1/11” pill: use badge-like style even if it's not badge component */
 .badge, .pill, .view-count {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background-color: rgba(255,255,255,.10);
-    color: #eaecef;
-    font-weight: 650;
-    font-size: 0.85rem;
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: rgba(255,255,255,.10);
+  color: #eaecef;
+  font-weight: 650;
+  font-size: 0.85rem;
 }
 
-/* If you're using <span class="badge bg-secondary">, tone it down */
 .badge.bg-secondary {
-    background-color: rgba(255,255,255,.12) !important;
+  background-color: rgba(255,255,255,.12) !important;
 }
 
-/* Forms (login/signup/post form) */
 .form-control, .form-select, textarea {
-    background-color: #1f2330 !important;
-    border-color: rgba(255,255,255,.10) !important;
-    color: #e6e8ee !important;
-    border-radius: 10px;
+  background-color: #1f2330 !important;
+  border-color: rgba(255,255,255,.10) !important;
+  color: #e6e8ee !important;
+  border-radius: 10px;
 }
+
 .form-control::placeholder, textarea::placeholder {
-    color: rgba(230,232,238,.55);
+  color: rgba(230,232,238,.55);
 }
 
-/* Focus ring: subtle blue-gray */
 .form-control:focus, .form-select:focus, textarea:focus {
-    box-shadow: 0 0 0 .2rem rgba(155,188,255,.18);
+  box-shadow: 0 0 0 .2rem rgba(155,188,255,.18);
 }
 
-/* Small quality-of-life: horizontal rule */
 hr {
-    border-color: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.08);
 }
 
-
-/* navbar 오른쪽 버튼 스타일 */
 .btn-login {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,.22);
-    color: #e6e8ee;
-    border-radius: 10px;
-    padding: 6px 12px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.22);
+  color: #e6e8ee;
+  border-radius: 10px;
+  padding: 6px 12px;
 }
+
 .btn-login:hover {
-    background: rgba(255,255,255,.10);
-    border-color: rgba(255,255,255,.30);
-    color: #ffffff;
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.30);
+  color: #ffffff;
 }
 
-/* 회원가입은 포인트 컬러(OKKY 느낌) */
 .btn-signup {
-    background: #3b82f6;   /* 포인트 블루 */
-    border: 1px solid #3b82f6;
-    color: #fff;
-    border-radius: 10px;
-    padding: 6px 12px;
-    font-weight: 700;
+  background: #3b82f6;
+  border: 1px solid #3b82f6;
+  color: #fff;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 700;
 }
+
 .btn-signup:hover {
-    background: #2563eb;
-    border-color: #2563eb;
-    color: #fff;
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
 }
 
-/* footer */
+.login-page .navbar {
+  min-height: 64px;
+}
+
+.login-page .navbar .container {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.login-page .navbar-brand {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.login-page .navbar .btn {
+  padding: 6px 12px;
+  font-size: 0.95rem;
+}
+
+.login-page .container.login-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 560px;
+  border-radius: 16px;
+}
+
+.login-card .card-body {
+  padding: 32px !important;
+}
+
+.login-card h3 {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+.login-card .text-muted.small {
+  font-size: 0.98rem !important;
+}
+
+.login-card .form-label {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.login-card .form-control {
+  min-height: 52px;
+  font-size: 1.05rem;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.login-card .btn-signup {
+  min-height: 52px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  border-radius: 12px;
+}
+
+.login-card .login-link {
+  font-size: 1rem !important;
+}
+
+.alert {
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.alert-success {
+  background-color: rgba(25, 135, 84, .15);
+  color: #b9f0d0;
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, .15);
+  color: #ffc2c8;
+}
+
+.alert-info {
+  background-color: rgba(13, 202, 240, .12);
+  color: #bfefff;
+}
+
 .app-footer {
-    border-top: 1px solid rgba(255,255,255,.06);
-    background: rgba(20, 24, 36, .55);
-    backdrop-filter: blur(6px);
-}
-.footer-link {
-    color: #c7d7ff;
-    text-decoration: none;
-}
-.footer-link:hover {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  background: rgba(20, 24, 36, .55);
+  backdrop-filter: blur(6px);
 }
 
+.footer-link {
+  color: #c7d7ff;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 회원가입 페이지 */
+.signup-card {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.login-card .form-text {
+  color: rgba(230, 232, 238, .65);
+}
+
+.login-page .btn-outline-secondary {
+  background: transparent;
+  border-color: rgba(255,255,255,.14);
+  color: #dfe3ea;
+}
+
+.login-page .btn-outline-secondary:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.22);
+  color: #fff;
+}
+
+.text-danger.small {
+  color: #ffb4bc !important;
+}
+
+.login-page .page-wrap {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: flex-start;
+}
+
+.login-page .page-wrap .container.login-container {
+  max-width: 900px;
+  width: 100%;
+  padding-top: 40px;
+  padding-bottom: 24px;
+}
+
+/* 회원가입 카드 체감 크기 업 */
+.signup-card .card-body {
+  padding: 36px !important;
+}
+
+.signup-card h3 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.signup-card .text-muted {
+  font-size: 1.02rem;
+}
+
+.signup-card .form-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.signup-card .form-control {
+  min-height: 54px;
+  font-size: 1.05rem;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.signup-card .btn-signup,
+.signup-card .btn-login {
+  min-height: 52px;
+  font-size: 1.08rem;
+  border-radius: 12px;
+}
+
+.nav-search {
+  width: 280px;
+  max-width: 60vw;
+}
+
+@media (max-width: 991.98px) {
+  .nav-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-page .navbar .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .login-page .container.login-container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .login-card {
+    max-width: 100%;
+  }
+
+  .login-card .card-body {
+    padding: 22px !important;
+  }
+
+  .login-card h3 {
+    font-size: 1.8rem;
+  }
+
+  .signup-card {
+    max-width: 100%;
+  }
+
+  .signup-card .card-body {
+    padding: 22px !important;
+  }
+
+  .signup-card h3 {
+    font-size: 1.9rem;
+  }
+}
+
+.signup-hero {
+  padding-top: 4px;
+}
+
+.signup-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #f3f6ff;
+}
+
+.signup-subtitle {
+  color: rgba(230,232,238,.72);
+  font-size: 1rem;
+}
+
+.signup-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(230,232,238,.55);
+  font-size: .95rem;
+}
+
+.signup-divider::before,
+.signup-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.10);
+}
+
+.signup-submit-btn {
+  min-height: 56px !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+}
+
+.signup-login-text {
+  color: rgba(230,232,238,.88);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.signup-login-text a {
+  color: #3b82f6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
