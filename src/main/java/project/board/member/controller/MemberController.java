@@ -39,7 +39,7 @@ public class MemberController {
 
         redirectAttributes.addFlashAttribute("msg", "회원가입 완료");
 
-        return "redirect:/lofinForm";
+        return "redirect:/loginForm";
     }
 
     @GetMapping("/loginForm")
