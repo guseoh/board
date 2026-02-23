@@ -19,7 +19,7 @@ public class GlobalControllerAdvice {
 
         ra.addFlashAttribute("msg", e.getMessage());
 
-        if (errorCode == ErrorCode.DUPLICATE_EMAIL || errorCode == ErrorCode.DUPLICATE_NICKNAME) {
+        if (errorCode == ErrorCode.DUPLICATE_EMAIL || errorCode == ErrorCode.DUPLICATE_NICKNAME || errorCode == ErrorCode.PASSWORD_MISMATCH) {
 
             model.addAttribute("form", new MemberDto.CreateRequest());
 
