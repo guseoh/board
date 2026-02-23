@@ -24,6 +24,10 @@
                 </div>
 
                 <form th:action="@{/signup}" method="post" th:object="${form}">
+                    <div class="alert alert-danger" th:if="${error}">
+                        <span th:text="${error}">오류</span>
+                    </div>
+
                     <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
                         <div th:each="err : ${#fields.globalErrors()}" th:text="${err}">에러</div>
                     </div>
@@ -69,6 +73,20 @@
                             비밀번호 에러
                         </div>
                         <div class="form-text mt-2">8자 이상, 영문/숫자 조합 권장</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="passwordConfirm" class="form-label">비밀번호 확인 <span class="text-danger">*</span></label>
+                        <input id="passwordConfirm"
+                               type="password"
+                               class="form-control"
+                               th:field="*{passwordConfirm}"
+                               placeholder="비밀번호를 체크">
+                        <div class="text-danger small mt-1"
+                             th:if="${#fields.hasErrors('passwordConfirm')}"
+                             th:errors="*{passwordConfirm}">
+                            비밀번호 확인 에러
+                        </div>
                     </div>
 
                     <div class="d-grid gap-2 mt-4">
