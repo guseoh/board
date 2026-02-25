@@ -54,9 +54,4 @@ public class MemberController {
         return "member/me";
     }
 
-//    @GetMapping("/member/me/edit")
-//    public String editForm(@AuthenticationPrincipal CustomUserDetails user,
-//                           Model model) {
-//
-//    }
 }
