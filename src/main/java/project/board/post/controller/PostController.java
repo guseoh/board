@@ -29,13 +29,8 @@ public class PostController {
 
     private final PostService postService;
 
-    // 전체 조회
     @GetMapping({"", "/"})
     public String list(PageRequestDto request, Model model) {
-//        PageResultDto<PostDto.Response, Post> page = postService.findAll(request);
-
-        log.info("request page: " + request.getPage());
-        log.info("request size: " + request.getSize());
 
         var page = postService.findAll(request);    //todo: var
 
@@ -45,7 +40,6 @@ public class PostController {
         return "post/list";
     }
 
-    // 단일 조회
     @GetMapping("/post/{id}")
     public String detail(@PathVariable Long id, Model model) {
 
@@ -68,7 +62,6 @@ public class PostController {
     }
 
 
-    //todo: 작성도 인증된 사람만
     @PostMapping("/post/new")
     public String create(@Valid @ModelAttribute("form") PostDto.CreateRequest request,
                          BindingResult bindingResult,
@@ -131,7 +124,6 @@ public class PostController {
             return "post/form";
         }
 
-        log.info("게시글 수정이 완료되었습니다.");
 
         postService.update(form, id, user.getMemberId());
 
