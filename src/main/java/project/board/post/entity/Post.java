@@ -42,6 +42,11 @@ public class Post extends BaseEntity {
         return p;
     }
 
+    public void addComment(Comment comment) {
+        comments.add(comment);
+        comment.addPost(this);
+    }
+
     public void assignMember(Member member) {
         this.member = member;
         member.getPosts().add(this);

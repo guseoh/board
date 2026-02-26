@@ -1,7 +1,6 @@
 package project.board.comment.dto;
 
 
-import com.sun.source.doctree.CommentTree;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,17 +12,19 @@ import java.time.LocalDateTime;
 
 public class CommentDto {
 
-    @Getter
-    @NoArgsConstructor
-    public static class CreateRequest {
-        private String content;
-    }
+//    @Getter
+//    @NoArgsConstructor
+//    public static class CreateRequest {
+//        private String content;
+//    }
+//
+//    @Getter
+//    @NoArgsConstructor
+//    public static class UpdateRequest {
+//        private String content;
+//    }
 
-    @Getter
-    @NoArgsConstructor
-    public static class UpdateRequest {
-        private String content;
-    }
+
 
     @Getter
     @Builder
@@ -36,15 +37,24 @@ public class CommentDto {
         private String createdBy;
         private String updatedBy;
 
-        private MemberDto.Response member;
-        private PostDto.Response post;
+//        private MemberDto.Response member;
+//        private PostDto.Response post;
 
-        public static Response from(Comment comment) {
+        private Long memberId;
+        private String nickName;
+        private Long postId;
+
+        public static Response from(Comment c) {
             return Response.builder()
-                    .id(comment.getId())
-                    .content(comment.getContent())
-                    .member(MemberDto.Response.from(comment.getMember()))
-                    .post(PostDto.Response.from(comment.getPost()))
+                    .id(c.getId())
+                    .content(c.getContent())
+                    .createdAt(c.getCreatedAt())
+                    .updatedAt(c.getUpdatedAt())
+                    .createdBy(c.getCreatedBy())
+                    .updatedBy(c.getUpdatedBy())
+                    .memberId(c.getMember().getId())
+                    .nickName(c.getMember().getNickname())
+                    .postId(c.getPost().getId())
                     .build();
         }
 

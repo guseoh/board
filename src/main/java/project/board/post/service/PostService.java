@@ -19,7 +19,6 @@ import project.board.post.repository.PostRepository;
 
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static project.board.global.exception.ErrorCode.POST_NOT_FOUND;
 

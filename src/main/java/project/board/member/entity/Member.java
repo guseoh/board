@@ -11,9 +11,7 @@ import java.util.List;
 
 @Entity
 @Getter
-//@AllArgsConstructor : 정적 팩토리
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-//@Builder
 public class Member extends BaseEntity {
 
     @Id
@@ -36,8 +34,8 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "member")
     private List<Post> posts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member")
-    private List<Comment> comments = new ArrayList<>();
+//    @OneToMany(mappedBy = "member")
+//    private List<Comment> comments = new ArrayList<>();
 
     public static Member create(String nickname, String email, String encodedPassword, Role role) {
         Member m = new Member();
