@@ -31,19 +31,23 @@ public class Comment extends BaseEntity {
     public static Comment create(String content, Member member, Post post) {
         Comment c = new Comment();
         c.content = content;
-        c.addMember(member);
-        c.addPost(post);
+        c.member = member;
+        post.addComment(c);
         return c;
     }
 
-    public void addMember(Member member) {
-        this.member = member;
-        member.getComments().add(this);
-    }
+//    public void addMember(Member member) {
+//        this.member = member;
+//        member.getComments().add(this);
+//    }
+//
+//    public void addPost(Post post) {
+//        this.post = post;
+//        post.getComments().add(this);
+//    }
 
     public void addPost(Post post) {
         this.post = post;
-        post.getComments().add(this);
     }
 
     public void changeContent(String content) {
