@@ -75,7 +75,6 @@ public class MemberDto {
         private String createdBy;
         private String updatedBy;
 
-        private List<CommentDto.Response> comments;
         private List<PostDto.Response> posts;
 
         public static Response from(Member member) {
@@ -84,12 +83,6 @@ public class MemberDto {
                     .nickname(member.getNickname())
                     .email(member.getEmail())
                     .role(member.getRole())
-                    .comments(member.getComments().stream()
-                            .map(CommentDto.Response::from)
-                            .toList())
-//                    .posts(member.getPosts().stream()
-//                            .map(PostDto.Response::from)
-//                            .toList())
                     .build();
         }
     }
