@@ -33,6 +33,11 @@ public class CommentController {
                          @AuthenticationPrincipal CustomUserDetails user,
                          RedirectAttributes ra) {
 
+        if (user == null) {
+            ra.addAttribute("redirect", "/post/" + postId);
+            return "redirect:/loginForm";
+        }
+
         if (bindingResult.hasErrors()) {
             ra.addFlashAttribute("error", "댓글 내용을 확인해주세요");
             return "redirect:/post/" + postId;
