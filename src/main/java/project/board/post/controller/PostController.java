@@ -13,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import project.board.comment.dto.CommentRequestDto;
+import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.dto.PageResultDto;
 import project.board.global.security.user.CustomUserDetails;
@@ -28,6 +30,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final CommentService commentService;
 
     @GetMapping({"", "/"})
     public String list(PageRequestDto request, Model model) {
@@ -41,13 +44,18 @@ public class PostController {
     }
 
     @GetMapping("/post/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id,
+                         @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                         Model model) {
 
         //todo: service 두 번 호출
         postService.viewCount(id);
         PostDto.Response post = postService.findOne(id);
 
         model.addAttribute("post", post);
+        model.addAttribute("comments", commentService.findAll(id));
+        model.addAttribute("commentForm", new CommentRequestDto());
+        model.addAttribute("memberId", customUserDetails != null ? customUserDetails.getMemberId() : null);
 
         return "post/detail";
     }
