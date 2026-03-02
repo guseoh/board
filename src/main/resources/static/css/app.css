@@ -677,3 +677,25 @@ hr {
     min-height: 72px;
   }
 }
+
+.comment-edit .border {
+  border-color: rgba(255,255,255,.10) !important;
+  background: rgba(255,255,255,.02);
+}
+
+.comment-item:last-child {
+  border-bottom: 0;
+}
+
+.comment-divider {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.comment-view.d-none + .comment-edit {
+  margin-top: 8px;
+}
+
+.comment-avatar span {
+  user-select: none;
+}

@@ -25,35 +25,30 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
-    private final PostService postService;
 
-    @GetMapping("/post/{id}")
-    public String createForm(@PathVariable Long postId,
-                             Model model) {
-        PostDto.Response post = postService.findOne(postId);
-        List<CommentDto.Response> comments = commentService.findAll(postId);
-
-        return "post/detail";
-    }
-
-    @PostMapping("/post/{id}/comment")
+    @PostMapping("/post/{postId}/comment")
     public String create(@PathVariable Long postId,
                          @ModelAttribute("commentForm") @Valid CommentRequestDto requestDto,
-                         @AuthenticationPrincipal CustomUserDetails user,
                          BindingResult bindingResult,
+                         @AuthenticationPrincipal CustomUserDetails user,
                          RedirectAttributes ra) {
+
+        if (user == null) {
+            ra.addAttribute("redirect", "/post/" + postId);
+            return "redirect:/loginForm";
+        }
 
         if (bindingResult.hasErrors()) {
             ra.addFlashAttribute("error", "댓글 내용을 확인해주세요");
             return "redirect:/post/" + postId;
         }
 
-        commentService.create(requestDto, postId, user.getMemberId());
+        commentService.create(requestDto, user.getMemberId(), postId);
 
         return "redirect:/post/" + postId;
     }
 
-    @PostMapping("/post/{id}/comment/{id}/edit")
+    @PostMapping("/post/{postId}/comment/{commentId}/edit")
     public String update(@PathVariable Long postId,
                          @PathVariable Long commentId,
                          @Valid @ModelAttribute("commentUpdateForm") CommentRequestDto commentRequestDto,
@@ -61,5 +56,24 @@ public class CommentController {
                          @AuthenticationPrincipal CustomUserDetails customUserDetails,
                          RedirectAttributes ra) {
 
+        if (bindingResult.hasErrors()) {
+            ra.addFlashAttribute("error", "댓글 내용을 확인해주세요");
+            return "redirect:/post/" + postId;
+        }
+
+        commentService.update(commentId, customUserDetails.getMemberId(), postId, commentRequestDto);
+
+        return "redirect:/post/" + postId;
+
+    }
+
+    @PostMapping("/post/{postId}/comment/{commentId}/delete")
+    public String delete(@PathVariable Long postId,
+                         @PathVariable Long commentId,
+                         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        commentService.delete(customUserDetails.getMemberId(), commentId, postId);
+
+
+        return "redirect:/post/" + postId;
     }
 }
