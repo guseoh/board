@@ -41,7 +41,7 @@ public class CommentDto {
 //        private PostDto.Response post;
 
         private Long memberId;
-        private String nickName;
+        private String nickname;
         private Long postId;
 
         public static Response from(Comment c) {
@@ -53,7 +53,7 @@ public class CommentDto {
                     .createdBy(c.getCreatedBy())
                     .updatedBy(c.getUpdatedBy())
                     .memberId(c.getMember().getId())
-                    .nickName(c.getMember().getNickname())
+                    .nickname(c.getMember().getNickname())
                     .postId(c.getPost().getId())
                     .build();
         }
@@ -64,4 +64,3 @@ public class CommentDto {
 
 
 
-//todo: 검증 추가
