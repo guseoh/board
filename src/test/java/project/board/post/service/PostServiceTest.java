@@ -35,7 +35,7 @@ class PostServiceTest {
     void 조회수_테스트() {
 
         // given
-        Member member = memberRepository.save(Member.create("닉네임", "tdadast@t.com", "1111", Role.USER));
+        Member member = memberRepository.save(Member.create("닉네임", "3131@t.com", "1111", Role.USER));
 
         Post post = postRepository.save(Post.create("제목", "내용", member));
 
@@ -53,7 +53,7 @@ class PostServiceTest {
     void 조회수_증가_정합성() throws InterruptedException{
 
         // given
-        Member member = memberRepository.save(Member.create("닉네임", "tdadast22@t.com", "1111", Role.USER));
+        Member member = memberRepository.save(Member.create("닉네임", "aaaa@t.com", "1111", Role.USER));
         Post post = postRepository.save(Post.create("제목", "내용", member));
 
         int count = 1000;
@@ -76,6 +76,6 @@ class PostServiceTest {
         Post updated = postRepository.findById(post.getId()).orElseThrow();
         System.out.println("최종 조회수 = " + updated.getViewCount());
 
-        Assertions.assertThat(updated.getViewCount()).isNotEqualTo(count);
+        Assertions.assertThat(updated.getViewCount()).isEqualTo(count);
     }
 }
