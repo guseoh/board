@@ -1,5 +1,8 @@
 package project.board.post.controller;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,10 +49,14 @@ public class PostController {
     @GetMapping("/post/{id}")
     public String detail(@PathVariable Long id,
                          @AuthenticationPrincipal CustomUserDetails customUserDetails,
-                         Model model) {
+                         Model model,
+                         HttpServletRequest request,
+                         HttpServletResponse response) {
 
-        //todo: service 두 번 호출
-        postService.viewCount(id);
+        if (IncreaseViewCount(id, request, response)) {
+            postService.viewCount(id);
+        }
+
         PostDto.Response post = postService.findOne(id);
 
         model.addAttribute("post", post);
@@ -58,6 +65,51 @@ public class PostController {
         model.addAttribute("memberId", customUserDetails != null ? customUserDetails.getMemberId() : null);
 
         return "post/detail";
+    }
+
+    private boolean IncreaseViewCount(Long id, HttpServletRequest request, HttpServletResponse response) {
+
+        final String cookieName = "View_Count";
+        final String token = "|" + id + "|";
+        final int time = 60 * 60 * 12;
+
+        Cookie cookie = null;
+        Cookie[] cookies = request.getCookies();
+
+        // "View_Count" 이름을 가진 쿠키를 찾기
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (cookieName.equals(c.getName())) {
+                    cookie = c;
+                    break;
+                }
+            }
+        }
+
+        // 쿠키가 없으면 새로 생성하고 증가
+        if (cookie == null) {
+            Cookie newCookie = new Cookie(cookieName, token);
+            newCookie.setPath("/");
+            newCookie.setMaxAge(time);
+            newCookie.setHttpOnly(true);
+            response.addCookie(newCookie);
+            return true;
+        }
+
+        String value = cookie.getValue();
+
+        if (value != null && value.contains(token)) {
+            return false;
+        }
+
+        String updated = (value == null ? "" : value) + token;
+        cookie.setValue(updated);
+        cookie.setPath("/");
+        cookie.setMaxAge(time);
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+
+        return true;
     }
 
     @GetMapping("/posts/search")
