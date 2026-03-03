@@ -89,9 +89,8 @@ public class PostService {
     }
 
     private Post getPost(Long id) {
-        Post find = postRepository.findById(id).orElseThrow(() ->
+        return postRepository.findById(id).orElseThrow(() ->
                 new CustomException(POST_NOT_FOUND));
-        return find;
     }
 
     private void validateWriter(Post post, Long memberId) {
