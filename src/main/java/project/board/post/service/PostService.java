@@ -78,7 +78,8 @@ public class PostService {
 
     @Transactional
     public void viewCount(Long id) {
-        getPost(id).increaseViewCount();
+        int updated = postRepository.incrementViewCount(id);
+        if (updated == 0) throw new CustomException(POST_NOT_FOUND);
     }
 
     public List<PostDto.Response> search(String keyword) {
