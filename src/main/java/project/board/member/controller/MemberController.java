@@ -2,7 +2,6 @@ package project.board.member.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import project.board.global.security.user.CustomUserDetails;
 import project.board.member.dto.MemberDto;
 import project.board.member.service.MemberService;
 
@@ -47,11 +45,11 @@ public class MemberController {
         return "member/loginForm";
     }
 
-    @GetMapping("/members/me")
-    public String myProfile(@AuthenticationPrincipal CustomUserDetails user,
-                            Model model) {
-        model.addAttribute("profile", memberService.getMyProfile(user.getMemberId()));
-        return "member/me";
-    }
+//    @GetMapping("/members/me")
+//    public String myProfile(@AuthenticationPrincipal UnifiedPrincipal user,
+//                            Model model) {
+//        model.addAttribute("profile", memberService.getMyProfile(user.getMemberId()));
+//        return "member/me";
+//    }
 
 }
