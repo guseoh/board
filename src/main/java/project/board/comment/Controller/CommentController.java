@@ -4,21 +4,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import project.board.comment.dto.CommentDto;
 import project.board.comment.dto.CommentRequestDto;
 import project.board.comment.service.CommentService;
-import project.board.global.security.user.CustomUserDetails;
-import project.board.post.dto.PostDto;
-import project.board.post.service.PostService;
-
-import java.util.List;
+import project.board.global.security.user.UnifiedPrincipal;
 
 @Controller
 @RequiredArgsConstructor
@@ -30,7 +23,7 @@ public class CommentController {
     public String create(@PathVariable Long postId,
                          @ModelAttribute("commentForm") @Valid CommentRequestDto requestDto,
                          BindingResult bindingResult,
-                         @AuthenticationPrincipal CustomUserDetails user,
+                         @AuthenticationPrincipal UnifiedPrincipal user,
                          RedirectAttributes ra) {
 
         if (user == null) {
@@ -53,7 +46,7 @@ public class CommentController {
                          @PathVariable Long commentId,
                          @Valid @ModelAttribute("commentUpdateForm") CommentRequestDto commentRequestDto,
                          BindingResult bindingResult,
-                         @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                         @AuthenticationPrincipal UnifiedPrincipal customUserDetails,
                          RedirectAttributes ra) {
 
         if (bindingResult.hasErrors()) {
@@ -70,7 +63,7 @@ public class CommentController {
     @PostMapping("/post/{postId}/comment/{commentId}/delete")
     public String delete(@PathVariable Long postId,
                          @PathVariable Long commentId,
-                         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+                         @AuthenticationPrincipal UnifiedPrincipal customUserDetails) {
         commentService.delete(customUserDetails.getMemberId(), commentId, postId);
 
 
