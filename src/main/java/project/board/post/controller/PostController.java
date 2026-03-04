@@ -6,10 +6,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,10 +15,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.dto.CommentRequestDto;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
-import project.board.global.dto.PageResultDto;
-import project.board.global.security.user.CustomUserDetails;
+import project.board.global.security.user.UnifiedPrincipal;
 import project.board.post.dto.PostDto;
-import project.board.post.entity.Post;
 import project.board.post.service.PostService;
 
 import java.util.List;
@@ -48,7 +42,7 @@ public class PostController {
 
     @GetMapping("/post/{id}")
     public String detail(@PathVariable Long id,
-                         @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                         @AuthenticationPrincipal UnifiedPrincipal customUserDetails,
                          Model model,
                          HttpServletRequest request,
                          HttpServletResponse response) {
@@ -125,7 +119,7 @@ public class PostController {
     @PostMapping("/post/new")
     public String create(@Valid @ModelAttribute("form") PostDto.CreateRequest request,
                          BindingResult bindingResult,
-                         @AuthenticationPrincipal CustomUserDetails customUserDetails,
+                         @AuthenticationPrincipal UnifiedPrincipal customUserDetails,
                          RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
@@ -152,7 +146,7 @@ public class PostController {
 
     @GetMapping("/post/{id}/edit")
     public String editForm(@PathVariable Long id,
-                           @AuthenticationPrincipal CustomUserDetails user,
+                           @AuthenticationPrincipal UnifiedPrincipal user,
                            Model model) {
 
         PostDto.Response post = postService.findOne(id);
@@ -173,7 +167,7 @@ public class PostController {
     public String edit(@PathVariable Long id,
                        @Valid @ModelAttribute("form") PostDto.UpdateRequest form,
                        BindingResult bindingResult,
-                       @AuthenticationPrincipal CustomUserDetails user,
+                       @AuthenticationPrincipal UnifiedPrincipal user,
                        Model model,
                        RedirectAttributes redirectAttributes) {
 
@@ -195,7 +189,7 @@ public class PostController {
 
     @PostMapping("/post/{id}/delete")
     public String delete(@PathVariable Long id,
-                         @AuthenticationPrincipal CustomUserDetails user,
+                         @AuthenticationPrincipal UnifiedPrincipal user,
                          RedirectAttributes redirectAttributes) {
 
         postService.delete(id, user.getMemberId());

@@ -34,8 +34,9 @@ public class Member extends BaseEntity {
     @OneToMany(mappedBy = "member")
     private List<Post> posts = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "member")
-//    private List<Comment> comments = new ArrayList<>();
+    private String provider;    // ex) google
+
+    private String providerId;  // ex) 구글 로그인 한 유저의 고유 ID가 들어감
 
     public static Member create(String nickname, String email, String encodedPassword, Role role) {
         Member m = new Member();
@@ -44,6 +45,23 @@ public class Member extends BaseEntity {
         m.password = encodedPassword;
         m.role = role;
         return m;
+    }
+
+    // OAuth Member 생성
+    public static Member createOAuth(String nickname, String email, String DummyPassword, Role role, String provider, String providerId) {
+        Member m = new Member();
+        m.nickname = nickname;
+        m.email = email;
+        m.password = DummyPassword;
+        m.role = role;
+        m.provider = provider;
+        m.providerId = providerId;
+        return m;
+    }
+
+    public void updateOAuth(String provider, String providerId) {
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     public void changeEmail(String email) {
