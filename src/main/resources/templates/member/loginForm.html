@@ -1,22 +1,21 @@
 <!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>로그인</title>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head th:replace="~{fragments/head :: head('로그인')}"></head>
+<body class="login-page">
+<div th:replace="~{fragments/navbar :: navbar('')}"></div>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-
-<div class="container py-5" style="max-width: 420px;">
-    <div class="card shadow-sm">
-        <div class="card-body p-4">
-            <h3 class="mb-4 text-center">Login</h3>
+<div class="container login-container">
+    <div class="card shadow-sm login-card">
+        <div class="card-body p-4 p-md-4">
+            <div class="text-center mb-4">
+                <h3 class="mb-1 fw-bold">로그인</h3>
+            </div>
 
             <div th:if="${msg}" class="alert alert-success" th:text="${msg}"></div>
 
             <form th:action="@{/login}" method="post">
+                <input type="hidden" name="redirect" th:value="${param.redirect}" />
+
                 <div th:if="${param.error}" class="alert alert-danger">
                     로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.
                 </div>
@@ -26,26 +25,51 @@
 
                 <div class="mb-3">
                     <label class="form-label">이메일</label>
-                    <input class="form-control" type="text" name="username" placeholder="email" autocomplete="username"
+                    <input class="form-control"
+                           type="text"
+                           name="username"
+                           placeholder="email@example.com"
+                           autocomplete="username"
                            required/>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">비밀번호</label>
-                    <input class="form-control" type="password" name="password" placeholder="password"
-                           autocomplete="current-password" required/>
+                    <input class="form-control"
+                           type="password"
+                           name="password"
+                           placeholder="password"
+                           autocomplete="current-password"
+                           required/>
                 </div>
 
-                <button class="btn btn-primary w-100" type="submit">로그인</button>
+                <button class="btn btn-signup w-100 mt-2" type="submit">로그인</button>
 
-                <div class="d-flex justify-content-between mt-3">
-                    <a class="text-decoration-none" th:href="@{/signup}">회원가입</a>
-                    <a class="text-decoration-none" th:href="@{/}">홈으로</a>
+                <div class="login-divider my-3">
+                    <span>또는</span>
+                </div>
+
+                <a class="btn btn-oauth w-100" th:href="@{/oauth2/authorization/google}">
+          <span class="oauth-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.2 4.3 29.3 2 24 2 12.9 2 4 10.9 4 22s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+              <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.2 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.2 4.3 29.3 2 24 2 16.3 2 9.7 6.3 6.3 14.7z"/>
+              <path fill="#4CAF50" d="M24 42c5.2 0 10-2 13.6-5.3l-6.3-5.2C29.3 36 24.9 39 24 39c-5.2 0-9.6-3.3-11.2-7.9l-6.6 5.1C9.5 39.6 16.3 42 24 42z"/>
+              <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3-3.4 5.5-6.5 6.9l6.3 5.2C38.1 37.3 44 32 44 22c0-1.3-.1-2.7-.4-3.5z"/>
+            </svg>
+          </span>
+                    <span>Google로 로그인</span>
+                </a>
+
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <a class="text-decoration-none small login-link" th:href="@{/signup}">회원가입</a>
+                    <a class="text-decoration-none small login-link" th:href="@{/}">홈으로</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>
