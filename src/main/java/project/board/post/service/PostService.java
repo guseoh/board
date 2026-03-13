@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.board.comment.repository.CommentRepository;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.dto.PageResultDto;
 import project.board.global.exception.CustomException;
@@ -30,6 +31,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;    // nullable = false
+    private final CommentRepository commentRepository;
 
     @Transactional
     public PostDto.Response save(PostDto.CreateRequest request, Long memberId) {
@@ -73,6 +75,9 @@ public class PostService {
         Post find = getPost(id);
 
         validateWriter(find, memberId);
+
+        commentRepository.deleteById(id);
+
         postRepository.delete(find);
     }
 
