@@ -13,7 +13,7 @@ import org.springframework.data.domain.Sort;
 @Setter     // PageRequestDto 바인딩이 안 돼서 size=0으로 남는 경우
 public class PageRequestDto {
 
-    private int size = 3;
+    private int size = 5;
     private int page = 1;
 
     public Pageable getPageable(Sort sort) {

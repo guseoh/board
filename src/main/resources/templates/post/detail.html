@@ -20,11 +20,17 @@
 
                 <div class="d-flex gap-2 flex-wrap justify-content-end">
                     <a class="btn btn-outline-secondary btn-sm" th:href="@{/}">목록</a>
-                    <a class="btn btn-outline-primary btn-sm" th:href="@{/post/{id}/edit(id=${post.id})}">수정</a>
-                    <form th:action="@{/post/{id}/delete(id=${post.id})}" method="post"
-                          onsubmit="return confirm('정말 삭제할까요?');">
-                        <button class="btn btn-outline-danger btn-sm" type="submit">삭제</button>
-                    </form>
+
+                    <th:block th:if="${memberId != null && post.member.id == memberId}">
+                        <a class="btn btn-outline-primary btn-sm"
+                           th:href="@{/post/{id}/edit(id=${post.id})}">수정</a>
+
+                        <form th:action="@{/post/{id}/delete(id=${post.id})}"
+                              method="post"
+                              onsubmit="return confirm('정말 삭제할까요?');">
+                            <button class="btn btn-outline-danger btn-sm" type="submit">삭제</button>
+                        </form>
+                    </th:block>
                 </div>
             </div>
         </div>
@@ -45,7 +51,6 @@
                 </div>
 
                 <div class="mb-4">
-
                     <div class="comment-login-box d-flex justify-content-between align-items-center gap-3"
                          th:if="${#authentication == null || #authentication.name == 'anonymousUser'}">
                         <div>
@@ -78,7 +83,6 @@
                                 <button class="btn btn-primary" type="submit">댓글 등록</button>
                             </div>
                         </div>
-
                     </form>
                 </div>
 
@@ -91,7 +95,6 @@
                         <div class="d-flex justify-content-between align-items-start gap-3">
 
                             <div class="d-flex gap-3 flex-grow-1">
-
                                 <div class="comment-avatar">
                                     <span th:text="${c.nickname != null ? #strings.substring(c.nickname,0,1) : '?'}">?</span>
                                 </div>
@@ -136,7 +139,6 @@
 
                             <div class="d-flex gap-2 flex-shrink-0"
                                  th:if="${memberId != null && c.memberId == memberId}">
-
                                 <button class="btn btn-outline-primary btn-sm"
                                         type="button"
                                         th:attr="data-edit-id=${c.id}"
