@@ -16,7 +16,9 @@ import project.board.comment.dto.CommentRequestDto;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
-import project.board.post.dto.PostDto;
+import project.board.post.dto.request.PostRequest;
+import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostListResponse;
 import project.board.post.service.PostService;
 
 import java.util.List;
@@ -32,7 +34,7 @@ public class PostController {
     @GetMapping({"", "/"})
     public String list(PageRequestDto request, Model model) {
 
-        var page = postService.findAll(request);    //todo: var
+        var page = postService.findAll(request);
 
         model.addAttribute("page", page);
         model.addAttribute("posts", page.getDtoList());
@@ -51,7 +53,7 @@ public class PostController {
             postService.viewCount(id);
         }
 
-        PostDto.Response post = postService.findOne(id);
+        PostDetailsResponse post = postService.findOne(id);
 
         model.addAttribute("post", post);
         model.addAttribute("comments", commentService.findAll(id));
@@ -108,7 +110,7 @@ public class PostController {
 
     @GetMapping("/posts/search")
     public String search(@RequestParam String keyword, Model model) {
-        List<PostDto.Response> posts = postService.search(keyword);
+        List<PostListResponse> posts = postService.search(keyword);
         model.addAttribute("posts", posts);
         model.addAttribute("keyword", keyword);
 
@@ -117,7 +119,7 @@ public class PostController {
 
 
     @PostMapping("/post/new")
-    public String create(@Valid @ModelAttribute("form") PostDto.CreateRequest request,
+    public String create(@Valid @ModelAttribute("form") PostRequest request,
                          BindingResult bindingResult,
                          @AuthenticationPrincipal UnifiedPrincipal customUserDetails,
                          RedirectAttributes redirectAttributes) {
@@ -127,7 +129,7 @@ public class PostController {
         }
 
         Long memberId = customUserDetails.getMemberId();
-        PostDto.Response post = postService.save(request, memberId);
+        PostListResponse post = postService.save(request, memberId);
         redirectAttributes.addAttribute("id", post.getId());
         redirectAttributes.addFlashAttribute("msg", "게시글이 등록되었습니다.");
         log.info("게시글이 등록되었습니다.");
@@ -138,7 +140,7 @@ public class PostController {
     @GetMapping("/post/new")
     public String createForm(Model model) {
         model.addAttribute("mode", "create");
-        model.addAttribute("form", new PostDto.CreateRequest());
+        model.addAttribute("form", new PostRequest());
         model.addAttribute("actionUrl", "/post/new");
         model.addAttribute("submitLabel", "등록");
         return "post/form";
@@ -149,9 +151,9 @@ public class PostController {
                            @AuthenticationPrincipal UnifiedPrincipal user,
                            Model model) {
 
-        PostDto.Response post = postService.findOne(id);
+        PostDetailsResponse post = postService.findOne(id);
 
-        PostDto.UpdateRequest form = new PostDto.UpdateRequest();
+        PostRequest form = new PostRequest();
         form.setTitle(post.getTitle());
         form.setContent(post.getContent());
 
@@ -165,7 +167,7 @@ public class PostController {
 
     @PostMapping("/post/{id}/edit")
     public String edit(@PathVariable Long id,
-                       @Valid @ModelAttribute("form") PostDto.UpdateRequest form,
+                       @Valid @ModelAttribute("form") PostRequest form,
                        BindingResult bindingResult,
                        @AuthenticationPrincipal UnifiedPrincipal user,
                        Model model,
