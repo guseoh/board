@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import project.board.comment.dto.CommentDto;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.dto.PageResultDto;
@@ -14,14 +15,16 @@ import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
-import project.board.post.dto.PostDto;
+import project.board.post.dto.request.PostRequest;
+import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
 import java.util.List;
 import java.util.function.Function;
 
-import static project.board.global.exception.ErrorCode.POST_NOT_FOUND;
+import static project.board.global.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,32 +37,37 @@ public class PostService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public PostDto.Response save(PostDto.CreateRequest request, Long memberId) {
+    public PostListResponse save(PostRequest request, Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() ->
-                new CustomException(POST_NOT_FOUND));
+                new CustomException(LOGIN_REQUIRED));
 
         Post saved = postRepository.save(Post.create(request.getTitle(), request.getContent(), member));
 
-        return PostDto.Response.from(saved);
+        return PostListResponse.from(saved);
     }
 
-    public PostDto.Response findOne(Long id){
+    public PostDetailsResponse findOne(Long id){
         Post post = getPost(id);
-        return PostDto.Response.from(post);
+
+        List<CommentDto.Response> comments = post.getComments().stream()
+                .map(CommentDto.Response::from)
+                .toList();
+
+        return PostDetailsResponse.from(post, comments);
     }
 
-    public PageResultDto<PostDto.Response, Post> findAll(PageRequestDto pageRequestDto) {
+    public PageResultDto<PostListResponse, Post> findAll(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
 
         Page<Post> result = postRepository.findAll(pageable);
 
-        Function<Post, PostDto.Response> fn = PostDto.Response::from;
+        Function<Post, PostListResponse> fn = PostListResponse::from;
 
         return new PageResultDto<>(result, fn);
     }
 
     @Transactional
-    public void update(PostDto.UpdateRequest request, Long postId, Long memberId) {
+    public void update(PostRequest request, Long postId, Long memberId) {
 
         Post post = getPost(postId);
         validateWriter(post, memberId);
@@ -87,10 +95,10 @@ public class PostService {
         if (updated == 0) throw new CustomException(POST_NOT_FOUND);
     }
 
-    public List<PostDto.Response> search(String keyword) {
+    public List<PostListResponse> search(String keyword) {
         return postRepository.findByTitleContaining(keyword)
                 .stream()
-                .map(PostDto.Response::from)
+                .map(PostListResponse::from)
                 .toList();
     }
 

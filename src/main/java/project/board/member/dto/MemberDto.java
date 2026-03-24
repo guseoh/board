@@ -4,13 +4,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
-import project.board.comment.dto.CommentDto;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
-import project.board.post.dto.PostDto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class MemberDto {
 
@@ -74,8 +71,6 @@ public class MemberDto {
         private LocalDateTime updatedAt;
         private String createdBy;
         private String updatedBy;
-
-        private List<PostDto.Response> posts;
 
         public static Response from(Member member) {
             return Response.builder()

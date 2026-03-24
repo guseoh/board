@@ -14,7 +14,7 @@ public class CommentDto {
 
 //    @Getter
 //    @NoArgsConstructor
-//    public static class CreateRequest {
+//    public static class PostRequest {
 //        private String content;
 //    }
 //
