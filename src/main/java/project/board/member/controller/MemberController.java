@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import project.board.member.dto.MemberDto;
+import project.board.member.dto.request.MemberCreateRequest;
 import project.board.member.service.MemberService;
 
 @Controller
@@ -20,12 +20,12 @@ public class MemberController {
 
     @GetMapping("/signup")
     public String signupForm(Model model) {
-        model.addAttribute("form", new MemberDto.CreateRequest());
+        model.addAttribute("form", new MemberCreateRequest());
         return "member/signup";
     }
 
     @PostMapping("/signup")
-    public String signup(@Valid @ModelAttribute("form") MemberDto.CreateRequest form,
+    public String signup(@Valid @ModelAttribute("form") MemberCreateRequest form,
                          BindingResult bindingResult,
                          RedirectAttributes redirectAttributes) {
 

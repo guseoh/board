@@ -7,7 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
-import project.board.member.dto.MemberDto;
+import project.board.member.dto.request.MemberCreateRequest;
+import project.board.member.dto.request.MemberUpdateRequest;
+import project.board.member.dto.response.MemberResponse;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
@@ -21,7 +23,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public Long signUp(MemberDto.CreateRequest request) {
+    public Long signUp(MemberCreateRequest request) {
         if (memberRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
@@ -46,15 +48,15 @@ public class MemberService {
         return memberRepository.save(member).getId();
     }
 
-    public MemberDto.Response getMyProfile(Long memberId) {
+    public MemberResponse getMyProfile(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new
                 CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        return MemberDto.Response.from(member);
+        return MemberResponse.from(member);
     }
 
     @Transactional
-    public void updateMyProfile(Long memberId, MemberDto.UpdateRequest request) {
+    public void updateMyProfile(Long memberId, MemberUpdateRequest request) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new
                 CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
