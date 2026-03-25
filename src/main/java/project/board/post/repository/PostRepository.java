@@ -18,7 +18,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("update Post p set p.viewCount = p.viewCount + 1 where p.id = :postId")
     int incrementViewCount(@Param("postId") Long postId);
 
-    @Query("select p from Post p join fetch p.member order by p.id desc")
+    @Query("select p from Post p join fetch p.member")
     Page<Post> findAllWithMember(Pageable pageable);
 
 

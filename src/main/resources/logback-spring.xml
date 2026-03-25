@@ -51,10 +51,8 @@
     </appender>
 
     <springProfile name="local">
-        <logger name="org.hibernate.SQL" level="DEBUG"/>
-        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+        <logger name="p6spy" level="INFO"/>
         <logger name="org.springframework.security" level="INFO"/>
-<!--        <logger name="com.zaxxer.hikari" level="DEBUG"/>-->
 
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
