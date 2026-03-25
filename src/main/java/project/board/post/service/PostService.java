@@ -59,7 +59,7 @@ public class PostService {
     public PageResultDto<PostListResponse, Post> findAll(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
 
-        Page<Post> result = postRepository.findAll(pageable);
+        Page<Post> result = postRepository.findAllWithMember(pageable);
 
         Function<Post, PostListResponse> fn = PostListResponse::from;
 
