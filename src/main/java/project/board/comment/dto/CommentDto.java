@@ -3,28 +3,11 @@ package project.board.comment.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import project.board.comment.entity.Comment;
-import project.board.member.dto.MemberDto;
-import project.board.post.dto.PostDto;
 
 import java.time.LocalDateTime;
 
 public class CommentDto {
-
-//    @Getter
-//    @NoArgsConstructor
-//    public static class PostRequest {
-//        private String content;
-//    }
-//
-//    @Getter
-//    @NoArgsConstructor
-//    public static class UpdateRequest {
-//        private String content;
-//    }
-
-
 
     @Getter
     @Builder
@@ -37,8 +20,6 @@ public class CommentDto {
         private String createdBy;
         private String updatedBy;
 
-//        private MemberDto.Response member;
-//        private PostDto.Response post;
 
         private Long memberId;
         private String nickname;
