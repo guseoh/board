@@ -8,7 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import project.board.global.exception.CustomException;
-import project.board.member.dto.MemberDto;
+import project.board.member.dto.request.MemberCreateRequest;
+import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
@@ -29,8 +30,8 @@ class MemberServiceTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    private MemberDto.CreateRequest createRequest(String nickname, String email, String Password) {
-        MemberDto.CreateRequest req = new MemberDto.CreateRequest();
+    private MemberCreateRequest createRequest(String nickname, String email, String Password) {
+        MemberCreateRequest req = new MemberCreateRequest();
         req.setNickname(nickname);
         req.setEmail(email);
         req.setPassword(Password);
@@ -38,8 +39,8 @@ class MemberServiceTest {
         return req;
     }
 
-    private MemberDto.UpdateRequest updateReq(String nickname, String email, String pw) {
-        MemberDto.UpdateRequest req = new MemberDto.UpdateRequest();
+    private MemberUpdateRequest updateReq(String nickname, String email, String pw) {
+        MemberUpdateRequest req = new MemberUpdateRequest();
         req.setNickname(nickname);
         req.setEmail(email);
         req.setPassword(pw);
@@ -51,7 +52,7 @@ class MemberServiceTest {
     void 회원가입_성공() {
 
         //given
-        MemberDto.CreateRequest req = createRequest("테스트", "test@te.com", "1234");
+        MemberCreateRequest req = createRequest("테스트", "test@te.com", "1234");
 
         //when
         Long id = memberService.signUp(req);
