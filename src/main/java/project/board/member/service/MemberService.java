@@ -5,6 +5,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import project.board.comment.repository.CommentRepository;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.dto.request.MemberCreateRequest;
@@ -13,6 +14,10 @@ import project.board.member.dto.response.MemberResponse;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
+import project.board.post.entity.Post;
+import project.board.post.repository.PostRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +26,8 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public Long signUp(MemberCreateRequest request) {
@@ -46,6 +53,23 @@ public class MemberService {
         );
 
         return memberRepository.save(member).getId();
+    }
+
+    public Long count() {
+        return memberRepository.count();
+    }
+
+    //todo: 개선
+    public List<Member> findAllForAdmin() {
+        return memberRepository.findAll();
+    }
+
+    @Transactional
+    public void roleChange(String role, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
+                CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        member.changeRole(Role.valueOf(role));
     }
 
     public MemberResponse getMyProfile(Long memberId) {
@@ -90,6 +114,24 @@ public class MemberService {
             String encoded = passwordEncoder.encode(rawPw);
             member.changePassword(encoded);
         }
+    }
+
+    @Transactional
+    public void deleteForAdmin(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 회원이 작성한 댓글
+        commentRepository.deleteAllByMember(member);
+
+        // 회원이 작성한 게시글 안 댓글
+        commentRepository.deleteAllByPostMember(member);
+
+        // 회원이 작성한 게시글
+        postRepository.deleteAllByMember(member);
+
+        // 회원 제거
+        memberRepository.delete(member);
     }
 
 }
