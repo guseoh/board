@@ -743,3 +743,182 @@ hr {
   width: 22px;
   height: 22px;
 }
+
+/* ================= Admin Page Styles ================= */
+
+/* 전체 페이지 */
+.admin-page .page-wrap {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 32px;
+}
+
+/* 대시보드 카드 */
+.admin-page .dashboard-card {
+  background-color: #2a2f3b;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
+  padding: 24px;
+  margin-bottom: 24px;
+  color: #eef3ff;
+}
+
+.admin-page .dashboard-card h3 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.admin-page .dashboard-card .stat-number {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #4ea1ff;
+}
+
+/* 관리자 테이블 */
+.admin-page .table-admin {
+  background-color: #262a35;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+
+.admin-page .table-admin thead th {
+  background-color: #2f3441;
+  color: #f1f3f5;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  padding: 14px 14px;
+}
+
+.admin-page .table-admin tbody tr:hover {
+  background-color: #2a2f3b;
+  transform: scale(1.002);
+  transition: background-color .15s ease, transform .15s ease;
+}
+
+.admin-page .table-admin a {
+  color: #4ea1ff;
+  text-decoration: none;
+}
+
+.admin-page .table-admin a:hover {
+  text-decoration: underline;
+}
+
+/* 액션 버튼 */
+.admin-page .btn-admin {
+  border-radius: 10px;
+  font-weight: 700;
+  padding: 6px 12px;
+  min-width: 90px;
+  text-align: center;
+}
+
+.admin-page .btn-admin-edit {
+  background-color: #3a3f4b;
+  border-color: #3a3f4b;
+  color: #eef3ff;
+}
+
+.admin-page .btn-admin-edit:hover {
+  background-color: #4a5060;
+  border-color: #4a5060;
+}
+
+.admin-page .btn-admin-delete {
+  background-color: #ff6b81;
+  border-color: #ff6b81;
+  color: #fff;
+}
+
+.admin-page .btn-admin-delete:hover {
+  background-color: #ff8799;
+  border-color: #ff8799;
+}
+
+/* 검색 및 필터 */
+.admin-page .admin-filter {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.admin-page .admin-filter input,
+.admin-page .admin-filter select {
+  border-radius: 10px;
+  background-color: #1f2330 !important;
+  border: 1px solid rgba(255,255,255,.12);
+  color: #e6e8ee !important;
+  padding: 8px 12px;
+}
+
+/* 페이징 */
+.admin-page .pagination-admin {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  gap: 6px;
+}
+
+.admin-page .pagination-admin .page-item .page-link {
+  border-radius: 8px;
+  background-color: #2a2f3b;
+  border: 1px solid rgba(255,255,255,.10);
+  color: #eef3ff;
+}
+
+.admin-page .pagination-admin .page-item .page-link:hover {
+  background-color: #3a3f4b;
+  border-color: #4a5060;
+}
+
+/* 알림 */
+.admin-page .alert-admin {
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.admin-page .alert-admin-success {
+  background-color: rgba(25, 135, 84, .15);
+  color: #b9f0d0;
+}
+
+.admin-page .alert-admin-danger {
+  background-color: rgba(220, 53, 69, .15);
+  color: #ffc2c8;
+}
+
+/* 반응형 */
+@media (max-width: 991.98px) {
+  .admin-page .admin-filter {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .admin-page .dashboard-card {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-page .page-wrap {
+    padding: 16px 12px;
+  }
+
+  .admin-page .dashboard-card {
+    padding: 14px;
+  }
+
+  .admin-page .table-admin thead th,
+  .admin-page .table-admin tbody td {
+    padding: 10px 8px;
+  }
+}
