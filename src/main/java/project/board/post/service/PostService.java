@@ -66,6 +66,10 @@ public class PostService {
         return new PageResultDto<>(result, fn);
     }
 
+    public List<Post> findAllAdmin() {
+        return postRepository.findAllWithMemberForAdmin();
+    }
+
     @Transactional
     public void update(PostRequest request, Long postId, Long memberId) {
 
@@ -88,6 +92,17 @@ public class PostService {
 
         postRepository.delete(find);
     }
+
+    @Transactional
+    public void deleteForAdmin(Long postId) {
+        Post find = getPost(postId);
+
+        commentRepository.deleteById(postId);
+
+        postRepository.deleteById(postId);
+
+    }
+
 
     @Transactional
     public void viewCount(Long id) {
@@ -114,4 +129,7 @@ public class PostService {
         }
     }
 
+    public long count() {
+        return postRepository.count();
+    }
 }

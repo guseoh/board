@@ -6,16 +6,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import project.board.global.security.config.oauth.CustomOauth2UserService;
+import project.board.global.security.user.CustomLoginSuccessHandler;
 import project.board.global.security.user.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -32,20 +35,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider provider, CustomOauth2UserService customOauth2UserService) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider provider,
+                                           CustomOauth2UserService customOauth2UserService,
+                                           CustomLoginSuccessHandler successHandler) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authenticationProvider(provider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/loginForm", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/loginForm")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/")   // true 제거
+                        .successHandler(successHandler)
                         .failureUrl("/loginForm?error=true").permitAll()
                 )
                 .oauth2Login(oauth -> oauth

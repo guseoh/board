@@ -75,8 +75,8 @@ public class Member extends BaseEntity {
     public void changePassword(String password) {
         this.password = password;
     }
-}
 
-/*
-    정적 팩토리 메서드 vs 빌더 패턴
- */
+    public void changeRole(Role role) {
+        this.role = role;
+    }
+}
