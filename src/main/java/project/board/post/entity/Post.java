@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import project.board.comment.entity.Comment;
 import project.board.global.entity.BaseEntity;
+import project.board.global.exception.CustomException;
+import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
 
 import java.util.ArrayList;
@@ -13,7 +15,6 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseEntity {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,14 +35,44 @@ public class Post extends BaseEntity {
     @OneToMany(mappedBy = "post")
     private List<Comment> comments = new ArrayList<>();
 
-
-
     public static Post create(String title, String content, Member member) {
+
+        validateTitle(title);
+
+        validateContent(content);
+
+        validateMember(member);
+
         Post p = new Post();
         p.title = title;
         p.content = content;
         p.assignMember(member);
         return p;
+    }
+
+    private static void validateMember(Member member) {
+        if (member == null) {
+            throw new CustomException(ErrorCode.POST_NOT_MEMBER);
+        }
+    }
+
+    private static void validateContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new CustomException(ErrorCode.POST_NOT_CONTENT);
+        }
+    }
+
+    private static void validateTitle(String title) {
+        if (title == null || title.isBlank()) {
+            throw new CustomException(ErrorCode.POST_NOT_TITLE);
+        }
+    }
+
+    public void change(String title, String content) {
+        validateTitle(title);
+        validateContent(content);
+        this.title = title;
+        this.content = content;
     }
 
     public void addComment(Comment comment) {
@@ -53,13 +84,4 @@ public class Post extends BaseEntity {
         this.member = member;
         member.getPosts().add(this);
     }
-
-    public void change(String title, String content) {
-        this.title = title;
-        this.content = content;
-    }
-
-//    public void increaseViewCount() {
-//        this.viewCount++;
-//    }
 }
