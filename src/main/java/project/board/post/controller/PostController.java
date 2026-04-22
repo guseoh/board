@@ -117,7 +117,6 @@ public class PostController {
         return "post/list";
     }
 
-
     @PostMapping("/post/new")
     public String create(@Valid @ModelAttribute("form") PostRequest request,
                          BindingResult bindingResult,
@@ -125,14 +124,24 @@ public class PostController {
                          RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
+            log.warn("게시글 등록 검증 실패 - memberId={}, title ={}, errorCount={}, errors={}",
+                    customUserDetails != null ? customUserDetails.getMemberId() : null,
+                    request.getTitle(),
+                    bindingResult.getErrorCount(),
+                    bindingResult.getAllErrors());
+
             return "post/form";
         }
 
         Long memberId = customUserDetails.getMemberId();
         PostListResponse post = postService.save(request, memberId);
+
         redirectAttributes.addAttribute("id", post.getId());
         redirectAttributes.addFlashAttribute("msg", "게시글이 등록되었습니다.");
-        log.info("게시글이 등록되었습니다.");
+
+        log.info("게시글이 등록 성공 - memberId={}, title={}",
+                customUserDetails.getMemberId(),
+                request.getTitle());
 
         return "redirect:/post/{id}";
     }
@@ -167,24 +176,32 @@ public class PostController {
 
     @PostMapping("/post/{id}/edit")
     public String edit(@PathVariable Long id,
-                       @Valid @ModelAttribute("form") PostRequest form,
+                       @Valid @ModelAttribute("form") PostRequest request,
                        BindingResult bindingResult,
                        @AuthenticationPrincipal UnifiedPrincipal user,
                        Model model,
                        RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
+            log.warn("게시글 수정 검증 실패 - memberId={}, title ={}, errorCount={}, errors={}",
+                    user != null ? user.getMemberId() : null,
+                    request.getTitle(),
+                    bindingResult.getErrorCount(),
+                    bindingResult.getAllErrors());
             model.addAttribute("mode", "edit");
             model.addAttribute("actionUrl", "/post/" + id + "/edit");
             model.addAttribute("submitLabel", "수정");
             return "post/form";
         }
 
-
-        postService.update(form, id, user.getMemberId());
+        postService.update(request, id, user.getMemberId());
 
         redirectAttributes.addAttribute("id", id);
         redirectAttributes.addFlashAttribute("msg", "게시글 수정 완료");
+
+        log.info("게시글이 수정 성공 - memberId={}, title={}",
+                user.getMemberId(),
+                request.getTitle());
 
         return "redirect:/post/{id}";
     }
@@ -197,6 +214,8 @@ public class PostController {
         postService.delete(id, user.getMemberId());
 
         redirectAttributes.addFlashAttribute("msg", "게시글이 삭제되었습니다.");
+
+        log.info("게시글 삭제 성공 - memberId={}", user.getMemberId());
 
         return "redirect:/";
     }
