@@ -80,8 +80,23 @@ public class Post extends BaseEntity {
         comment.addPost(this);
     }
 
-    public void assignMember(Member member) {
+    // 작성자 변경이 불가능하다.
+    private void assignMember(Member member) {
+
+        // 회원
+        if (member == null) {
+            throw new CustomException(ErrorCode.POST_NOT_MEMBER);
+        }
+
+        // 작성자
+        if (this.member == null) {
+            throw new CustomException(ErrorCode.POST_WRITER_CANNOT_CHANGE);
+        }
+
         this.member = member;
-        member.getPosts().add(this);
+
+        if (!member.getPosts().contains(this)) {
+            member.getPosts().add(this);
+        }
     }
 }
