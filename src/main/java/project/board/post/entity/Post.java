@@ -89,7 +89,7 @@ public class Post extends BaseEntity {
         }
 
         // 작성자
-        if (this.member == null) {
+        if (this.member != null) {
             throw new CustomException(ErrorCode.POST_WRITER_CANNOT_CHANGE);
         }
 
