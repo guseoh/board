@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('내 정보')}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('my')}"></div>
+
+<div class="page-wrap my-page">
+    <div class="container py-4">
+
+        <div th:if="${msg}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${msg}">완료</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}">오류</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- 로그인 사용자 전용 -->
+        <div sec:authorize="isAuthenticated()">
+
+            <!-- 상단 프로필 -->
+            <section class="my-profile-hero mb-4">
+                <div class="card shadow-sm my-profile-card">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="row g-4 align-items-center">
+                            <div class="col-lg-8">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="my-profile-avatar">
+                                        <span th:text="${#strings.substring(#authentication.principal.nickname, 0, 1)}">U</span>
+                                    </div>
+                                    <div>
+                                        <div class="my-profile-label">My Profile</div>
+                                        <h1 class="my-profile-name mb-1"
+                                            th:text="${#authentication.principal.nickname}">사용자</h1>
+                                        <div class="my-profile-email text-muted"
+                                             th:text="${#authentication.principal.email}">user@email.com</div>
+                                    </div>
+                                </div>
+
+                                <p class="my-profile-desc mb-0">
+                                    내 정보와 활동 내역을 확인하고, 작성한 글과 댓글을 한 곳에서 관리할 수 있습니다.
+                                </p>
+                            </div>
+
+<!--                            <div class="col-lg-4">-->
+<!--                                <div class="d-grid gap-2">-->
+<!--                                    <a class="btn btn-primary" th:href="@{/my/edit}">-->
+<!--                                        <i class="bi bi-pencil-square me-1"></i> 회원정보 수정-->
+<!--                                    </a>-->
+<!--                                    <a class="btn btn-outline-light" th:href="@{/my/password}">-->
+<!--                                        <i class="bi bi-key me-1"></i> 비밀번호 변경-->
+<!--                                    </a>-->
+<!--                                </div>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 활동 통계 -->
+            <section class="mb-4">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="stat-label">내가 쓴 글</div>
+                                <div class="stat-value" th:text="${myPostCount != null ? myPostCount : 0}">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="stat-label">내가 쓴 댓글</div>
+                                <div class="stat-value" th:text="${myCommentCount != null ? myCommentCount : 0}">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+<!--                    <div class="col-sm-6 col-lg-3">-->
+<!--                        <div class="card stat-card shadow-sm h-100">-->
+<!--                            <div class="card-body">-->
+<!--                                <div class="stat-label">좋아요 받은 수</div>-->
+<!--                                <div class="stat-value" th:text="${receivedLikeCount != null ? receivedLikeCount : 0}">0</div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+<!--                    <div class="col-sm-6 col-lg-3">-->
+<!--                        <div class="card stat-card shadow-sm h-100">-->
+<!--                            <div class="card-body">-->
+<!--                                <div class="stat-label">최근 7일 활동</div>-->
+<!--                                <div class="stat-value" th:text="${recentActivityCount != null ? recentActivityCount : 0}">0</div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                </div>
+            </section>
+
+            <div class="row g-4">
+                <!-- 왼쪽 영역 -->
+                <div class="col-lg-8">
+
+                    <!-- 빠른 이동 -->
+                    <section class="mb-4">
+                        <div class="card shadow-sm section-card">
+                            <div class="card-body p-4">
+                                <div class="section-title-wrap mb-3">
+                                    <h2 class="section-title mb-1">빠른 이동</h2>
+                                    <p class="section-subtitle mb-0">자주 사용하는 기능으로 바로 이동할 수 있습니다.</p>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <a th:href="@{/my/posts}" class="quick-link-card text-decoration-none d-block">
+                                            <div class="quick-link-icon"><i class="bi bi-file-earmark-text"></i></div>
+                                            <div>
+                                                <div class="quick-link-title">내가 쓴 글</div>
+                                                <div class="quick-link-desc">작성한 게시글 목록 보기</div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <a th:href="@{/my/comments}" class="quick-link-card text-decoration-none d-block">
+                                            <div class="quick-link-icon"><i class="bi bi-chat-left-text"></i></div>
+                                            <div>
+                                                <div class="quick-link-title">내가 쓴 댓글</div>
+                                                <div class="quick-link-desc">작성한 댓글 목록 보기</div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <a th:href="@{/post/new}" class="quick-link-card text-decoration-none d-block">
+                                            <div class="quick-link-icon"><i class="bi bi-pencil-square"></i></div>
+                                            <div>
+                                                <div class="quick-link-title">새 글 작성</div>
+                                                <div class="quick-link-desc">게시글 작성 페이지로 이동</div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <a th:href="@{/}" class="quick-link-card text-decoration-none d-block">
+                                            <div class="quick-link-icon"><i class="bi bi-house-door"></i></div>
+                                            <div>
+                                                <div class="quick-link-title">메인으로 이동</div>
+                                                <div class="quick-link-desc">게시판 목록으로 돌아가기</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 최근 작성 글 -->
+                    <section class="mb-4">
+                        <div class="card shadow-sm section-card">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h2 class="section-title mb-1">최근 작성한 글</h2>
+                                        <p class="section-subtitle mb-0">최근에 작성한 게시글을 확인할 수 있습니다.</p>
+                                    </div>
+                                    <a class="btn btn-sm btn-outline-light" th:href="@{/my/posts}">
+                                        전체 보기
+                                    </a>
+                                </div>
+
+                                <div th:if="${#lists.isEmpty(recentPosts)}" class="empty-box">
+                                    최근 작성한 글이 없습니다.
+                                </div>
+
+                                <div th:unless="${#lists.isEmpty(recentPosts)}" class="list-group recent-list">
+                                    <a th:each="post : ${recentPosts}"
+                                       th:href="@{/post/{id}(id=${post.id})}"
+                                       class="recent-item text-decoration-none">
+                                        <div class="recent-item-main">
+                                            <div class="recent-item-title" th:text="${post.title}">게시글 제목</div>
+                                            <div class="recent-item-meta">
+                                                <span th:text="${post.viewCount != null ? '조회 ' + post.viewCount : '조회 0'}">조회 0</span>
+                                                <span class="meta-dot">·</span>
+                                                <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-04-23 12:00</span>
+                                            </div>
+                                        </div>
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+<!--                    &lt;!&ndash; 최근 작성 댓글 &ndash;&gt;-->
+<!--                    <section>-->
+<!--                        <div class="card shadow-sm section-card">-->
+<!--                            <div class="card-body p-4">-->
+<!--                                <div class="d-flex justify-content-between align-items-center mb-3">-->
+<!--                                    <div>-->
+<!--                                        <h2 class="section-title mb-1">최근 작성한 댓글</h2>-->
+<!--                                        <p class="section-subtitle mb-0">내가 남긴 최근 댓글을 확인할 수 있습니다.</p>-->
+<!--                                    </div>-->
+<!--                                    <a class="btn btn-sm btn-outline-light" th:href="@{/my/comments}">-->
+<!--                                        전체 보기-->
+<!--                                    </a>-->
+<!--                                </div>-->
+
+<!--                                <div th:if="${#lists.isEmpty(recentComments)}" class="empty-box">-->
+<!--                                    최근 작성한 댓글이 없습니다.-->
+<!--                                </div>-->
+
+<!--                                <div th:unless="${#lists.isEmpty(recentComments)}" class="comment-recent-list">-->
+<!--                                    <a th:each="comment : ${recentComments}"-->
+<!--                                       th:href="@{/post/{id}(id=${comment.postId})}"-->
+<!--                                       class="recent-item text-decoration-none">-->
+<!--                                        <div class="recent-item-main">-->
+<!--                                            <div class="recent-item-title"-->
+<!--                                                 th:text="${comment.postTitle != null ? comment.postTitle : '원문 보기'}">게시글 제목</div>-->
+<!--                                            <div class="recent-comment-content"-->
+<!--                                                 th:text="${comment.content}">댓글 내용</div>-->
+<!--                                            <div class="recent-item-meta">-->
+<!--                                                <span th:text="${comment.createdAt != null ? #temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-04-23 12:00</span>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+<!--                                        <i class="bi bi-chevron-right"></i>-->
+<!--                                    </a>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </section>-->
+<!--                </div>-->
+
+                <!-- 오른쪽 영역 -->
+                <div class="col-lg-4">
+
+                    <!-- 계정 정보 -->
+                    <section class="mb-4">
+                        <div class="card shadow-sm side-card">
+                            <div class="card-body p-4">
+                                <h3 class="side-title mb-3">계정 정보</h3>
+
+                                <div class="info-list">
+                                    <div class="info-row">
+                                        <span class="info-key">닉네임</span>
+                                        <span class="info-value" th:text="${#authentication.principal.nickname}">사용자</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-key">이메일</span>
+                                        <span class="info-value" th:text="${#authentication.principal.email}">user@email.com</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-key">권한</span>
+                                        <span class="info-value">일반 사용자</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 계정 관리 -->
+                    <section class="mb-4">
+                        <div class="card shadow-sm side-card">
+                            <div class="card-body p-4">
+                                <h3 class="side-title mb-3">계정 관리</h3>
+                                <div class="d-grid gap-2">
+                                    <a class="btn btn-primary" th:href="@{/my/edit}">
+                                        <i class="bi bi-person-gear me-1"></i> 회원정보 수정
+                                    </a>
+                                    <a class="btn btn-outline-light" th:href="@{/my/password}">
+                                        <i class="bi bi-key me-1"></i> 비밀번호 변경
+                                    </a>
+                                    <a class="btn btn-outline-danger" th:href="@{/my/withdraw}">
+                                        <i class="bi bi-person-x me-1"></i> 회원 탈퇴
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 안내 -->
+                    <section>
+                        <div class="card shadow-sm side-card">
+                            <div class="card-body p-4">
+                                <h3 class="side-title mb-3">안내</h3>
+                                <div class="guide-box">
+                                    회원정보 수정, 비밀번호 변경, 내가 작성한 글/댓글 관리는
+                                    이 페이지에서 빠르게 이동할 수 있습니다.
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 비로그인 사용자 -->
+        <div sec:authorize="isAnonymous()">
+            <div class="card shadow-sm my-guest-card">
+                <div class="card-body p-5 text-center">
+                    <div class="my-info-guest-icon mx-auto mb-3">
+                        <i class="bi bi-person-lock"></i>
+                    </div>
+                    <h1 class="guest-title mb-2">로그인이 필요합니다</h1>
+                    <p class="guest-desc mb-4">
+                        내 정보 페이지는 로그인한 사용자만 이용할 수 있습니다.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a class="btn btn-primary" th:href="@{/login}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> 로그인
+                        </a>
+                        <a class="btn btn-outline-light" th:href="@{/signup}">
+                            <i class="bi bi-person-plus me-1"></i> 회원가입
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

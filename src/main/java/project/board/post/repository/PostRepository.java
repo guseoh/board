@@ -7,9 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.access.prepost.PreAuthorize;
 import project.board.member.entity.Member;
 import project.board.post.entity.Post;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -25,6 +27,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("select p from Post p join fetch p.member")
     List<Post> findAllWithMemberForAdmin();
+
+    @Query("select count(p) from Post p where p.createdAt >= :startDay and p.createdAt <= :nextDay")
+    Long countTodayPosts(@Param("startDay") LocalDateTime startDay, @Param("nextDay") LocalDateTime nextDay);
+
+
+    @Query("select count(p) from Post p where p.member = :member")
+    Long countMyPosts(@Param("member") Member member);
 
 
     @Modifying

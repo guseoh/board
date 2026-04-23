@@ -79,6 +79,11 @@ public class CommentService {
                 .toList();
     }
 
+    public Long myCommentCount(Long id) {
+        Member member = memberRepository.findById(id).orElseThrow();
+        return commentRepository.countMyComments(member);
+    }
+
     private void validateOwner(Comment comment, Long memberId) {
         if (!comment.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.COMMENT_NOT_OWNER);
