@@ -126,6 +126,12 @@ public class PostService {
         return postRepository.countTodayPosts(startDay, nextDay);
     }
 
+    //todo: 임시
+    public Long myPostCount(Long id) {
+        Member findMember = memberRepository.findById(id).orElseThrow();
+        return postRepository.countMyPosts(findMember);
+    }
+
     private Post getPost(Long id) {
         return postRepository.findById(id).orElseThrow(() ->
                 new CustomException(POST_NOT_FOUND));

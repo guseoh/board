@@ -32,6 +32,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Long countTodayPosts(@Param("startDay") LocalDateTime startDay, @Param("nextDay") LocalDateTime nextDay);
 
 
+    @Query("select count(p) from Post p where p.member = :member")
+    Long countMyPosts(@Param("member") Member member);
+
+
     @Modifying
     @Query("delete from Post p where p.member = :member")
     void deleteAllByMember(@Param("member") Member member);

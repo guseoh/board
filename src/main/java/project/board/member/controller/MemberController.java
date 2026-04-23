@@ -2,6 +2,7 @@ package project.board.member.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -9,14 +10,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import project.board.comment.service.CommentService;
+import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberCreateRequest;
 import project.board.member.service.MemberService;
+import project.board.post.service.PostService;
 
 @Controller
 @RequiredArgsConstructor
 public class MemberController {
 
+    private final PostService postService;
     private final MemberService memberService;
+    private final CommentService commentService;
 
     @GetMapping("/signup")
     public String signupForm(Model model) {
@@ -45,11 +51,37 @@ public class MemberController {
         return "member/loginForm";
     }
 
-//    @GetMapping("/members/me")
-//    public String myProfile(@AuthenticationPrincipal UnifiedPrincipal user,
-//                            Model model) {
-//        model.addAttribute("profile", memberService.getMyProfile(user.getMemberId()));
-//        return "member/me";
-//    }
 
+    @GetMapping("/my")
+    public String myForm(Model model, RedirectAttributes ra,
+                         @AuthenticationPrincipal UnifiedPrincipal user) {
+
+        Long postCount = postService.myPostCount(user.getMemberId());
+        model.addAttribute("myPostCount", postCount);
+
+        Long commentCount = commentService.myCommentCount(user.getMemberId());
+        model.addAttribute("myCommentCount", commentCount);
+
+        return "member/my";
+
+    }
+
+//    // 회원정보 수정
+//    @GetMapping("/my/edit")
+//    public String myEditForm(Model model) {
+//
+//    }
+//
+//    // 비밀번호 변경
+//    @GetMapping("/my/password")
+//    public String myPasswordForm() {
+//
+//    }
+//
+//
+//    //
+//    @GetMapping("/my/posts")
+//    public String myPostsForm() {
+//
+//    }
 }

@@ -45,16 +45,16 @@
                                 </p>
                             </div>
 
-                            <div class="col-lg-4">
-                                <div class="d-grid gap-2">
-                                    <a class="btn btn-primary" th:href="@{/my/edit}">
-                                        <i class="bi bi-pencil-square me-1"></i> 회원정보 수정
-                                    </a>
-                                    <a class="btn btn-outline-light" th:href="@{/my/password}">
-                                        <i class="bi bi-key me-1"></i> 비밀번호 변경
-                                    </a>
-                                </div>
-                            </div>
+<!--                            <div class="col-lg-4">-->
+<!--                                <div class="d-grid gap-2">-->
+<!--                                    <a class="btn btn-primary" th:href="@{/my/edit}">-->
+<!--                                        <i class="bi bi-pencil-square me-1"></i> 회원정보 수정-->
+<!--                                    </a>-->
+<!--                                    <a class="btn btn-outline-light" th:href="@{/my/password}">-->
+<!--                                        <i class="bi bi-key me-1"></i> 비밀번호 변경-->
+<!--                                    </a>-->
+<!--                                </div>-->
+<!--                            </div>-->
                         </div>
                     </div>
                 </div>
@@ -81,23 +81,23 @@
                         </div>
                     </div>
 
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card stat-card shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="stat-label">좋아요 받은 수</div>
-                                <div class="stat-value" th:text="${receivedLikeCount != null ? receivedLikeCount : 0}">0</div>
-                            </div>
-                        </div>
-                    </div>
+<!--                    <div class="col-sm-6 col-lg-3">-->
+<!--                        <div class="card stat-card shadow-sm h-100">-->
+<!--                            <div class="card-body">-->
+<!--                                <div class="stat-label">좋아요 받은 수</div>-->
+<!--                                <div class="stat-value" th:text="${receivedLikeCount != null ? receivedLikeCount : 0}">0</div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
 
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card stat-card shadow-sm h-100">
-                            <div class="card-body">
-                                <div class="stat-label">최근 7일 활동</div>
-                                <div class="stat-value" th:text="${recentActivityCount != null ? recentActivityCount : 0}">0</div>
-                            </div>
-                        </div>
-                    </div>
+<!--                    <div class="col-sm-6 col-lg-3">-->
+<!--                        <div class="card stat-card shadow-sm h-100">-->
+<!--                            <div class="card-body">-->
+<!--                                <div class="stat-label">최근 7일 활동</div>-->
+<!--                                <div class="stat-value" th:text="${recentActivityCount != null ? recentActivityCount : 0}">0</div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
                 </div>
             </section>
 
@@ -196,44 +196,44 @@
                         </div>
                     </section>
 
-                    <!-- 최근 작성 댓글 -->
-                    <section>
-                        <div class="card shadow-sm section-card">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div>
-                                        <h2 class="section-title mb-1">최근 작성한 댓글</h2>
-                                        <p class="section-subtitle mb-0">내가 남긴 최근 댓글을 확인할 수 있습니다.</p>
-                                    </div>
-                                    <a class="btn btn-sm btn-outline-light" th:href="@{/my/comments}">
-                                        전체 보기
-                                    </a>
-                                </div>
+<!--                    &lt;!&ndash; 최근 작성 댓글 &ndash;&gt;-->
+<!--                    <section>-->
+<!--                        <div class="card shadow-sm section-card">-->
+<!--                            <div class="card-body p-4">-->
+<!--                                <div class="d-flex justify-content-between align-items-center mb-3">-->
+<!--                                    <div>-->
+<!--                                        <h2 class="section-title mb-1">최근 작성한 댓글</h2>-->
+<!--                                        <p class="section-subtitle mb-0">내가 남긴 최근 댓글을 확인할 수 있습니다.</p>-->
+<!--                                    </div>-->
+<!--                                    <a class="btn btn-sm btn-outline-light" th:href="@{/my/comments}">-->
+<!--                                        전체 보기-->
+<!--                                    </a>-->
+<!--                                </div>-->
 
-                                <div th:if="${#lists.isEmpty(recentComments)}" class="empty-box">
-                                    최근 작성한 댓글이 없습니다.
-                                </div>
+<!--                                <div th:if="${#lists.isEmpty(recentComments)}" class="empty-box">-->
+<!--                                    최근 작성한 댓글이 없습니다.-->
+<!--                                </div>-->
 
-                                <div th:unless="${#lists.isEmpty(recentComments)}" class="comment-recent-list">
-                                    <a th:each="comment : ${recentComments}"
-                                       th:href="@{/post/{id}(id=${comment.postId})}"
-                                       class="recent-item text-decoration-none">
-                                        <div class="recent-item-main">
-                                            <div class="recent-item-title"
-                                                 th:text="${comment.postTitle != null ? comment.postTitle : '원문 보기'}">게시글 제목</div>
-                                            <div class="recent-comment-content"
-                                                 th:text="${comment.content}">댓글 내용</div>
-                                            <div class="recent-item-meta">
-                                                <span th:text="${comment.createdAt != null ? #temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-04-23 12:00</span>
-                                            </div>
-                                        </div>
-                                        <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                </div>
+<!--                                <div th:unless="${#lists.isEmpty(recentComments)}" class="comment-recent-list">-->
+<!--                                    <a th:each="comment : ${recentComments}"-->
+<!--                                       th:href="@{/post/{id}(id=${comment.postId})}"-->
+<!--                                       class="recent-item text-decoration-none">-->
+<!--                                        <div class="recent-item-main">-->
+<!--                                            <div class="recent-item-title"-->
+<!--                                                 th:text="${comment.postTitle != null ? comment.postTitle : '원문 보기'}">게시글 제목</div>-->
+<!--                                            <div class="recent-comment-content"-->
+<!--                                                 th:text="${comment.content}">댓글 내용</div>-->
+<!--                                            <div class="recent-item-meta">-->
+<!--                                                <span th:text="${comment.createdAt != null ? #temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-04-23 12:00</span>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+<!--                                        <i class="bi bi-chevron-right"></i>-->
+<!--                                    </a>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </section>-->
+<!--                </div>-->
 
                 <!-- 오른쪽 영역 -->
                 <div class="col-lg-4">
