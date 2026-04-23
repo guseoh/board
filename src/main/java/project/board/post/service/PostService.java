@@ -21,6 +21,8 @@ import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
 
@@ -102,8 +104,6 @@ public class PostService {
         postRepository.deleteById(postId);
 
     }
-
-
     @Transactional
     public void viewCount(Long id) {
         int updated = postRepository.incrementViewCount(id);
@@ -115,6 +115,15 @@ public class PostService {
                 .stream()
                 .map(PostListResponse::from)
                 .toList();
+    }
+
+    public Long todayWrite() {
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startDay = today.atStartOfDay();
+        LocalDateTime nextDay = today.plusDays(1).atStartOfDay();
+
+        return postRepository.countTodayPosts(startDay, nextDay);
     }
 
     private Post getPost(Long id) {
