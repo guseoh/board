@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * P6Spy SQL Log Formatter
- */
 public class P6SpyFormatter implements MessageFormattingStrategy {
 
     private static final Pattern VALUE_PATTERN =
@@ -20,22 +17,61 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
     public String formatMessage(int connectionId, String now, long elapsed, String category, String prepared,
                                 String sql, String url) {
 
+        if (sql == null || sql.isBlank()) {
+            return "";
+        }
+
+        String caller = findCaller();
         String formattedSql = formatSql(sql);
         String params = extractParams(prepared, sql);
 
         if ("[]".equals(params)) {
             return String.format(
-                    "%n[SQL] %dms%n%s%n",
+                    "%n[CALLER] %s%n[SQL] %dms%n%s%n",
+                    caller,
                     elapsed,
                     formattedSql
             );
         }
+
         return String.format(
-                "%n[SQL] %dms%n[PARAMS] %s%n%s%n",
+                "%n[CALLER] %s%n[SQL] %dms%n[PARAMS] %s%n%s%n",
+                caller,
                 elapsed,
                 params,
                 formattedSql
         );
+    }
+
+    private String findCaller() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+
+        for (StackTraceElement element : stackTrace) {
+            String className = element.getClassName();
+            String lowerClassName = className.toLowerCase();
+
+            boolean isProjectClass = className.startsWith("project.board");
+            boolean isTargetLayer =
+                    lowerClassName.contains(".controller.")
+                            || lowerClassName.contains(".service.")
+                            || lowerClassName.contains(".repository.");
+
+            boolean isExcludeClass =
+                    className.contains("P6SpyFormatter")
+                            || className.startsWith("com.p6spy")
+                            || className.startsWith("java.")
+                            || className.startsWith("jdk.")
+                            || className.startsWith("sun.")
+                            || className.startsWith("org.hibernate")
+                            || className.startsWith("org.springframework");
+
+            if (isProjectClass && isTargetLayer && !isExcludeClass) {
+                return className + "." + element.getMethodName()
+                        + "(" + element.getFileName() + ":" + element.getLineNumber() + ")";
+            }
+        }
+
+        return "Unknown";
     }
 
     private String extractParams(String prepared, String sql) {
@@ -64,7 +100,6 @@ public class P6SpyFormatter implements MessageFormattingStrategy {
 
         return params.toString();
     }
-
 
     private String formatSql(String sql) {
         if (sql == null || sql.isBlank()) {
