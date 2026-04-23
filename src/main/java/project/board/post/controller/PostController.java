@@ -16,6 +16,8 @@ import project.board.comment.dto.CommentRequestDto;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
+import project.board.member.entity.Member;
+import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRequest;
 import project.board.post.dto.response.PostDetailsResponse;
 import project.board.post.dto.response.PostListResponse;
@@ -28,6 +30,7 @@ import java.util.List;
 @Slf4j
 public class PostController {
 
+    private final MemberService memberService;
     private final PostService postService;
     private final CommentService commentService;
 
@@ -35,6 +38,10 @@ public class PostController {
     public String list(PageRequestDto request, Model model) {
 
         var page = postService.findAll(request);
+
+        model.addAttribute("totalCount", page.getSize());
+        model.addAttribute("todayCount", postService.todayWrite());
+        model.addAttribute("memberCount", memberService.count());
 
         model.addAttribute("page", page);
         model.addAttribute("posts", page.getDtoList());
