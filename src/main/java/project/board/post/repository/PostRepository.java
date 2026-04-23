@@ -28,7 +28,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select p from Post p join fetch p.member")
     List<Post> findAllWithMemberForAdmin();
 
-    @Query("select p from Post p where p.createdAt >= :startDay and p.createdAt <= :nextDay")
+    @Query("select count(p) from Post p where p.createdAt >= :startDay and p.createdAt <= :nextDay")
     Long countTodayPosts(@Param("startDay") LocalDateTime startDay, @Param("nextDay") LocalDateTime nextDay);
 
 
