@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('내가 쓴 댓글')}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('my-comments')}"></div>
+
+<div class="page-wrap my-page">
+    <div class="container py-4">
+
+        <div th:if="${msg}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${msg}">완료</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}">오류</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div sec:authorize="isAuthenticated()">
+
+            <!-- 상단 헤더 -->
+            <section class="mb-4">
+                <div class="card shadow-sm my-subpage-hero">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                            <div>
+                                <div class="my-profile-label mb-2">My Comments</div>
+                                <h1 class="my-subpage-title mb-2">내가 쓴 댓글</h1>
+                                <p class="my-subpage-desc mb-0">
+                                    내가 작성한 댓글과 연결된 게시글을 확인할 수 있습니다.
+                                </p>
+                            </div>
+
+                            <div class="my-subpage-actions d-flex flex-wrap gap-2">
+                                <a class="btn btn-outline-light" th:href="@{/my}">
+                                    <i class="bi bi-person-circle me-1"></i> 내 정보
+                                </a>
+                                <a class="btn btn-outline-light" th:href="@{/my/posts}">
+                                    <i class="bi bi-file-earmark-text me-1"></i> 내가 쓴 글
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 요약 카드 -->
+            <section class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="stat-label">전체 작성 댓글</div>
+                                <div class="stat-value" th:text="${myCommentCount != null ? myCommentCount : 0}">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="stat-label">오늘 작성</div>
+                                <div class="stat-value" th:text="${todayMyCommentCount != null ? todayMyCommentCount : 0}">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card stat-card shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="stat-label">최근 7일 댓글</div>
+                                <div class="stat-value" th:text="${recentCommentCount != null ? recentCommentCount : 0}">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 목록 -->
+            <section>
+                <div class="card shadow-sm section-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                            <div>
+                                <h2 class="section-title mb-1">댓글 목록</h2>
+                                <p class="section-subtitle mb-0">댓글을 클릭하면 해당 게시글 상세 페이지로 이동합니다.</p>
+                            </div>
+
+                            <form th:action="@{/my/comments}" method="get" class="d-flex my-sub-search-form">
+                                <input type="text"
+                                       name="keyword"
+                                       class="form-control me-2"
+                                       placeholder="댓글 내용 검색"
+                                       th:value="${keyword}">
+                                <button type="submit" class="btn btn-outline-secondary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(comments)}" class="empty-box">
+                            아직 작성한 댓글이 없습니다.
+                        </div>
+
+                        <div th:unless="${#lists.isEmpty(comments)}" class="my-content-list">
+                            <a th:each="comment : ${comments}"
+                               th:href="@{/post/{id}(id=${comment.postId})}"
+                               class="my-content-item text-decoration-none my-comment-item">
+                                <div class="my-content-main">
+                                    <div class="my-comment-post-title"
+                                         th:text="${comment.postTitle != null ? comment.postTitle : '게시글 보기'}">게시글 제목</div>
+
+                                    <div class="my-comment-content"
+                                         th:text="${comment.content}">댓글 내용</div>
+
+                                    <div class="my-content-meta">
+                                        <span th:text="${comment.createdAt != null ? #temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-04-23 12:00</span>
+                                    </div>
+                                </div>
+                                <div class="my-content-arrow">
+                                    <i class="bi bi-chevron-right"></i>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- 페이징 -->
+                        <nav class="mt-4"
+                             th:if="${page != null and !#lists.isEmpty(page.pageList)}"
+                             aria-label="내가 쓴 댓글 페이지 이동">
+                            <ul class="pagination justify-content-center mb-0">
+
+                                <li class="page-item" th:classappend="${page.prev} ? '' : ' disabled'">
+                                    <a class="page-link"
+                                       th:if="${page.prev}"
+                                       th:href="@{/my/comments(page=${page.pageList[0]-1}, size=${page.size}, keyword=${keyword})}">
+                                        이전
+                                    </a>
+                                    <span class="page-link" th:unless="${page.prev}">이전</span>
+                                </li>
+
+                                <li class="page-item"
+                                    th:each="p : ${page.pageList}"
+                                    th:classappend="${p == page.page} ? ' active'">
+                                    <a class="page-link"
+                                       th:href="@{/my/comments(page=${p}, size=${page.size}, keyword=${keyword})}"
+                                       th:text="${p}">1</a>
+                                </li>
+
+                                <li class="page-item" th:classappend="${page.next} ? '' : ' disabled'">
+                                    <a class="page-link"
+                                       th:if="${page.next}"
+                                       th:href="@{/my/comments(page=${page.pageList[page.pageList.size()-1]+1}, size=${page.size}, keyword=${keyword})}">
+                                        다음
+                                    </a>
+                                    <span class="page-link" th:unless="${page.next}">다음</span>
+                                </li>
+
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 비로그인 -->
+        <div sec:authorize="isAnonymous()">
+            <div class="card shadow-sm my-guest-card">
+                <div class="card-body p-5 text-center">
+                    <div class="my-info-guest-icon mx-auto mb-3">
+                        <i class="bi bi-person-lock"></i>
+                    </div>
+                    <h1 class="guest-title mb-2">로그인이 필요합니다</h1>
+                    <p class="guest-desc mb-4">
+                        내가 쓴 댓글 목록은 로그인한 사용자만 확인할 수 있습니다.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a class="btn btn-primary" th:href="@{/login}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> 로그인
+                        </a>
+                        <a class="btn btn-outline-light" th:href="@{/signup}">
+                            <i class="bi bi-person-plus me-1"></i> 회원가입
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

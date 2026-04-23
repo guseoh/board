@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/head :: head('게시판')}"></head>
 <body>
 <div th:replace="~{fragments/navbar :: navbar('post')}"></div>
 
-<div class="page-wrap">
+<div class="page-wrap board-main-page">
     <div class="container py-4">
 
         <div th:if="${msg}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -17,10 +18,122 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
+        <section class="main-hero mb-4">
+            <div class="row g-3">
+                <div class="col-lg-8">
+                    <div class="card hero-card h-100 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column justify-content-between gap-3">
+                                <div>
+                                    <div class="hero-badge mb-2">
+                                        <i class="bi bi-journal-text me-1"></i> 게시판 프로젝트
+                                    </div>
+                                    <h1 class="hero-title mb-2">게시판에 오신 것을 환영합니다</h1>
+                                    <p class="hero-desc mb-0">
+                                        자유롭게 글을 작성하고, 다른 사용자와 의견을 나누고,
+                                        나의 활동도 한 곳에서 관리해보세요.
+                                    </p>
+                                </div>
+                            </div>
 
-        <div class="d-flex justify-content-end align-items-center mb-3">
+                            <div class="hero-stats row g-3 mt-3">
+                                <div class="col-sm-4">
+                                    <div class="hero-stat-box">
+                                        <div class="hero-stat-label">전체 글</div>
+                                        <div class="hero-stat-value" th:text="${totalCount != null ? totalCount : 0}">0</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="hero-stat-box">
+                                        <div class="hero-stat-label">오늘 작성</div>
+                                        <div class="hero-stat-value" th:text="${todayCount != null ? todayCount : 0}">0</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="hero-stat-box">
+                                        <div class="hero-stat-label">회원 수</div>
+                                        <div class="hero-stat-value" th:text="${memberCount != null ? memberCount : 0}">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <form th:action="@{/posts/search}" method="get" class="d-flex" style="max-width: 320px;">
+                <!-- 오른쪽: 내 정보 카드 -->
+                <div class="col-lg-4">
+                    <div class="card my-info-card h-100 shadow-sm">
+                        <div class="card-body p-4">
+
+                            <div sec:authorize="isAuthenticated()">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="my-info-avatar">
+                                        <span th:text="${#strings.substring(#authentication.principal.nickname, 0, 1)}">U</span>
+                                    </div>
+                                    <div>
+                                        <div class="my-info-label">내 정보</div>
+                                        <div class="my-info-name" th:text="${#authentication.principal.nickname}">사용자</div>
+                                        <div class="my-info-email text-muted small"
+                                             th:text="${#authentication.principal.email}">user@email.com</div>
+                                    </div>
+                                </div>
+
+                                <div class="my-info-summary mb-3">
+                                    <div class="summary-item">
+                                        <span class="summary-key">내가 쓴 글</span>
+                                        <span class="summary-value"
+                                              th:text="${myPostCount != null ? myPostCount : 0}">0</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="summary-key">내 댓글</span>
+                                        <span class="summary-value"
+                                              th:text="${myCommentCount != null ? myCommentCount : 0}">0</span>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <a class="btn btn-primary" th:href="@{/my}">
+                                        <i class="bi bi-person-circle me-1"></i> 내 정보 페이지
+                                    </a>
+
+                                    <a class="btn btn-outline-light" th:href="@{/my/posts}">
+                                        <i class="bi bi-file-earmark-text me-1"></i> 내가 쓴 글 보기
+                                    </a>
+
+                                    <a class="btn btn-outline-light" th:href="@{/my/comments}">
+                                        <i class="bi bi-chat-left-text me-1"></i> 내가 쓴 댓글 보기
+                                    </a>
+
+                                    <a class="btn btn-outline-light"
+                                       th:if="${isAdmin != null and isAdmin}"
+                                       th:href="@{/admin}">
+                                        <i class="bi bi-shield-lock me-1"></i> 관리자 페이지
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- 비로그인 상태 -->
+                            <div sec:authorize="isAnonymous()">
+                                <div class="my-info-guest-icon mb-3">
+                                    <i class="bi bi-person-lock"></i>
+                                </div>
+                                <div class="my-info-label mb-1">내 정보</div>
+                                <div class="my-info-name mb-2">로그인이 필요합니다</div>
+                                <p class="text-muted mb-0">
+                                    로그인 후 내 정보, 내가 작성한 글과 댓글,
+                                    계정 설정 기능을 이용할 수 있습니다.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 검색 + 작성 버튼 -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+            <form th:action="@{/posts/search}" method="get" class="d-flex board-search-form">
                 <input type="text"
                        name="keyword"
                        class="form-control me-2"
@@ -31,11 +144,17 @@
                 </button>
             </form>
 
-            <a class="btn btn-signup" th:href="@{/post/new}">
-                <i class="bi bi-pencil-square"></i> 작성하기
-            </a>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-light" th:href="@{/posts}">
+                    <i class="bi bi-list-ul me-1"></i> 전체 글
+                </a>
+                <a class="btn btn-signup" th:href="@{/post/new}">
+                    <i class="bi bi-pencil-square me-1"></i> 작성하기
+                </a>
+            </div>
         </div>
 
+        <!-- 게시글 목록 -->
         <div class="card shadow-sm">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -79,7 +198,10 @@
             </div>
         </div>
 
-        <nav class="mt-4" th:if="${page != null and !#lists.isEmpty(page.pageList)}" aria-label="게시글 페이지 이동">
+        <!-- 페이징 -->
+        <nav class="mt-4"
+             th:if="${page != null and !#lists.isEmpty(page.pageList)}"
+             aria-label="게시글 페이지 이동">
             <ul class="pagination justify-content-center mb-0">
 
                 <li class="page-item" th:classappend="${page.prev} ? '' : ' disabled'">
