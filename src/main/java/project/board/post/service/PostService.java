@@ -127,8 +127,8 @@ public class PostService {
     }
 
     //todo: 임시
-    public Long myPostCount(Long id) {
-        Member findMember = memberRepository.findById(id).orElseThrow();
+    public Long myPostCount(Long memberId) {
+        Member findMember = memberRepository.findById(memberId).orElseThrow();
         return postRepository.countMyPosts(findMember);
     }
 
