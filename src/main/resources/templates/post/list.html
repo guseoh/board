@@ -96,14 +96,6 @@
                                         <i class="bi bi-person-circle me-1"></i> 내 정보 페이지
                                     </a>
 
-                                    <a class="btn btn-outline-light" th:href="@{/my/posts}">
-                                        <i class="bi bi-file-earmark-text me-1"></i> 내가 쓴 글 보기
-                                    </a>
-
-                                    <a class="btn btn-outline-light" th:href="@{/my/comments}">
-                                        <i class="bi bi-chat-left-text me-1"></i> 내가 쓴 댓글 보기
-                                    </a>
-
                                     <a class="btn btn-outline-light"
                                        th:if="${isAdmin != null and isAdmin}"
                                        th:href="@{/admin}">
