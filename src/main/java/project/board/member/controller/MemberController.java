@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.service.CommentService;
+import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberCreateRequest;
 import project.board.member.service.MemberService;
@@ -79,9 +80,25 @@ public class MemberController {
 //    }
 //
 //
-//    //
-//    @GetMapping("/my/posts")
-//    public String myPostsForm() {
-//
-//    }
+
+
+    @GetMapping("/my/posts")
+    public String myPostsForm(PageRequestDto pageRequestDto,
+                              Model model,
+                              @AuthenticationPrincipal UnifiedPrincipal user) {
+
+        var page = postService.findAll(pageRequestDto);
+
+        model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
+
+        model.addAttribute("todayMyPostCount", postService.todayWrite());
+        model.addAttribute("myPostViewCount", postService.myTodayPostsCount(user.getMemberId()));
+
+        model.addAttribute("posts", postService.myPosts(user.getMemberId()));
+        model.addAttribute("page", page);
+        model.addAttribute("keyword", pageRequestDto.getKeyword());
+
+
+        return "member/myPost";
+    }
 }

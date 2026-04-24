@@ -126,10 +126,24 @@ public class PostService {
         return postRepository.countTodayPosts(startDay, nextDay);
     }
 
-    //todo: 임시
+    //todo: 방어코드?
     public Long myPostCount(Long memberId) {
-        Member findMember = memberRepository.findById(memberId).orElseThrow();
-        return postRepository.countMyPosts(findMember);
+        return postRepository.countMyPosts(memberId);
+    }
+
+    public Long myTodayPostsCount(Long memberId) {
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startDay = today.atStartOfDay();
+        LocalDateTime nextDay = today.plusDays(1).atStartOfDay();
+
+        return postRepository.countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(memberId, startDay, nextDay);
+    }
+
+    public List<PostListResponse> myPosts(Long memberId) {
+        return postRepository.findAllByMemberId(memberId).stream()
+                .map(PostListResponse::from)
+                .toList();
     }
 
     private Post getPost(Long id) {
