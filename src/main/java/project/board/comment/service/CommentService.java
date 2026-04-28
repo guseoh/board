@@ -1,14 +1,20 @@
 package project.board.comment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.board.comment.dto.CommentDto;
 import project.board.comment.dto.CommentRequestDto;
+import project.board.comment.dto.MyCommentPageResponse;
+import project.board.comment.dto.MyCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
+import project.board.global.dto.PageRequestDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
+import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.entity.Post;
@@ -79,6 +85,16 @@ public class CommentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<MyCommentPageResponse> myCommentPage(PageRequestDto requestDto) {
+
+        Long memberId = getLoginMemberId();
+
+        List<Comment> comments = commentRepository.MyComments(memberId);
+
+    }
+
+
     public Long myCommentCount(Long id) {
         Member member = memberRepository.findById(id).orElseThrow();
         return commentRepository.countMyComments(member);
@@ -88,6 +104,22 @@ public class CommentService {
         if (!comment.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.COMMENT_NOT_OWNER);
         }
+    }
+
+    private Long getLoginMemberId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof UnifiedPrincipal unifiedPrincipal)) {
+            throw new CustomException(ErrorCode.MEMBER_NOT_AUTHENTICATION);
+        }
+
+        return unifiedPrincipal.getMemberId();
     }
 
 }
