@@ -9,7 +9,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import project.board.comment.dto.MyCommentPageResponse;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
@@ -98,7 +100,29 @@ public class MemberController {
         model.addAttribute("page", page);
         model.addAttribute("keyword", pageRequestDto.getKeyword());
 
-
         return "member/myPost";
+    }
+
+//    @GetMapping("/my/comments")
+//    public String myCommentForm(PageRequestDto requestDto,
+//            @RequestParam(required = false) String keyword,
+//            Model model) {
+//
+//        MyCommentPageResponse response = commentService.
+
+
+
+
+//        model.addAttribute("myCommentCount", myCommentCount);
+//        model.addAttribute("todayMyCommentCount", todayMyCommentCount);
+//        model.addAttribute("recentCommentCount", recentCommentCount);
+//
+//        model.addAttribute("comments", comments);
+//        model.addAttribute("page", page);
+//        model.addAttribute("keyword", keyword);
+
+
+        return "member/myComment";
+
     }
 }
