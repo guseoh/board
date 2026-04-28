@@ -34,14 +34,22 @@ public class PostController {
     private final PostService postService;
     private final CommentService commentService;
 
+    //todo: CQRS 개선 고려
     @GetMapping({"", "/"})
-    public String list(PageRequestDto request, Model model) {
+    public String list(PageRequestDto request, Model model,
+                       @AuthenticationPrincipal UnifiedPrincipal user) {
 
         var page = postService.findAll(request);
 
         model.addAttribute("totalCount", page.getSize());
         model.addAttribute("todayCount", postService.todayWrite());
         model.addAttribute("memberCount", memberService.count());
+
+        if (user != null) {
+            model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
+            model.addAttribute("myCommentCount", commentService.myCommentCount(user.getMemberId()));
+
+        }
 
         model.addAttribute("page", page);
         model.addAttribute("posts", page.getDtoList());

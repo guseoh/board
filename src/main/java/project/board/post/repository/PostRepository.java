@@ -1,5 +1,6 @@
 package project.board.post.repository;
 
+import org.springframework.cglib.core.Local;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,16 +29,30 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select p from Post p join fetch p.member")
     List<Post> findAllWithMemberForAdmin();
 
-    @Query("select count(p) from Post p where p.createdAt >= :startDay and p.createdAt <= :nextDay")
+    @Query("select count(p) from Post p where p.createdAt >= :startDay and p.createdAt < :nextDay")
     Long countTodayPosts(@Param("startDay") LocalDateTime startDay, @Param("nextDay") LocalDateTime nextDay);
 
 
-    @Query("select count(p) from Post p where p.member = :member")
-    Long countMyPosts(@Param("member") Member member);
+    @Query("select count(p) from Post p where p.member.id = :memberId")
+    Long countMyPosts(@Param("memberId") Long memberId);
 
+//    @Query("select count(p) " +
+//            "from Post p " +
+//            "where p.createdAt >= :startDay " +
+//            "and p.createdAt < :nextDay " +
+//            "and p.member.id = :memberId")
+//    Long countTodayMyPosts(@Param("startDay") LocalDateTime startDay,
+//                           @Param("nextDay") LocalDateTime nextDay,
+//                           @Param("memberId") Long memberId);
+
+    Long countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(Long memberId, LocalDateTime startDay, LocalDateTime nextDay);
+
+    List<Post> findAllByMemberId(Long memberId);
 
     @Modifying
     @Query("delete from Post p where p.member = :member")
     void deleteAllByMember(@Param("member") Member member);
+
+
 
 }
