@@ -20,7 +20,6 @@
 
         <div sec:authorize="isAuthenticated()">
 
-            <!-- 상단 헤더 -->
             <section class="mb-4">
                 <div class="card shadow-sm my-subpage-hero">
                     <div class="card-body p-4 p-md-5">
@@ -46,7 +45,6 @@
                 </div>
             </section>
 
-            <!-- 요약 카드 -->
             <section class="mb-4">
                 <div class="row g-3">
                     <div class="col-md-4">
@@ -78,7 +76,6 @@
                 </div>
             </section>
 
-            <!-- 목록 -->
             <section>
                 <div class="card shadow-sm section-card">
                     <div class="card-body p-4">
@@ -125,7 +122,6 @@
                             </a>
                         </div>
 
-                        <!-- 페이징 -->
                         <nav class="mt-4"
                              th:if="${page != null and !#lists.isEmpty(page.pageList)}"
                              aria-label="내가 쓴 글 페이지 이동">
@@ -164,7 +160,6 @@
             </section>
         </div>
 
-        <!-- 비로그인 -->
         <div sec:authorize="isAnonymous()">
             <div class="card shadow-sm my-guest-card">
                 <div class="card-body p-5 text-center">
