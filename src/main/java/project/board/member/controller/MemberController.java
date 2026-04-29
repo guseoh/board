@@ -111,8 +111,6 @@ public class MemberController {
 //        MyCommentPageResponse response = commentService.
 
 
-
-
 //        model.addAttribute("myCommentCount", myCommentCount);
 //        model.addAttribute("todayMyCommentCount", todayMyCommentCount);
 //        model.addAttribute("recentCommentCount", recentCommentCount);
@@ -122,7 +120,7 @@ public class MemberController {
 //        model.addAttribute("keyword", keyword);
 
 
-        return "member/myComment";
+//        return "member/myComment";
 
-    }
+//    }
 }
