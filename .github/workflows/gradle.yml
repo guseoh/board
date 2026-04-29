@@ -51,11 +51,15 @@ jobs:
           script: |
             set -e
 
+            APP_DIR=~/apps/board
+            LOG_DIR=$APP_DIR/logs
+            PID_FILE=$APP_DIR/app.pid
+
             echo "[1] Move to project directory"
-            cd ~/apps/board
+            cd $APP_DIR
 
             echo "[2] Ensure log directory exists"
-            mkdir -p ~/apps/board/logs
+            mkdir -p $LOG_DIR
 
             echo "[3] Pull latest source"
             git pull origin master
@@ -66,20 +70,26 @@ jobs:
             echo "[5] Build project"
             ./gradlew clean build -x test
 
-            echo "[6] Find current running app PID"
-            CURRENT_PID=$(pgrep -f "java -jar .*board-.*SNAPSHOT.jar" || true)
+            echo "[6] Stop current application"
 
-            if [ -n "$CURRENT_PID" ]; then
-              echo "Current PID: $CURRENT_PID"
-              echo "[7] Stop current application"
-              echo "$CURRENT_PID" | xargs -r kill -15
-              sleep 5
+            if [ -f "$PID_FILE" ]; then
+              OLD_PID=$(cat "$PID_FILE")
+
+              if ps -p "$OLD_PID" > /dev/null 2>&1; then
+                echo "Current PID: $OLD_PID"
+                kill -15 "$OLD_PID"
+                sleep 5
+              else
+                echo "PID file exists, but process is not running"
+              fi
+
+              rm -f "$PID_FILE"
             else
-              echo "No running application found"
+              echo "No PID file found"
             fi
 
-            echo "[8] Find new jar"
-            JAR_PATH=$(find ~/apps/board/build/libs -maxdepth 1 -name "*.jar" ! -name "*plain.jar" | head -n 1)
+            echo "[7] Find new jar"
+            JAR_PATH=$(find $APP_DIR/build/libs -maxdepth 1 -name "*.jar" ! -name "*plain.jar" | head -n 1)
 
             if [ -z "$JAR_PATH" ]; then
               echo "JAR file not found"
@@ -88,17 +98,19 @@ jobs:
 
             echo "JAR_PATH=$JAR_PATH"
 
-            echo "[9] Start new application"
-            nohup java -jar "$JAR_PATH" > ~/apps/board/logs/app.log 2>&1 &
+            echo "[8] Start new application"
+            nohup java -jar "$JAR_PATH" > $LOG_DIR/app.log 2>&1 &
+
+            NEW_PID=$!
+            echo "$NEW_PID" > "$PID_FILE"
 
             sleep 5
 
-            echo "[10] Check application process"
-            NEW_PID=$(pgrep -f "$JAR_PATH" || true)
+            echo "[9] Check application process"
 
-            if [ -z "$NEW_PID" ]; then
+            if ! ps -p "$NEW_PID" > /dev/null 2>&1; then
               echo "Application failed to start"
-              tail -n 50 ~/apps/board/logs/app.log
+              tail -n 50 $LOG_DIR/app.log
               exit 1
             fi
 
