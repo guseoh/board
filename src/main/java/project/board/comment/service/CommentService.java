@@ -85,14 +85,14 @@ public class CommentService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public List<MyCommentPageResponse> myCommentPage(PageRequestDto requestDto) {
-
-        Long memberId = getLoginMemberId();
-
-        List<Comment> comments = commentRepository.MyComments(memberId);
-
-    }
+//    @Transactional(readOnly = true)
+//    public List<MyCommentPageResponse> myCommentPage(PageRequestDto requestDto) {
+//
+//        Long memberId = getLoginMemberId();
+//
+//        List<Comment> comments = commentRepository.MyComments(memberId);
+//
+//    }
 
 
     public Long myCommentCount(Long id) {
