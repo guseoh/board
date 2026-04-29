@@ -42,11 +42,15 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
+          envs: DB_USERNAME,DB_PASSWORD
           script: |
             set -e
 
@@ -68,6 +72,9 @@ jobs:
 
             echo "[5] Build project"
             ./gradlew clean build -x test
+
+            echo "[5-1] Stop Gradle daemon"
+            ./gradlew --stop || true
 
             echo "[6] Stop current application"
             echo "PID_FILE=$PID_FILE"
@@ -100,14 +107,16 @@ jobs:
             echo "JAR_PATH=$JAR_PATH"
 
             echo "[8] Start new application"
-            nohup java -jar "$JAR_PATH" > "$LOG_DIR/app.log" 2>&1 &
+            nohup java -jar "$JAR_PATH" \
+              --spring.profiles.active=prod,oauth \
+              > "$LOG_DIR/app.log" 2>&1 &
 
             NEW_PID=$!
             echo "$NEW_PID" > "$PID_FILE"
 
             echo "NEW_PID=$NEW_PID"
 
-            sleep 10
+            sleep 15
 
             echo "[9] Check application process"
 
@@ -117,4 +126,24 @@ jobs:
               exit 1
             fi
 
-            echo "Application started successfully. PID=$NEW_PID"
+            echo "[10] Check application health"
+
+            for i in {1..30}; do
+              if curl -I --max-time 3 http://localhost:8080 > /dev/null 2>&1; then
+                echo "Application started successfully. PID=$NEW_PID"
+                exit 0
+              fi
+
+              if ! ps -p "$NEW_PID" > /dev/null 2>&1; then
+                echo "Application process exited"
+                tail -n 100 "$LOG_DIR/app.log"
+                exit 1
+              fi
+
+              echo "Waiting for application to respond... ($i/30)"
+              sleep 5
+            done
+
+            echo "Application did not respond in time"
+            tail -n 100 "$LOG_DIR/app.log"
+            exit 1
