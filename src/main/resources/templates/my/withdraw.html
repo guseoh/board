@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('회원 탈퇴')}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('my')}"></div>
+
+<div class="page-wrap my-page">
+    <div class="container py-4">
+
+        <div sec:authorize="isAuthenticated()">
+
+            <section class="mb-4">
+                <div class="card shadow-sm section-card">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="text-center mb-4">
+                            <div class="my-info-guest-icon mx-auto mb-3">
+                                <i class="bi bi-person-x"></i>
+                            </div>
+
+                            <h1 class="guest-title mb-2">회원 탈퇴</h1>
+                            <p class="guest-desc mb-0">
+                                회원 탈퇴를 진행하기 전에 아래 내용을 꼭 확인해주세요.
+                            </p>
+                        </div>
+
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${error}">오류가 발생했습니다.</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <div class="guide-box mb-4">
+                            <strong>회원 탈퇴 시 유의사항</strong>
+                            <ul class="mt-3 mb-0">
+                                <li>탈퇴 후에는 기존 계정으로 로그인할 수 없습니다.</li>
+                                <li>작성한 게시글과 댓글은 서비스 정책에 따라 유지되거나 삭제 처리될 수 있습니다.</li>
+                                <li>탈퇴 처리가 완료되면 계정 복구가 어려울 수 있습니다.</li>
+                                <li>정말 탈퇴를 원한다면 아래 확인 문구를 입력해주세요.</li>
+                            </ul>
+                        </div>
+
+                        <form th:action="@{/my/withdraw}" method="post"
+                              onsubmit="return confirmWithdraw();">
+
+                            <div class="mb-3">
+                                <label for="confirmText" class="form-label">
+                                    확인 문구
+                                </label>
+                                <input type="text"
+                                       id="confirmText"
+                                       name="confirmText"
+                                       class="form-control"
+                                       placeholder="회원탈퇴를 입력해주세요."
+                                       autocomplete="off"
+                                       required>
+                                <div class="form-text">
+                                    탈퇴를 진행하려면 <strong>회원탈퇴</strong>를 정확히 입력해주세요.
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <a th:href="@{/my}" class="btn btn-outline-light">
+                                    <i class="bi bi-arrow-left me-1"></i> 취소
+                                </a>
+
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="bi bi-person-x me-1"></i> 회원 탈퇴
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <div sec:authorize="isAnonymous()">
+            <div class="card shadow-sm my-guest-card">
+                <div class="card-body p-5 text-center">
+                    <div class="my-info-guest-icon mx-auto mb-3">
+                        <i class="bi bi-person-lock"></i>
+                    </div>
+                    <h1 class="guest-title mb-2">로그인이 필요합니다</h1>
+                    <p class="guest-desc mb-4">
+                        회원 탈퇴는 로그인한 사용자만 이용할 수 있습니다.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a class="btn btn-primary" th:href="@{/login}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> 로그인
+                        </a>
+                        <a class="btn btn-outline-light" th:href="@{/signup}">
+                            <i class="bi bi-person-plus me-1"></i> 회원가입
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    function confirmWithdraw() {
+        const confirmText = document.getElementById("confirmText").value.trim();
+
+        if (confirmText !== "회원탈퇴") {
+            alert("확인 문구가 일치하지 않습니다. '회원탈퇴'를 입력해주세요.");
+            return false;
+        }
+
+        return confirm("정말 회원 탈퇴를 진행하시겠습니까?");
+    }
+</script>
+
+</body>
+</html>
