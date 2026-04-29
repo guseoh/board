@@ -15,6 +15,7 @@ public class PageResultDto<DTO, EN> {
     private List<DTO> dtoList;  // 실제 목록 데이터
 
     private int totalPage;
+    private long totalCount;
 
     private int start, end;
 
@@ -30,6 +31,7 @@ public class PageResultDto<DTO, EN> {
         dtoList = result.stream().map(fn).collect(Collectors.toList()); // to.List() 차이점
 
         totalPage = result.getTotalPages();
+        totalCount = result.getTotalElements();
 
         makePageList(result.getPageable());
     }
