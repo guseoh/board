@@ -47,7 +47,6 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
-          script_stop: true
           script: |
             set -e
 
@@ -77,16 +76,12 @@ jobs:
               OLD_PID=$(cat "$PID_FILE" || true)
               echo "OLD_PID=$OLD_PID"
 
-              if [ -n "$OLD_PID" ]; then
-                if ps -p "$OLD_PID" > /dev/null 2>&1; then
-                  echo "Stopping application. PID=$OLD_PID"
-                  kill -15 "$OLD_PID" || true
-                  sleep 5
-                else
-                  echo "Process not running. PID=$OLD_PID"
-                fi
+              if [ -n "$OLD_PID" ] && ps -p "$OLD_PID" > /dev/null 2>&1; then
+                echo "Stopping application. PID=$OLD_PID"
+                kill -15 "$OLD_PID" || true
+                sleep 5
               else
-                echo "PID file is empty"
+                echo "PID file exists, but process is not running"
               fi
 
               rm -f "$PID_FILE" || true
