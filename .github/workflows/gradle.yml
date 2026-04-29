@@ -67,12 +67,12 @@ jobs:
             ./gradlew clean build -x test
 
             echo "[6] Find current running app PID"
-            CURRENT_PID=$(pgrep -f 'board-0.0.1-SNAPSHOT.jar' || true)
+            CURRENT_PID=$(pgrep -f "java -jar .*board-.*SNAPSHOT.jar" || true)
 
             if [ -n "$CURRENT_PID" ]; then
               echo "Current PID: $CURRENT_PID"
               echo "[7] Stop current application"
-              kill -15 $CURRENT_PID
+              echo "$CURRENT_PID" | xargs -r kill -15
               sleep 5
             else
               echo "No running application found"
