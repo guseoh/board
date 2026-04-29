@@ -42,20 +42,27 @@ jobs:
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
-          script_stop: true
+          envs: DB_USERNAME,DB_PASSWORD
           script: |
             set -e
 
+            APP_DIR="$HOME/apps/board"
+            LOG_DIR="$APP_DIR/logs"
+            PID_FILE="$APP_DIR/app.pid"
+
             echo "[1] Move to project directory"
-            cd ~/apps/board
+            cd "$APP_DIR"
 
             echo "[2] Ensure log directory exists"
-            mkdir -p ~/apps/board/logs
+            mkdir -p "$LOG_DIR"
 
             echo "[3] Pull latest source"
             git pull origin master
@@ -66,20 +73,31 @@ jobs:
             echo "[5] Build project"
             ./gradlew clean build -x test
 
-            echo "[6] Find current running app PID"
-            CURRENT_PID=$(pgrep -f 'board-0.0.1-SNAPSHOT.jar' || true)
+            echo "[5-1] Stop Gradle daemon"
+            ./gradlew --stop || true
 
-            if [ -n "$CURRENT_PID" ]; then
-              echo "Current PID: $CURRENT_PID"
-              echo "[7] Stop current application"
-              kill -15 $CURRENT_PID
-              sleep 5
+            echo "[6] Stop current application"
+            echo "PID_FILE=$PID_FILE"
+
+            if [ -s "$PID_FILE" ]; then
+              OLD_PID=$(cat "$PID_FILE" || true)
+              echo "OLD_PID=$OLD_PID"
+
+              if [ -n "$OLD_PID" ] && ps -p "$OLD_PID" > /dev/null 2>&1; then
+                echo "Stopping application. PID=$OLD_PID"
+                kill -15 "$OLD_PID" || true
+                sleep 5
+              else
+                echo "PID file exists, but process is not running"
+              fi
+
+              rm -f "$PID_FILE" || true
             else
-              echo "No running application found"
+              echo "No PID file found or PID file is empty"
             fi
 
-            echo "[8] Find new jar"
-            JAR_PATH=$(find ~/apps/board/build/libs -maxdepth 1 -name "*.jar" ! -name "*plain.jar" | head -n 1)
+            echo "[7] Find new jar"
+            JAR_PATH=$(find "$APP_DIR/build/libs" -maxdepth 1 -name "*.jar" ! -name "*plain.jar" | head -n 1)
 
             if [ -z "$JAR_PATH" ]; then
               echo "JAR file not found"
@@ -88,18 +106,44 @@ jobs:
 
             echo "JAR_PATH=$JAR_PATH"
 
-            echo "[9] Start new application"
-            nohup java -jar "$JAR_PATH" > ~/apps/board/logs/app.log 2>&1 &
+            echo "[8] Start new application"
+            nohup java -jar "$JAR_PATH" \
+              --spring.profiles.active=prod,oauth \
+              > "$LOG_DIR/app.log" 2>&1 &
 
-            sleep 5
+            NEW_PID=$!
+            echo "$NEW_PID" > "$PID_FILE"
 
-            echo "[10] Check application process"
-            NEW_PID=$(pgrep -f "$JAR_PATH" || true)
+            echo "NEW_PID=$NEW_PID"
 
-            if [ -z "$NEW_PID" ]; then
+            sleep 15
+
+            echo "[9] Check application process"
+
+            if ! ps -p "$NEW_PID" > /dev/null 2>&1; then
               echo "Application failed to start"
-              tail -n 50 ~/apps/board/logs/app.log
+              tail -n 100 "$LOG_DIR/app.log"
               exit 1
             fi
 
-            echo "Application started successfully. PID=$NEW_PID"
+            echo "[10] Check application health"
+
+            for i in {1..30}; do
+              if curl -I --max-time 3 http://localhost:8080 > /dev/null 2>&1; then
+                echo "Application started successfully. PID=$NEW_PID"
+                exit 0
+              fi
+
+              if ! ps -p "$NEW_PID" > /dev/null 2>&1; then
+                echo "Application process exited"
+                tail -n 100 "$LOG_DIR/app.log"
+                exit 1
+              fi
+
+              echo "Waiting for application to respond... ($i/30)"
+              sleep 5
+            done
+
+            echo "Application did not respond in time"
+            tail -n 100 "$LOG_DIR/app.log"
+            exit 1

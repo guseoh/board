@@ -16,6 +16,6 @@ public class MyCommentResponse {
     private LocalDateTime createdAt;
 
 
-    public static MyCommentResponse from()
+//    public static MyCommentResponse from()
 
 }
