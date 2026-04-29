@@ -51,15 +51,15 @@ jobs:
           script: |
             set -e
 
-            APP_DIR=~/apps/board
-            LOG_DIR=$APP_DIR/logs
-            PID_FILE=$APP_DIR/app.pid
+            APP_DIR="$HOME/apps/board"
+            LOG_DIR="$APP_DIR/logs"
+            PID_FILE="$APP_DIR/app.pid"
 
             echo "[1] Move to project directory"
-            cd $APP_DIR
+            cd "$APP_DIR"
 
             echo "[2] Ensure log directory exists"
-            mkdir -p $LOG_DIR
+            mkdir -p "$LOG_DIR"
 
             echo "[3] Pull latest source"
             git pull origin master
@@ -71,25 +71,31 @@ jobs:
             ./gradlew clean build -x test
 
             echo "[6] Stop current application"
+            echo "PID_FILE=$PID_FILE"
 
-            if [ -f "$PID_FILE" ]; then
-              OLD_PID=$(cat "$PID_FILE")
+            if [ -s "$PID_FILE" ]; then
+              OLD_PID=$(cat "$PID_FILE" || true)
+              echo "OLD_PID=$OLD_PID"
 
-              if ps -p "$OLD_PID" > /dev/null 2>&1; then
-                echo "Current PID: $OLD_PID"
-                kill -15 "$OLD_PID"
-                sleep 5
+              if [ -n "$OLD_PID" ]; then
+                if ps -p "$OLD_PID" > /dev/null 2>&1; then
+                  echo "Stopping application. PID=$OLD_PID"
+                  kill -15 "$OLD_PID" || true
+                  sleep 5
+                else
+                  echo "Process not running. PID=$OLD_PID"
+                fi
               else
-                echo "PID file exists, but process is not running"
+                echo "PID file is empty"
               fi
 
-              rm -f "$PID_FILE"
+              rm -f "$PID_FILE" || true
             else
-              echo "No PID file found"
+              echo "No PID file found or PID file is empty"
             fi
 
             echo "[7] Find new jar"
-            JAR_PATH=$(find $APP_DIR/build/libs -maxdepth 1 -name "*.jar" ! -name "*plain.jar" | head -n 1)
+            JAR_PATH=$(find "$APP_DIR/build/libs" -maxdepth 1 -name "*.jar" ! -name "*plain.jar" | head -n 1)
 
             if [ -z "$JAR_PATH" ]; then
               echo "JAR file not found"
@@ -99,18 +105,20 @@ jobs:
             echo "JAR_PATH=$JAR_PATH"
 
             echo "[8] Start new application"
-            nohup java -jar "$JAR_PATH" > $LOG_DIR/app.log 2>&1 &
+            nohup java -jar "$JAR_PATH" > "$LOG_DIR/app.log" 2>&1 &
 
             NEW_PID=$!
             echo "$NEW_PID" > "$PID_FILE"
 
-            sleep 5
+            echo "NEW_PID=$NEW_PID"
+
+            sleep 10
 
             echo "[9] Check application process"
 
             if ! ps -p "$NEW_PID" > /dev/null 2>&1; then
               echo "Application failed to start"
-              tail -n 50 $LOG_DIR/app.log
+              tail -n 100 "$LOG_DIR/app.log"
               exit 1
             fi
 
