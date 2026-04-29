@@ -41,7 +41,7 @@ public class PostController {
 
         var page = postService.findAll(request);
 
-        model.addAttribute("totalCount", page.getSize());
+        model.addAttribute("totalCount", page.getTotalCount());
         model.addAttribute("todayCount", postService.todayWrite());
         model.addAttribute("memberCount", memberService.count());
 
