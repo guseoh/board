@@ -38,8 +38,18 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("select count(c) from Comment c where c.member.id = :memberId and c.createdAt >= :minusDay")
     Long countRecentComments(@Param("memberId") Long memberId,
                                @Param("minusDay") LocalDateTime minusDay);
+///
+///
 
-    @Query("select c from Comment c where c.member.id = :memberId")
-    List<Comment> MyComments(@Param("memberId") Long memberId);
+//    @Query("select c from Comment c where c.member.id = :memberId")
+//    List<Comment> MyComments(@Param("memberId") Long memberId);
+
+    // 전체 작성 댓글 (내가 쓴)
+    Long countByMemberId(Long memberId);
+
+    // 오늘 작성한 댓글 개수
+    Long countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            Long memberId, LocalDateTime today, LocalDateTime nextDay
+    );
 
 }
