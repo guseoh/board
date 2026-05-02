@@ -106,26 +106,24 @@ public class MemberController {
         return "my/myPost";
     }
 
-    @GetMapping("/my/comments")
-    public String myCommentForm(PageRequestDto requestDto,
-            @RequestParam(required = false) String keyword,
-            Model model) {
-
-        MyCommentPageResponse response = commentService.
-
-
-        model.addAttribute("myCommentCount", myCommentCount);
-        model.addAttribute("todayMyCommentCount", todayMyCommentCount);
-        model.addAttribute("recentCommentCount", recentCommentCount);
-
-        model.addAttribute("comments", comments);
-        model.addAttribute("page", page);
-        model.addAttribute("keyword", keyword);
-
-
-        return "my/myComment";
-
-    }
+//    @GetMapping("/my/comments")//        MyCommentPageResponse response = commentService.
+//    public String myCommentForm(PageRequestDto requestDto,
+//            @RequestParam(required = false) String keyword,
+//            Model model) {
+//
+//
+//        model.addAttribute("myCommentCount", myCommentCount);
+//        model.addAttribute("todayMyCommentCount", todayMyCommentCount);
+//        model.addAttribute("recentCommentCount", recentCommentCount);
+//
+//        model.addAttribute("comments", comments);
+//        model.addAttribute("page", page);
+//        model.addAttribute("keyword", keyword);
+//
+//
+//        return "my/myComment";
+//
+//    }
 
     @GetMapping("/my/withdraw")
     public String withdrawForm() {

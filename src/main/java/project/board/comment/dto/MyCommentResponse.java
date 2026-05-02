@@ -2,6 +2,7 @@ package project.board.comment.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import project.board.comment.entity.Comment;
 
 import java.time.LocalDateTime;
 
@@ -16,6 +17,8 @@ public class MyCommentResponse {
     private LocalDateTime createdAt;
 
 
-//    public static MyCommentResponse from()
+//    public static MyCommentResponse from(Comment comment) {
+//        return
+//    }
 
 }
