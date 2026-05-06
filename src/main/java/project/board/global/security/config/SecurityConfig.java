@@ -54,13 +54,13 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                         .failureUrl("/loginForm?error=true").permitAll()
                 )
-                .oauth2Login(oauth -> oauth
-                        .loginPage("/loginForm")
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOauth2UserService)
-                        )
-                        .defaultSuccessUrl("/")
-                )
+//                .oauth2Login(oauth -> oauth
+//                        .loginPage("/loginForm")
+//                        .userInfoEndpoint(userInfo -> userInfo
+//                                .userService(customOauth2UserService)
+//                        )
+//                        .defaultSuccessUrl("/")
+//                )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
