@@ -15,7 +15,7 @@ public class MyCommentPageResponse {
     private long todayMyCommentCount;
     private long recentCommentCount;
 
-    private List<MyCommentResponse> comments;
-    private PageResultDto page;
+//    private List<MyCommentResponse> comments;
+    private PageResultDto<MyCommentResponse, Comment> page;
 //    private String keyword;
 }

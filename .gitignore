@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 application-*.properties
 logs/
+.env
 
 ### STS ###
 .apt_generated
