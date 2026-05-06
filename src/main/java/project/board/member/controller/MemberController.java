@@ -1,8 +1,11 @@
 package project.board.member.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -65,7 +68,7 @@ public class MemberController {
         Long commentCount = commentService.myCommentCount(user.getMemberId());
         model.addAttribute("myCommentCount", commentCount);
 
-        return "member/my";
+        return "my/my";
 
     }
 
@@ -100,17 +103,15 @@ public class MemberController {
         model.addAttribute("page", page);
         model.addAttribute("keyword", pageRequestDto.getKeyword());
 
-        return "member/myPost";
+        return "my/myPost";
     }
 
-//    @GetMapping("/my/comments")
+//    @GetMapping("/my/comments")//        MyCommentPageResponse response = commentService.
 //    public String myCommentForm(PageRequestDto requestDto,
 //            @RequestParam(required = false) String keyword,
 //            Model model) {
 //
-//        MyCommentPageResponse response = commentService.
-
-
+//
 //        model.addAttribute("myCommentCount", myCommentCount);
 //        model.addAttribute("todayMyCommentCount", todayMyCommentCount);
 //        model.addAttribute("recentCommentCount", recentCommentCount);
@@ -118,9 +119,26 @@ public class MemberController {
 //        model.addAttribute("comments", comments);
 //        model.addAttribute("page", page);
 //        model.addAttribute("keyword", keyword);
-
-
-//        return "member/myComment";
-
+//
+//
+//        return "my/myComment";
+//
 //    }
+
+    @GetMapping("/my/withdraw")
+    public String withdrawForm() {
+        return "my/withdraw";
+    }
+
+    @PostMapping("/my/withdraw")
+    public String withdraw(@AuthenticationPrincipal UnifiedPrincipal user,
+                           HttpServletRequest request,
+                           HttpServletResponse response) {
+
+        memberService.withdraw(user.getMemberId());
+
+        new SecurityContextLogoutHandler().logout(request, response, null);
+
+        return "redirect:/";
+    }
 }

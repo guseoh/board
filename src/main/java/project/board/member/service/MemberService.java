@@ -134,4 +134,12 @@ public class MemberService {
         memberRepository.delete(member);
     }
 
+    @Transactional
+    public void withdraw(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        memberRepository.delete(member);
+    }
+
 }

@@ -1716,3 +1716,46 @@ hr {
     padding: 14px;
   }
 }
+
+.btn-oauth-kakao {
+  background: #FEE500;
+  border-color: #FEE500;
+  color: #191919;
+}
+
+.btn-oauth-kakao:hover {
+  background: #f6dc00;
+  border-color: #f6dc00;
+  color: #191919;
+}
+
+.btn-oauth-naver {
+  background: #03C75A;
+  border-color: #03C75A;
+  color: #fff;
+}
+
+.btn-oauth-naver:hover {
+  background: #02b351;
+  border-color: #02b351;
+  color: #fff;
+}
+
+.oauth-icon-kakao,
+.oauth-icon-naver {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 900;
+}
+
+.oauth-icon-kakao {
+  background: rgba(0, 0, 0, .12);
+  color: #191919;
+}
+
+.oauth-icon-naver {
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+}
