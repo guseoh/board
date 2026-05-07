@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/my/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
@@ -54,13 +55,13 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                         .failureUrl("/loginForm?error=true").permitAll()
                 )
-//                .oauth2Login(oauth -> oauth
-//                        .loginPage("/loginForm")
-//                        .userInfoEndpoint(userInfo -> userInfo
-//                                .userService(customOauth2UserService)
-//                        )
-//                        .defaultSuccessUrl("/")
-//                )
+                .oauth2Login(oauth -> oauth
+                        .loginPage("/loginForm")
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOauth2UserService)
+                        )
+                        .defaultSuccessUrl("/")
+                )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
