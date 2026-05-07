@@ -26,16 +26,23 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional //todo: ??
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
 
-        if (!"google".equals(provider)) {
-            throw new OAuth2AuthenticationException("지원하지 않습니다.");
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        OAuthUserInfo oAuthUserInfo = null;
+
+
+        if ("google".equals(provider)) {
+            oAuthUserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+        } else if ("naver".equals(provider)) {
+            oAuthUserInfo = new NaverUserInfo((Map) oAuth2User.getAttributes().get("response"));
+        } else {
+            throw new OAuth2AuthenticationException("지원하지 않는 로그인 유형입니다.");
         }
 
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        OAuthUserInfo oAuthUserInfo = new GoogleUserInfo(attributes);
 
         String providerId = oAuthUserInfo.getProviderId();
         String email = oAuthUserInfo.getEmail();
