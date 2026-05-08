@@ -35,11 +35,15 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         OAuthUserInfo oAuthUserInfo = null;
 
 
+        //todo: switch 방식 개선
         if ("google".equals(provider)) {
             oAuthUserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
         } else if ("naver".equals(provider)) {
-            oAuthUserInfo = new NaverUserInfo((Map) oAuth2User.getAttributes().get("response"));
-        } else {
+            oAuthUserInfo = new NaverUserInfo((Map<String, Object>) oAuth2User.getAttributes().get("response"));
+        } else if ("kakao".equals(provider)){
+            oAuthUserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+        }
+        else {
             throw new OAuth2AuthenticationException("지원하지 않는 로그인 유형입니다.");
         }
 
@@ -50,13 +54,13 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
         Member findMember = memberRepository.findByProviderAndProviderId(provider, providerId).orElseGet(() -> {
 
-            String nickname = email.substring(0, email.indexOf("@"));
+//            String nickname = email.substring(0, email.indexOf("@"));
 
             String dummy = UUID.randomUUID().toString();
             String encode = passwordEncoder.encode(dummy);
 
             Member member = Member.createOAuth(
-                    nickname,
+                    name,
                     email,
                     encode,
                     Role.USER,
