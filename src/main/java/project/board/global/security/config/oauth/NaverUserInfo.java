@@ -11,12 +11,12 @@ public class NaverUserInfo implements OAuthUserInfo{
 
     @Override
     public String getProvider() {
-        return "Naver";
+        return "naver";
     }
 
     @Override
     public String getProviderId() {
-        return (String) attributes.get("sub");
+        return (String) attributes.get("id");
     }
 
     @Override
