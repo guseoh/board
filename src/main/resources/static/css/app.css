@@ -1759,3 +1759,177 @@ hr {
   background: rgba(255, 255, 255, .18);
   color: #fff;
 }
+
+/* ================= Post Write / Edit Page Buttons ================= */
+
+.post-form-page .container {
+  max-width: 1040px;
+}
+
+.post-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.post-form-title {
+  color: #f4f7ff;
+  font-size: clamp(2rem, 2.6vw, 2.7rem);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+
+.post-form-card {
+  background:
+          radial-gradient(700px 260px at 0% 0%, rgba(78,161,255,.08), transparent 60%),
+          linear-gradient(180deg, #262b38 0%, #222733 100%);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(0,0,0,.28);
+}
+
+.post-form-card .card-body {
+  padding: 28px 30px;
+}
+
+.post-form-page .form-label {
+  color: #eef3ff;
+  font-size: 1.08rem;
+  font-weight: 750;
+  margin-bottom: 10px;
+}
+
+.post-form-page .form-control {
+  min-height: 48px;
+  font-size: 1.02rem;
+}
+
+.post-form-page textarea.form-control {
+  min-height: 360px;
+  line-height: 1.75;
+  resize: vertical;
+}
+
+.post-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* 공통 액션 버튼 */
+.btn-post-action {
+  min-width: 92px;
+  min-height: 46px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 10px 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+          transform .15s ease,
+          box-shadow .15s ease,
+          background-color .15s ease,
+          border-color .15s ease;
+}
+
+.btn-post-action:hover {
+  transform: translateY(-1px);
+}
+
+/* 등록 버튼 - 가장 눈에 띄게 */
+.btn-post-submit {
+  background: linear-gradient(135deg, #3b82f6, #5b6cff);
+  border: 1px solid rgba(123, 160, 255, .85);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(59, 130, 246, .28);
+}
+
+.btn-post-submit:hover {
+  background: linear-gradient(135deg, #2563eb, #4f5ff0);
+  border-color: rgba(160, 188, 255, .95);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(59, 130, 246, .36);
+}
+
+/* 취소 버튼 - 보조지만 흐리지 않게 */
+.btn-post-cancel {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.22);
+  color: #dce3f2;
+}
+
+.btn-post-cancel:hover {
+  background: rgba(255,255,255,.11);
+  border-color: rgba(255,255,255,.34);
+  color: #ffffff;
+}
+
+/* 목록 버튼 - 상단/하단 어디서든 잘 보이게 */
+.btn-post-list {
+  background: rgba(78,161,255,.10);
+  border: 1px solid rgba(78,161,255,.50);
+  color: #9ec9ff;
+}
+
+.btn-post-list:hover {
+  background: rgba(78,161,255,.18);
+  border-color: rgba(78,161,255,.85);
+  color: #d7ebff;
+  box-shadow: 0 10px 24px rgba(78,161,255,.18);
+}
+
+/* 상세 페이지 상단 버튼도 조금 더 강조 */
+.detail-container .btn-post-list,
+.detail-container .btn-post-submit,
+.detail-container .btn-post-cancel {
+  min-width: 72px;
+  min-height: 42px;
+  border-radius: 11px;
+  font-weight: 800;
+}
+
+/* 삭제 버튼 강조 */
+.btn-post-delete {
+  background: rgba(255,107,129,.10);
+  border: 1px solid rgba(255,107,129,.60);
+  color: #ff7b8f;
+}
+
+.btn-post-delete:hover {
+  background: rgba(255,107,129,.18);
+  border-color: rgba(255,107,129,.90);
+  color: #ffd7de;
+  box-shadow: 0 10px 24px rgba(255,107,129,.18);
+}
+
+@media (max-width: 576px) {
+  .post-form-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .post-form-card .card-body {
+    padding: 22px;
+  }
+
+  .post-form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .btn-post-action {
+    width: 100%;
+  }
+
+  .post-form-page textarea.form-control {
+    min-height: 280px;
+  }
+}
