@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/my/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form

@@ -26,16 +26,46 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional //todo: ??
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
 
-        if (!"google".equals(provider)) {
-            throw new OAuth2AuthenticationException("지원하지 않습니다.");
-        }
-
         Map<String, Object> attributes = oAuth2User.getAttributes();
-        OAuthUserInfo oAuthUserInfo = new GoogleUserInfo(attributes);
+//        OAuthUserInfo oAuthUserInfo = null;
+//
+//
+//        //todo: switch 방식 개선
+//        if ("google".equals(provider)) {
+//            oAuthUserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+//        } else if ("naver".equals(provider)) {
+//            oAuthUserInfo = new NaverUserInfo((Map<String, Object>) oAuth2User.getAttributes().get("response"));
+//        } else if ("kakao".equals(provider)){
+//            oAuthUserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
+//        }
+//        else {
+//            throw new OAuth2AuthenticationException("지원하지 않는 로그인 유형입니다.");
+//        }
+
+        OAuthUserInfo oAuthUserInfo = switch (provider) {
+            case "google" -> new GoogleUserInfo(attributes);
+
+            case "naver" -> {
+                Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+
+                if (response == null) {
+                    throw new OAuth2AuthenticationException("네이버 사용자 정보가 올바르지 않습니다.");
+                }
+
+                // yield: return 같은 역할
+                yield new NaverUserInfo(response);
+            }
+
+            case "kakao" -> new KakaoUserInfo(attributes);
+
+            default -> throw new OAuth2AuthenticationException("지원하지 않는 로그인 유형입니다.");
+        };
+
 
         String providerId = oAuthUserInfo.getProviderId();
         String email = oAuthUserInfo.getEmail();
@@ -43,13 +73,13 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
         Member findMember = memberRepository.findByProviderAndProviderId(provider, providerId).orElseGet(() -> {
 
-            String nickname = email.substring(0, email.indexOf("@"));
+//            String nickname = email.substring(0, email.indexOf("@"));
 
             String dummy = UUID.randomUUID().toString();
             String encode = passwordEncoder.encode(dummy);
 
             Member member = Member.createOAuth(
-                    nickname,
+                    name,
                     email,
                     encode,
                     Role.USER,
