@@ -12,6 +12,7 @@ import project.board.comment.dto.MyCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.dto.PageRequestDto;
+import project.board.global.dto.PageResultDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.global.security.user.UnifiedPrincipal;
@@ -20,6 +21,8 @@ import project.board.member.repository.MemberRepository;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -86,9 +89,40 @@ public class CommentService {
     }
 
 
+    // 내가 작성한 댓글 조회
     public Long myCommentCount(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow();
-        return commentRepository.countMyComments(member);
+
+        Long memberId = getLoginMemberId();
+
+        return commentRepository.countByMemberId(memberId);
+    }
+
+    public MyCommentPageResponse myCommentPage(PageRequestDto request, String keyword) {
+
+        Long memberId = getLoginMemberId();
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startDay = today.atStartOfDay();
+        LocalDateTime nextDay = today.plusDays(1).atStartOfDay();
+
+        long todayComment = commentRepository.countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                memberId, startDay, nextDay
+        );
+
+        long recentComment = commentRepository.countByMemberIdAndCreatedAtGreaterThanEqual(
+                memberId, today.minusDays(7).atStartOfDay()
+        );
+
+        PageResultDto<MyCommentResponse, Comment> comments =
+
+
+        return MyCommentPageResponse.builder()
+                .myCommentCount(myCommentCount(memberId))
+                .todayMyCommentCount(todayComment)
+                .recentCommentCount(recentComment)
+                .comments()
+
+
     }
 
     private void validateOwner(Comment comment, Long memberId) {

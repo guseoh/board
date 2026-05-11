@@ -14,7 +14,6 @@ import project.board.member.dto.response.MemberResponse;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
-import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
 import java.util.List;
@@ -72,6 +71,33 @@ public class MemberService {
         member.changeRole(Role.valueOf(role));
     }
 
+    @Transactional
+    public void deleteForAdmin(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // 회원이 작성한 댓글
+        commentRepository.deleteAllByMember(member);
+
+        // 회원이 작성한 게시글 안 댓글
+        commentRepository.deleteAllByPostMember(member);
+
+        // 회원이 작성한 게시글
+        postRepository.deleteAllByMember(member);
+
+        // 회원 제거
+        memberRepository.delete(member);
+    }
+
+    @Transactional
+    public void withdraw(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        memberRepository.delete(member);
+    }
+
+
     public MemberResponse getMyProfile(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() -> new
                 CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -115,31 +141,4 @@ public class MemberService {
             member.changePassword(encoded);
         }
     }
-
-    @Transactional
-    public void deleteForAdmin(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-        // 회원이 작성한 댓글
-        commentRepository.deleteAllByMember(member);
-
-        // 회원이 작성한 게시글 안 댓글
-        commentRepository.deleteAllByPostMember(member);
-
-        // 회원이 작성한 게시글
-        postRepository.deleteAllByMember(member);
-
-        // 회원 제거
-        memberRepository.delete(member);
-    }
-
-    @Transactional
-    public void withdraw(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-        memberRepository.delete(member);
-    }
-
 }
