@@ -22,6 +22,9 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME("/signup", "이미 사용중인 닉네임입니다."),
     PASSWORD_MISMATCH("/signup", "비밀번호가 일치해야합니다."),
     MEMBER_NOT_AUTHENTICATION("/signup", "인증 정보가 일치하지 않습니다."),
+    PASSWORD_CONFIRM("/my/edit", "새로운 비밀번호가 일치하지 않습니다."),
+    PASSWORD_CURRENT_REQUIRED("/my/edit", "비밀번호를 입력해야 합니다."),
+    PASSWORD_INVALID("/my/edit", "비밀번호가 일치하지 않습니다."),
 
     // comment
     COMMENT_NOT_FOUND("/", "해당 댓글은 존재하지 않습니다."),

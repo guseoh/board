@@ -16,5 +16,4 @@ public class MyCommentPageResponse {
     private long recentCommentCount;
 
     private PageResultDto<MyCommentResponse, Comment> comments;
-    private String keyword;
 }
