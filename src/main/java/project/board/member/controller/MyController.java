@@ -2,19 +2,21 @@ package project.board.member.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.dto.MyCommentPageResponse;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
+import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.service.MemberService;
 import project.board.post.service.PostService;
 
@@ -40,6 +42,7 @@ public class MyController {
         return "my/my";
 
     }
+
     @GetMapping("/my/posts")
     public String myPostsForm(PageRequestDto pageRequestDto,
                               Model model,
@@ -85,6 +88,38 @@ public class MyController {
         memberService.withdraw(user.getMemberId());
 
         new SecurityContextLogoutHandler().logout(request, response, null);
+
+        log.info("회원 탈퇴 성공 - memberId={}, nickName={}", user.getMemberId(), user.getNickname());
+
+        return "redirect:/";
+    }
+
+    @GetMapping("/my/edit")
+    public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user,
+                           Model model) {
+
+        MemberUpdateRequest form = memberService.getMyProfile(user.getMemberId());
+
+        model.addAttribute("form", form);
+
+        return "my/myEdit";
+    }
+
+    @PostMapping("/my/edit")
+    public String Edit(@Valid @ModelAttribute("form") MemberUpdateRequest request,
+                        BindingResult bindingResult,
+                       RedirectAttributes ra,
+                       @AuthenticationPrincipal UnifiedPrincipal user) {
+
+        if (bindingResult.hasErrors()) {
+            return "my/myEdit";
+        }
+
+        memberService.updateMyProfile(user.getMemberId(), request);
+
+        ra.addFlashAttribute("msg", "회원 정보가 수정되었습니다.");
+
+        log.info("회원 정보 수정 성공! - memberId={}, Nickname{} ", user.getMemberId(), user.getNickname());
 
         return "redirect:/";
     }
