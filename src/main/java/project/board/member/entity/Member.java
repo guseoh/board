@@ -64,9 +64,9 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
     }
 
-    public void changeEmail(String email) {
-        this.email = email;
-    }
+//    public void changeEmail(String email) {
+//        this.email = email;
+//    }
 
     public void changeNickname(String nickname) {
         this.nickname = nickname;

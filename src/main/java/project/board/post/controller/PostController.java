@@ -34,7 +34,6 @@ public class PostController {
     private final PostService postService;
     private final CommentService commentService;
 
-    //todo: CQRS 개선 고려
     @GetMapping({"", "/"})
     public String list(PageRequestDto request, Model model,
                        @AuthenticationPrincipal UnifiedPrincipal user) {
@@ -123,6 +122,7 @@ public class PostController {
         return true;
     }
 
+    //todo: 개선
     @GetMapping("/posts/search")
     public String search(@RequestParam String keyword, Model model) {
         List<PostListResponse> posts = postService.search(keyword);
@@ -172,11 +172,11 @@ public class PostController {
 
     @GetMapping("/post/{id}/edit")
     public String editForm(@PathVariable Long id,
-                           @AuthenticationPrincipal UnifiedPrincipal user,
                            Model model) {
 
         PostDetailsResponse post = postService.findOne(id);
 
+        //todo: 개선
         PostRequest form = new PostRequest();
         form.setTitle(post.getTitle());
         form.setContent(post.getContent());
