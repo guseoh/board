@@ -3,6 +3,7 @@ package project.board.global.dto;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import project.board.comment.dto.MyCommentResponse;
 
 import java.util.List;
 import java.util.function.Function;
@@ -29,6 +30,15 @@ public class PageResultDto<DTO, EN> {
     // Function<EN, DTO> fn: 엔티티를 DTO로 변환
     public PageResultDto(Page<EN> result, Function<EN, DTO> fn) {
         dtoList = result.stream().map(fn).collect(Collectors.toList()); // to.List() 차이점
+
+        totalPage = result.getTotalPages();
+        totalCount = result.getTotalElements();
+
+        makePageList(result.getPageable());
+    }
+
+    public PageResultDto(Page<DTO> result) {
+        dtoList = result.getContent();
 
         totalPage = result.getTotalPages();
         totalCount = result.getTotalElements();
