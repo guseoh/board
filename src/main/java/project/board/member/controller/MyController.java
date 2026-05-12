@@ -18,7 +18,10 @@ import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.service.MemberService;
+import project.board.post.dto.request.PostRecent;
 import project.board.post.service.PostService;
+
+import java.util.List;
 
 @Controller
 @Slf4j
@@ -38,6 +41,12 @@ public class MyController {
 
         Long commentCount = commentService.myCommentCount(user.getMemberId());
         model.addAttribute("myCommentCount", commentCount);
+
+        // 최근 작성한 글
+        List<PostRecent> recentPosts = postService.recentPosts(user.getMemberId());
+        model.addAttribute("recentPosts", recentPosts);
+
+        // 최근 작성한 댓글
 
         return "my/my";
 
