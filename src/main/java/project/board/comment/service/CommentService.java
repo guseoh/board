@@ -1,6 +1,9 @@
 package project.board.comment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -113,16 +116,22 @@ public class CommentService {
                 memberId, today.minusDays(7).atStartOfDay()
         );
 
-        PageResultDto<MyCommentResponse, Comment> comments =
+        Pageable pageable = request.getPageable(Sort.by("id").descending());
+
+        Page<MyCommentResponse> comments = commentRepository.findMyComments(
+                memberId, keyword, pageable
+        );
+
+        PageResultDto<MyCommentResponse, Comment> commentsPage =
+                new PageResultDto<>(comments);
 
 
         return MyCommentPageResponse.builder()
                 .myCommentCount(myCommentCount(memberId))
                 .todayMyCommentCount(todayComment)
                 .recentCommentCount(recentComment)
-                .comments()
-
-
+                .comments(commentsPage)
+                .build();
     }
 
     private void validateOwner(Comment comment, Long memberId) {

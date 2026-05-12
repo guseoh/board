@@ -1,4 +1,4 @@
-ㄴ<!doctype html>
+<!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/head :: head('내가 쓴 댓글')}"></head>
@@ -18,7 +18,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div sec:authorize="isAuthenticated()">
+        <div sec:authorize="isAuthenticated()"
+             th:with="comments=${pageResponse.comments.dtoList}, page=${pageResponse.comments}">
 
             <!-- 상단 헤더 -->
             <section class="mb-4">
@@ -53,7 +54,10 @@
                         <div class="card stat-card shadow-sm h-100">
                             <div class="card-body">
                                 <div class="stat-label">전체 작성 댓글</div>
-                                <div class="stat-value" th:text="${myCommentCount != null ? myCommentCount : 0}">0</div>
+                                <div class="stat-value"
+                                     th:text="${pageResponse.myCommentCount}">
+                                    0
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -62,7 +66,10 @@
                         <div class="card stat-card shadow-sm h-100">
                             <div class="card-body">
                                 <div class="stat-label">오늘 작성</div>
-                                <div class="stat-value" th:text="${todayMyCommentCount != null ? todayMyCommentCount : 0}">0</div>
+                                <div class="stat-value"
+                                     th:text="${pageResponse.todayMyCommentCount}">
+                                    0
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -71,7 +78,10 @@
                         <div class="card stat-card shadow-sm h-100">
                             <div class="card-body">
                                 <div class="stat-label">최근 7일 댓글</div>
-                                <div class="stat-value" th:text="${recentCommentCount != null ? recentCommentCount : 0}">0</div>
+                                <div class="stat-value"
+                                     th:text="${pageResponse.recentCommentCount}">
+                                    0
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -92,8 +102,8 @@
                                 <input type="text"
                                        name="keyword"
                                        class="form-control me-2"
-                                       placeholder="댓글 내용 검색"
-                                       th:value="${keyword}">
+                                       placeholder="댓글 내용 또는 게시글 제목 검색"
+                                       th:value="${param.keyword}">
                                 <button type="submit" class="btn btn-outline-secondary">
                                     <i class="bi bi-search"></i>
                                 </button>
@@ -110,13 +120,19 @@
                                class="my-content-item text-decoration-none my-comment-item">
                                 <div class="my-content-main">
                                     <div class="my-comment-post-title"
-                                         th:text="${comment.postTitle != null ? comment.postTitle : '게시글 보기'}">게시글 제목</div>
+                                         th:text="${comment.postTitle != null ? comment.postTitle : '게시글 보기'}">
+                                        게시글 제목
+                                    </div>
 
                                     <div class="my-comment-content"
-                                         th:text="${comment.content}">댓글 내용</div>
+                                         th:text="${comment.content}">
+                                        댓글 내용
+                                    </div>
 
                                     <div class="my-content-meta">
-                                        <span th:text="${comment.createdAt != null ? #temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">2026-04-23 12:00</span>
+                                        <span th:text="${comment.createdAt != null ? #temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">
+                                            2026-04-23 12:00
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="my-content-arrow">
@@ -134,7 +150,7 @@
                                 <li class="page-item" th:classappend="${page.prev} ? '' : ' disabled'">
                                     <a class="page-link"
                                        th:if="${page.prev}"
-                                       th:href="@{/my/comments(page=${page.pageList[0]-1}, size=${page.size}, keyword=${keyword})}">
+                                       th:href="@{/my/comments(page=${page.pageList[0]-1}, size=${page.size}, keyword=${param.keyword})}">
                                         이전
                                     </a>
                                     <span class="page-link" th:unless="${page.prev}">이전</span>
@@ -144,14 +160,16 @@
                                     th:each="p : ${page.pageList}"
                                     th:classappend="${p == page.page} ? ' active'">
                                     <a class="page-link"
-                                       th:href="@{/my/comments(page=${p}, size=${page.size}, keyword=${keyword})}"
-                                       th:text="${p}">1</a>
+                                       th:href="@{/my/comments(page=${p}, size=${page.size}, keyword=${param.keyword})}"
+                                       th:text="${p}">
+                                        1
+                                    </a>
                                 </li>
 
                                 <li class="page-item" th:classappend="${page.next} ? '' : ' disabled'">
                                     <a class="page-link"
                                        th:if="${page.next}"
-                                       th:href="@{/my/comments(page=${page.pageList[page.pageList.size()-1]+1}, size=${page.size}, keyword=${keyword})}">
+                                       th:href="@{/my/comments(page=${page.pageList[page.pageList.size()-1]+1}, size=${page.size}, keyword=${param.keyword})}">
                                         다음
                                     </a>
                                     <span class="page-link" th:unless="${page.next}">다음</span>
@@ -192,4 +210,5 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
+</html>
 </html>

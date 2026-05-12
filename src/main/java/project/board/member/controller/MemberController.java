@@ -107,19 +107,14 @@ public class MemberController {
     }
 
     @GetMapping("/my/comments")//        MyCommentPageResponse response = commentService.
-    public String myCommentForm(PageRequestDto requestDto,
+    public String myCommentForm(PageRequestDto request,
             @RequestParam(required = false) String keyword,
             Model model) {
 
 
-//        model.addAttribute("myCommentCount", myCommentCount);
-//        model.addAttribute("todayMyCommentCount", todayMyCommentCount);
-//        model.addAttribute("recentCommentCount", recentCommentCount);
-//
-//        model.addAttribute("comments", comments);
-//        model.addAttribute("page", page);
-//        model.addAttribute("keyword", keyword);
+        MyCommentPageResponse pageResponse = commentService.myCommentPage(request, keyword);
 
+        model.addAttribute("pageResponse", pageResponse);
 
         return "my/myComment";
 
