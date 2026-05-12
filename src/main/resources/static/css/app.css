@@ -1933,3 +1933,48 @@ hr {
     min-height: 280px;
   }
 }
+
+.my-edit-actions {
+  margin-top: 24px;
+}
+
+.my-edit-actions .btn-post-action {
+  min-width: 120px;
+}
+
+.my-edit-actions .btn-post-submit {
+  background: linear-gradient(135deg, #3b82f6, #5b6cff);
+  border: 1px solid rgba(123, 160, 255, .85);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(59, 130, 246, .28);
+}
+
+.my-edit-actions .btn-post-submit:hover {
+  background: linear-gradient(135deg, #2563eb, #4f5ff0);
+  border-color: rgba(160, 188, 255, .95);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(59, 130, 246, .36);
+}
+
+.my-edit-actions .btn-post-cancel {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.22);
+  color: #dce3f2;
+}
+
+.my-edit-actions .btn-post-cancel:hover {
+  background: rgba(255,255,255,.11);
+  border-color: rgba(255,255,255,.34);
+  color: #ffffff;
+}
+
+@media (max-width: 576px) {
+  .my-edit-actions {
+    flex-direction: column-reverse;
+    align-items: stretch !important;
+  }
+
+  .my-edit-actions .btn-post-action {
+    width: 100%;
+  }
+}
