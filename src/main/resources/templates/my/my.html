@@ -206,11 +206,11 @@
 
                                 <div th:unless="${#lists.isEmpty(recentComments)}" class="comment-recent-list">
                                     <a th:each="comment : ${recentComments}"
-                                       th:href="@{/post/{id}(id=${comment.postId})}"
+                                       th:href="@{/post/{id}(id=${comment.id})}"
                                        class="recent-item text-decoration-none">
                                         <div class="recent-item-main">
                                             <div class="recent-item-title"
-                                                 th:text="${comment.postTitle != null ? comment.postTitle : '원문 보기'}">게시글 제목</div>
+                                                 th:text="${comment.title != null ? comment.title : '원문 보기'}">게시글 제목</div>
                                             <div class="recent-comment-content"
                                                  th:text="${comment.content}">댓글 내용</div>
                                             <div class="recent-item-meta">
