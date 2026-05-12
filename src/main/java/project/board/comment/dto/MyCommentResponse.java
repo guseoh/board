@@ -16,9 +16,11 @@ public class MyCommentResponse {
     private String content;
     private LocalDateTime createdAt;
 
-
-//    public static MyCommentResponse from(Comment comment) {
-//        return
-//    }
-
+    public MyCommentResponse(Long id, Long postId, String postTitle, String content, LocalDateTime createdAt) {
+        this.id = id;
+        this.postId = postId;
+        this.postTitle = postTitle;
+        this.content = content;
+        this.createdAt = createdAt;
+    }
 }

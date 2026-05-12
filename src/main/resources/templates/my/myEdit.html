@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('회원 정보 수정')}"></head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar('my')}"></div>
+
+<div class="page-wrap my-page">
+    <div class="container py-4" style="max-width: 900px;">
+
+        <div th:if="${msg}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${msg}">완료</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}">오류</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div sec:authorize="isAuthenticated()">
+
+            <!-- 상단 헤더 -->
+            <section class="mb-4">
+                <div class="card shadow-sm my-subpage-hero">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                            <div>
+                                <div class="my-profile-label mb-2">Account Settings</div>
+                                <h1 class="my-subpage-title mb-2">회원 정보 수정</h1>
+                                <p class="my-subpage-desc mb-0">
+                                    닉네임과 비밀번호 등 계정 정보를 수정할 수 있습니다.
+                                </p>
+                            </div>
+
+                            <div class="my-subpage-actions d-flex flex-wrap gap-2">
+                                <a class="btn btn-outline-light" th:href="@{/my}">
+                                    <i class="bi bi-person-circle me-1"></i> 내 정보
+                                </a>
+                                <a class="btn btn-outline-light" th:href="@{/}">
+                                    <i class="bi bi-house me-1"></i> 홈으로
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 수정 폼 -->
+            <section>
+                <div class="card shadow-sm section-card">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="mb-4">
+                            <h2 class="section-title mb-1">기본 정보</h2>
+                            <p class="section-subtitle mb-0">
+                                이메일은 로그인 식별자로 사용되므로 수정할 수 없습니다.
+                            </p>
+                        </div>
+
+                        <form th:action="@{/my/edit}" method="post" th:object="${form}">
+
+                            <!-- CSRF -->
+                            <input type="hidden"
+                                   th:if="${_csrf != null}"
+                                   th:name="${_csrf.parameterName}"
+                                   th:value="${_csrf.token}">
+
+                            <!-- 이메일 -->
+                            <div class="mb-3">
+                                <label for="email" class="form-label">이메일</label>
+                                <input type="email"
+                                       id="email"
+                                       class="form-control"
+                                       th:field="*{email}"
+                                       readonly>
+                                <div class="form-text">
+                                    이메일은 변경할 수 없습니다.
+                                </div>
+                            </div>
+
+                            <!-- 닉네임 -->
+                            <div class="mb-3">
+                                <label for="nickname" class="form-label">닉네임</label>
+                                <input type="text"
+                                       id="nickname"
+                                       name="nickname"
+                                       class="form-control"
+                                       th:field="*{nickname}"
+                                       placeholder="닉네임을 입력하세요">
+
+                                <div class="text-danger small mt-1"
+                                     th:if="${#fields.hasErrors('nickname')}"
+                                     th:errors="*{nickname}">
+                                    닉네임 오류
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <div class="mb-4">
+                                <h2 class="section-title mb-1">비밀번호 변경</h2>
+                                <p class="section-subtitle mb-0">
+                                    비밀번호를 변경하지 않으려면 아래 입력칸을 비워두세요.
+                                </p>
+                            </div>
+
+                            <!-- 현재 비밀번호 -->
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">현재 비밀번호</label>
+                                <input type="password"
+                                       id="currentPassword"
+                                       name="currentPassword"
+                                       class="form-control"
+                                       placeholder="현재 비밀번호를 입력하세요">
+
+                                <div class="text-danger small mt-1"
+                                     th:if="${#fields.hasErrors('currentPassword')}"
+                                     th:errors="*{currentPassword}">
+                                    현재 비밀번호 오류
+                                </div>
+                            </div>
+
+                            <!-- 새 비밀번호 -->
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">새 비밀번호</label>
+                                <input type="password"
+                                       id="newPassword"
+                                       name="newPassword"
+                                       class="form-control"
+                                       placeholder="새 비밀번호를 입력하세요">
+
+                                <div class="form-text">
+                                    영문, 숫자, 특수문자를 조합하여 안전한 비밀번호를 사용하세요.
+                                </div>
+
+                                <div class="text-danger small mt-1"
+                                     th:if="${#fields.hasErrors('newPassword')}"
+                                     th:errors="*{newPassword}">
+                                    새 비밀번호 오류
+                                </div>
+                            </div>
+
+                            <!-- 새 비밀번호 확인 -->
+                            <div class="mb-4">
+                                <label for="newPasswordConfirm" class="form-label">새 비밀번호 확인</label>
+                                <input type="password"
+                                       id="newPasswordConfirm"
+                                       name="newPasswordConfirm"
+                                       class="form-control"
+                                       placeholder="새 비밀번호를 다시 입력하세요">
+
+                                <div class="text-danger small mt-1"
+                                     th:if="${#fields.hasErrors('newPasswordConfirm')}"
+                                     th:errors="*{newPasswordConfirm}">
+                                    새 비밀번호 확인 오류
+                                </div>
+                            </div>
+
+                            <!-- 버튼 -->
+                            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap my-edit-actions">
+                                <a class="btn btn-post-action btn-post-cancel" th:href="@{/my}">
+                                    <i class="bi bi-arrow-left me-1"></i> 취소
+                                </a>
+
+                                <button type="submit" class="btn btn-post-action btn-post-submit">
+                                    <i class="bi bi-check2-circle me-1"></i> 수정 완료
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 비로그인 -->
+        <div sec:authorize="isAnonymous()">
+            <div class="card shadow-sm my-guest-card">
+                <div class="card-body p-5 text-center">
+                    <div class="my-info-guest-icon mx-auto mb-3">
+                        <i class="bi bi-person-lock"></i>
+                    </div>
+                    <h1 class="guest-title mb-2">로그인이 필요합니다</h1>
+                    <p class="guest-desc mb-4">
+                        회원 정보를 수정하려면 먼저 로그인해야 합니다.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a class="btn btn-primary" th:href="@{/login}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> 로그인
+                        </a>
+                        <a class="btn btn-outline-light" th:href="@{/signup}">
+                            <i class="bi bi-person-plus me-1"></i> 회원가입
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

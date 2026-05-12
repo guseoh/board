@@ -10,11 +10,9 @@ import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.dto.request.MemberCreateRequest;
 import project.board.member.dto.request.MemberUpdateRequest;
-import project.board.member.dto.response.MemberResponse;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
-import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
 import java.util.List;
@@ -72,50 +70,6 @@ public class MemberService {
         member.changeRole(Role.valueOf(role));
     }
 
-    public MemberResponse getMyProfile(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
-                CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-        return MemberResponse.from(member);
-    }
-
-    @Transactional
-    public void updateMyProfile(Long memberId, MemberUpdateRequest request) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
-                CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-        //이메일 변경
-        if (StringUtils.hasText(request.getEmail())) {
-            String newEmail = request.getEmail().trim();
-
-            if (!newEmail.equals(member.getEmail())
-                    && memberRepository.existsByEmailAndIdNot(newEmail, memberId)
-            ) {
-                throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
-            }
-
-            member.changeEmail(newEmail);
-        }
-
-        //닉네임 변경
-        if (StringUtils.hasText(request.getNickname())) {
-            String newNickName = request.getNickname().trim();
-
-            if (!newNickName.equals(request.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
-                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
-            }
-            member.changeNickname(newNickName);
-        }
-
-        //비밀번호 변경
-        if (StringUtils.hasText(request.getPassword())) {
-            String rawPw = request.getPassword();
-
-            String encoded = passwordEncoder.encode(rawPw);
-            member.changePassword(encoded);
-        }
-    }
-
     @Transactional
     public void deleteForAdmin(Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(
@@ -142,4 +96,57 @@ public class MemberService {
         memberRepository.delete(member);
     }
 
+
+    public MemberUpdateRequest getMyProfile(Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
+                CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return MemberUpdateRequest.builder()
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .build();
+    }
+
+    @Transactional
+    public void updateMyProfile(Long memberId, MemberUpdateRequest request) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
+                CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (StringUtils.hasText(request.getNickname())) {
+            member.changeNickname(request.getNickname().trim());
+        }
+
+        if (StringUtils.hasText(request.getNickname())) {
+            String newNickName = request.getNickname().trim();
+
+            if (!newNickName.equals(member.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
+                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+            }
+            member.changeNickname(newNickName);
+        }
+
+        if (StringUtils.hasText(request.getNewPassword())) {
+
+            // 현재 비밀번호 입력하지 않은 경우
+            if (!StringUtils.hasText(request.getCurrentPassword())) {
+                throw new CustomException(ErrorCode.PASSWORD_CURRENT_REQUIRED);
+            }
+
+            // 현재 비밀번호와 DB 비밀번호 다른 경우
+            if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+                throw new CustomException(ErrorCode.PASSWORD_INVALID);
+            }
+
+            // 새로운 비밀번호 일치 여부
+            if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+                throw new CustomException(ErrorCode.PASSWORD_CONFIRM);
+            }
+
+            String newPassword = request.getNewPassword();
+
+            String encoded = passwordEncoder.encode(newPassword);
+
+            member.changePassword(encoded);
+        }
+    }
 }
