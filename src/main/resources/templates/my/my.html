@@ -18,10 +18,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <!-- 로그인 사용자 전용 -->
         <div sec:authorize="isAuthenticated()">
 
-            <!-- 상단 프로필 -->
             <section class="my-profile-hero mb-4">
                 <div class="card shadow-sm my-profile-card">
                     <div class="card-body p-4 p-md-5">
@@ -50,9 +48,6 @@
                                     <a class="btn btn-primary" th:href="@{/my/edit}">
                                         <i class="bi bi-pencil-square me-1"></i> 회원정보 수정
                                     </a>
-                                    <a class="btn btn-outline-light" th:href="@{/my/password}">
-                                        <i class="bi bi-key me-1"></i> 비밀번호 변경
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -60,7 +55,6 @@
                 </div>
             </section>
 
-            <!-- 활동 통계 -->
             <section class="mb-4">
                 <div class="row g-3">
                     <div class="col-sm-6 col-lg-3">
@@ -102,10 +96,8 @@
             </section>
 
             <div class="row g-4">
-                <!-- 왼쪽 영역 -->
                 <div class="col-lg-8">
 
-                    <!-- 빠른 이동 -->
                     <section class="mb-4">
                         <div class="card shadow-sm section-card">
                             <div class="card-body p-4">
@@ -159,7 +151,6 @@
                         </div>
                     </section>
 
-                    <!-- 최근 작성 글 -->
                     <section class="mb-4">
                         <div class="card shadow-sm section-card">
                             <div class="card-body p-4">
@@ -196,7 +187,6 @@
                         </div>
                     </section>
 
-                    <!-- 최근 작성 댓글 -->
                     <section>
                         <div class="card shadow-sm section-card">
                             <div class="card-body p-4">
@@ -235,10 +225,8 @@
                     </section>
                 </div>
 
-                <!-- 오른쪽 영역 -->
                 <div class="col-lg-4">
 
-                    <!-- 계정 정보 -->
                     <section class="mb-4">
                         <div class="card shadow-sm side-card">
                             <div class="card-body p-4">
@@ -262,7 +250,6 @@
                         </div>
                     </section>
 
-                    <!-- 계정 관리 -->
                     <section class="mb-4">
                         <div class="card shadow-sm side-card">
                             <div class="card-body p-4">
@@ -270,9 +257,6 @@
                                 <div class="d-grid gap-2">
                                     <a class="btn btn-primary" th:href="@{/my/edit}">
                                         <i class="bi bi-person-gear me-1"></i> 회원정보 수정
-                                    </a>
-                                    <a class="btn btn-outline-light" th:href="@{/my/password}">
-                                        <i class="bi bi-key me-1"></i> 비밀번호 변경
                                     </a>
                                     <a class="btn btn-outline-danger" th:href="@{/my/withdraw}">
                                         <i class="bi bi-person-x me-1"></i> 회원 탈퇴
@@ -282,13 +266,12 @@
                         </div>
                     </section>
 
-                    <!-- 안내 -->
                     <section>
                         <div class="card shadow-sm side-card">
                             <div class="card-body p-4">
                                 <h3 class="side-title mb-3">안내</h3>
                                 <div class="guide-box">
-                                    회원정보 수정, 비밀번호 변경, 내가 작성한 글/댓글 관리는
+                                    회원정보 수정과 내가 작성한 글/댓글 관리는
                                     이 페이지에서 빠르게 이동할 수 있습니다.
                                 </div>
                             </div>
@@ -299,7 +282,6 @@
             </div>
         </div>
 
-        <!-- 비로그인 사용자 -->
         <div sec:authorize="isAnonymous()">
             <div class="card shadow-sm my-guest-card">
                 <div class="card-body p-5 text-center">

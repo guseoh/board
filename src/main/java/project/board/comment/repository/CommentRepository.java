@@ -1,5 +1,7 @@
 package project.board.comment.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -41,5 +43,24 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             Long memberId, LocalDateTime fromDateTime);
 
 
+    @Query("""
+                select new project.board.comment.dto.MyCommentResponse(
+                    c.id, p.id, p.title, c.content, c.createdAt
+                )
+                from Comment c
+                join c.post p
+                where c.member.id = :memberId
+                and (
+                       :keyword is null
+                       or :keyword = ''
+                       or c.content like concat('%', :keyword, '%')
+                       or p.title like concat('%', :keyword, '%')\s
+                )
+           \s""")
+    Page<MyCommentResponse> findMyComments(
+            @Param("memberId") Long memberId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 
 }
