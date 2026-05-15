@@ -3,6 +3,7 @@ package project.board.post.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
+import project.board.post.dto.request.PostRecent;
 import project.board.post.dto.request.PostRequest;
 import project.board.post.dto.response.PostDetailsResponse;
 import project.board.post.dto.response.PostListResponse;
@@ -144,6 +146,12 @@ public class PostService {
         return postRepository.findAllByMemberId(memberId).stream()
                 .map(PostListResponse::from)
                 .toList();
+    }
+
+    public List<PostRecent> recentPosts(Long memberId) {
+        return postRepository.findMyRecentPosts(
+                memberId, PageRequest.of(0, 5)
+        );
     }
 
     private Post getPost(Long id) {

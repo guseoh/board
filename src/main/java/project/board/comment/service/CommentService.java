@@ -2,16 +2,14 @@ package project.board.comment.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import project.board.comment.dto.CommentDto;
-import project.board.comment.dto.CommentRequestDto;
-import project.board.comment.dto.MyCommentPageResponse;
-import project.board.comment.dto.MyCommentResponse;
+import project.board.comment.dto.*;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.dto.PageRequestDto;
@@ -132,6 +130,11 @@ public class CommentService {
                 .recentCommentCount(recentComment)
                 .comments(commentsPage)
                 .build();
+    }
+
+    public List<MyRecentComment> recentComments(Long memberId) {
+        return commentRepository.findRecentComments(
+                memberId, PageRequest.of(0, 5));
     }
 
     private void validateOwner(Comment comment, Long memberId) {

@@ -13,12 +13,16 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.dto.MyCommentPageResponse;
+import project.board.comment.dto.MyRecentComment;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.service.MemberService;
+import project.board.post.dto.request.PostRecent;
 import project.board.post.service.PostService;
+
+import java.util.List;
 
 @Controller
 @Slf4j
@@ -33,11 +37,13 @@ public class MyController {
     @GetMapping("/my")
     public String myForm(Model model, @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        Long postCount = postService.myPostCount(user.getMemberId());
-        model.addAttribute("myPostCount", postCount);
+        model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
 
-        Long commentCount = commentService.myCommentCount(user.getMemberId());
-        model.addAttribute("myCommentCount", commentCount);
+        model.addAttribute("myCommentCount", commentService.myCommentCount(user.getMemberId()));
+
+        model.addAttribute("recentPosts", postService.recentPosts(user.getMemberId()));
+
+        model.addAttribute("recentComments", commentService.recentComments(user.getMemberId()));
 
         return "my/my";
 

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.prepost.PreAuthorize;
 import project.board.member.entity.Member;
+import project.board.post.dto.request.PostRecent;
 import project.board.post.entity.Post;
 
 import java.time.LocalDateTime;
@@ -54,5 +55,15 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void deleteAllByMember(@Param("member") Member member);
 
 
+    // 제목, 조회수, 생성일자
+    @Query("""
+                select new project.board.post.dto.request.PostRecent(
+                p.id, p.title, p.viewCount, p.createdAt
+                )
+                from Post p
+                where p.member.id = :memberId
+                order by p.id desc
+            """)
+    List<PostRecent> findMyRecentPosts(@Param("memberId") Long memberId, Pageable pageable);
 
 }
