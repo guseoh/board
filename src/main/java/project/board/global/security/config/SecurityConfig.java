@@ -39,14 +39,13 @@ public class SecurityConfig {
                                            CustomOauth2UserService customOauth2UserService,
                                            CustomLoginSuccessHandler successHandler) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
                 .authenticationProvider(provider)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/loginForm", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/my/**").authenticated()
+                        .requestMatchers("/post/**").authenticated()
+                        .requestMatchers("/my/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form
