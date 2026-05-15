@@ -1,4 +1,4 @@
-package project.board.comment.Controller;
+package project.board.comment.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
