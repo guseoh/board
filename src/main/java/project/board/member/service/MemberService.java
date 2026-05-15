@@ -113,10 +113,6 @@ public class MemberService {
                 CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (StringUtils.hasText(request.getNickname())) {
-            member.changeNickname(request.getNickname().trim());
-        }
-
-        if (StringUtils.hasText(request.getNickname())) {
             String newNickName = request.getNickname().trim();
 
             if (!newNickName.equals(member.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
