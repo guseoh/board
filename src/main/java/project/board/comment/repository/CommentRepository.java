@@ -1,6 +1,7 @@
 package project.board.comment.repository;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -55,9 +56,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
                        :keyword is null
                        or :keyword = ''
                        or c.content like concat('%', :keyword, '%')
-                       or p.title like concat('%', :keyword, '%')\s
+                       or p.title like concat('%', :keyword, '%')
                 )
-           \s""")
+           """)
     Page<MyCommentResponse> findMyComments(
             @Param("memberId") Long memberId,
             @Param("keyword") String keyword,
@@ -65,15 +66,21 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     );
 
 
-    @Query(""" 
-                select new project.board.comment.dto.MyRecentComment(
-                     c.id, p.title, c.content, c.createdAt
-                )
-                from Comment c
-                join c.post p
-                where c.member.id = :memberId
-                order by c.id desc
-            
-            """)
-    List<MyRecentComment> findRecentComments(@Param("memberId") Long memberId, Pageable pageable);
+    @Query("""
+        select new project.board.comment.dto.MyRecentComment(
+            c.id,
+            p.title,
+            c.content,
+            c.createdAt
+        )
+        from Comment c
+        join c.post p
+        where c.member.id = :memberId
+        order by c.id desc
+        """
+    )
+    List<MyRecentComment> findRecentComments(
+            @Param("memberId") Long memberId,
+            Pageable pageable
+    );
 }
