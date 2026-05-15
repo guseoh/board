@@ -12,6 +12,12 @@ bin/
 !**/src/test/**/bin/
 
 application-*.properties
+application-secret.yml
+application-oauth.yml
+application-prod.yml
+application-dev.yml
+application-local.yml
+application-*.local.properties
 
 src/main/resources/application-local.properties
 src/main/resources/application-secret.properties
@@ -22,6 +28,7 @@ src/main/resources/application-*.local.properties
 
 !src/main/resources/application-oauth.example.properties
 !src/main/resources/application-prod.example.properties
+!src/main/resources/application-local.example.properties
 
 .env
 .env.*
@@ -40,6 +47,8 @@ src/main/resources/application-*.local.properties
 
 logs/
 *.log
+
+replacements.txt
 
 docker-compose.override.yml
 docker-compose.override.yaml
