@@ -37,13 +37,15 @@ public class MyController {
     @GetMapping("/my")
     public String myForm(Model model, @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
+        Long memberId = user.getMemberId();
 
-        model.addAttribute("myCommentCount", commentService.myCommentCount(user.getMemberId()));
+        model.addAttribute("myPostCount", postService.myPostCount(memberId));
 
-        model.addAttribute("recentPosts", postService.recentPosts(user.getMemberId()));
+        model.addAttribute("myCommentCount", commentService.myCommentCount(memberId));
 
-        model.addAttribute("recentComments", commentService.recentComments(user.getMemberId()));
+        model.addAttribute("recentPosts", postService.recentPosts(memberId));
+
+        model.addAttribute("recentComments", commentService.recentComments(memberId));
 
         return "my/my";
 

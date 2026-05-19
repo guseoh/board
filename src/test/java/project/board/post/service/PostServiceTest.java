@@ -136,7 +136,7 @@ class PostServiceTest {
         postService.delete(postId, writerId);
 
         // then
-        verify(commentRepository).deleteById(postId);
+        verify(commentRepository).deleteByPostId(postId);
         verify(postRepository).delete(post);
     }
 

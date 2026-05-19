@@ -91,10 +91,7 @@ public class CommentService {
 
 
     // 내가 작성한 댓글 조회
-    public Long myCommentCount(Long id) {
-
-        Long memberId = getLoginMemberId();
-
+    public Long myCommentCount(Long memberId) {
         return commentRepository.countByMemberId(memberId);
     }
 
