@@ -18,7 +18,7 @@ public class PostDetailsResponse {
     private String content;
     private int viewCount;
 
-    private LocalDateTime CreatedAt;
+    private LocalDateTime createdAt;
     private List<CommentDto.Response> comments;
 
     private MemberSummary member;
@@ -43,7 +43,7 @@ public class PostDetailsResponse {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .viewCount(post.getViewCount())
-                .CreatedAt(post.getCreatedAt())
+                .createdAt(post.getCreatedAt())
                 .comments(comments)
                 .member(MemberSummary.from(post.getMember()))
                 .build();
