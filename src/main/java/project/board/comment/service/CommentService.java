@@ -95,9 +95,11 @@ public class CommentService {
         return commentRepository.countByMemberId(memberId);
     }
 
-    public MyCommentPageResponse myCommentPage(PageRequestDto request, String keyword) {
+    public MyCommentPageResponse myCommentPage(Long memberId, PageRequestDto request, String keyword) {
 
-        Long memberId = getLoginMemberId();
+        if (memberId == null) {
+            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+        }
 
         LocalDate today = LocalDate.now();
         LocalDateTime startDay = today.atStartOfDay();
@@ -138,22 +140,6 @@ public class CommentService {
         if (!comment.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.COMMENT_NOT_OWNER);
         }
-    }
-
-    private Long getLoginMemberId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if (!(principal instanceof UnifiedPrincipal unifiedPrincipal)) {
-            throw new CustomException(ErrorCode.MEMBER_NOT_AUTHENTICATION);
-        }
-
-        return unifiedPrincipal.getMemberId();
     }
 
 }

@@ -73,9 +73,10 @@ public class MyController {
     @GetMapping("/my/comments")
     public String myCommentForm(PageRequestDto request,
                                 @RequestParam(required = false) String keyword,
-                                Model model) {
+                                Model model,
+                                @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        MyCommentPageResponse pageResponse = commentService.myCommentPage(request, keyword);
+        MyCommentPageResponse pageResponse = commentService.myCommentPage(user.getMemberId(), request, keyword);
 
         model.addAttribute("pageResponse", pageResponse);
 
