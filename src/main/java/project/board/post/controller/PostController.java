@@ -42,7 +42,7 @@ public class PostController {
 
         model.addAttribute("totalCount", page.getTotalCount());
         model.addAttribute("todayCount", postService.todayWrite());
-        model.addAttribute("memberCount", memberService.count());
+        model.addAttribute("memberCount", memberService.countMember());
 
         if (user != null) {
             model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));

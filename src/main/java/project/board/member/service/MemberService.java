@@ -10,6 +10,8 @@ import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.dto.request.MemberCreateRequest;
 import project.board.member.dto.request.MemberUpdateRequest;
+import project.board.member.dto.response.MemberUpdateResponse;
+import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
@@ -29,6 +31,7 @@ public class MemberService {
 
     @Transactional
     public Long signUp(MemberCreateRequest request) {
+
         if (memberRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
@@ -47,13 +50,14 @@ public class MemberService {
                 request.getNickname(),
                 request.getEmail(),
                 encoded,
-                Role.USER
+                Role.USER,
+                LoginType.LOCAL
         );
 
         return memberRepository.save(member).getId();
     }
 
-    public Long count() {
+    public Long countMember() {
         return memberRepository.count();
     }
 
@@ -85,13 +89,13 @@ public class MemberService {
     }
 
 
-    public MemberUpdateRequest getMyProfile(Long memberId) {
+    public MemberUpdateResponse getMyProfile(Long memberId) {
         Member member = validateMember(memberId);
 
-        return MemberUpdateRequest.builder()
-                .email(member.getEmail())
+        return MemberUpdateResponse.builder()
                 .nickname(member.getNickname())
                 .build();
+
     }
 
     @Transactional

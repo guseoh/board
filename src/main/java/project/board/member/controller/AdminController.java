@@ -24,7 +24,7 @@ public class AdminController {
     @GetMapping
     public String index(Model model) {
         long totalPosts = postService.count();
-        long totalUsers = memberService.count();
+        long totalUsers = memberService.countMember();
 
         model.addAttribute("totalPosts", totalPosts);
         model.addAttribute("totalUsers", totalUsers);
