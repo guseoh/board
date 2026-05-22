@@ -99,6 +99,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                 findMember.getEmail(),
                 findMember.getRole().getKey(),
                 findMember.getPassword(),
+                findMember.getLoginType(),
                 findMember.getProvider(),
                 findMember.getProviderId(),
                 attributes

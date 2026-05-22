@@ -9,6 +9,8 @@ import project.board.comment.repository.CommentRepository;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.dto.request.MemberCreateRequest;
+import project.board.member.dto.request.MemberNicknameUpdateRequest;
+import project.board.member.dto.request.MemberPasswordUpdateRequest;
 import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.dto.response.MemberUpdateResponse;
 import project.board.member.entity.LoginType;
@@ -100,20 +102,11 @@ public class MemberService {
     }
 
     @Transactional
-    public void updateMyProfile(Long memberId, MemberUpdateRequest request) {
+    public void updatePassword(Long memberId, MemberPasswordUpdateRequest request) {
+
         Member member = validateMember(memberId);
 
-        if (StringUtils.hasText(request.getNickname())) {
-            String newNickName = request.getNickname().trim();
-
-            if (!newNickName.equals(member.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
-                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
-            }
-            member.changeNickname(newNickName);
-        }
-
         if (StringUtils.hasText(request.getNewPassword())) {
-
             // 현재 비밀번호 입력하지 않은 경우
             if (!StringUtils.hasText(request.getCurrentPassword())) {
                 throw new CustomException(ErrorCode.PASSWORD_CURRENT_REQUIRED);
@@ -135,6 +128,26 @@ public class MemberService {
 
             member.changePassword(encoded);
         }
+    }
+
+    @Transactional
+    public MemberUpdateResponse updateNickname(Long memberId, MemberNicknameUpdateRequest request) {
+
+        Member member = validateMember(memberId);
+
+        if (StringUtils.hasText(request.getNickname())) {
+            String newNickName = request.getNickname().trim();
+
+            if (!newNickName.equals(member.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
+                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+            }
+            member.changeNickname(newNickName);
+        }
+
+        return MemberUpdateResponse.builder()
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .build();
     }
 
     private Member validateMember(Long memberId) {
