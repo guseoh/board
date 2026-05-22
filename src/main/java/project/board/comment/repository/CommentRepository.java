@@ -18,11 +18,6 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    //todo: 개선
-    List<Comment> findAllByPostIdOrderByIdAsc(Long postId);
-
-//    Page<Comment> findAllByPostIdOrderByIdAsc(Long postId, Pageable pageable);
-
     @Modifying
     @Query("delete from Comment c where c.post.id = :id")
     void deleteByPostId(@Param("id") Long postId);
