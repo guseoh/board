@@ -34,15 +34,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select count(p) from Post p where p.member.id = :memberId")
     Long countMyPosts(@Param("memberId") Long memberId);
 
-//    @Query("select count(p) " +
-//            "from Post p " +
-//            "where p.createdAt >= :startDay " +
-//            "and p.createdAt < :nextDay " +
-//            "and p.member.id = :memberId")
-//    Long countTodayMyPosts(@Param("startDay") LocalDateTime startDay,
-//                           @Param("nextDay") LocalDateTime nextDay,
-//                           @Param("memberId") Long memberId);
-
     Long countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(Long memberId, LocalDateTime startDay, LocalDateTime nextDay);
 
     List<Post> findAllByMemberId(Long memberId);
