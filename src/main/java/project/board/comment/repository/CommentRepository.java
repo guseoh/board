@@ -1,7 +1,6 @@
 package project.board.comment.repository;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -10,8 +9,6 @@ import org.springframework.data.repository.query.Param;
 import project.board.comment.dto.MyCommentResponse;
 import project.board.comment.dto.MyRecentComment;
 import project.board.comment.entity.Comment;
-import project.board.global.dto.PageResultDto;
-import project.board.member.entity.Member;
 
 import java.time.LocalDateTime;
 import java.util.List;

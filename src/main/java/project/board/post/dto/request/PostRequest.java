@@ -11,6 +11,7 @@ import project.board.post.dto.response.PostDetailsResponse;
 @Getter
 @NoArgsConstructor
 @Setter
+@AllArgsConstructor
 public class PostRequest {
 
     @NotBlank(message = "제목은 필수입니다.")

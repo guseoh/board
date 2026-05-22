@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
@@ -16,9 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.thymeleaf.model.IModel;
 import project.board.comment.dto.MyCommentPageResponse;
-import project.board.comment.dto.MyRecentComment;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.exception.CustomException;
@@ -26,13 +23,9 @@ import project.board.global.exception.ErrorCode;
 import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberNicknameUpdateRequest;
 import project.board.member.dto.request.MemberPasswordUpdateRequest;
-import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.dto.response.MemberUpdateResponse;
 import project.board.member.service.MemberService;
-import project.board.post.dto.request.PostRecent;
 import project.board.post.service.PostService;
-
-import java.util.List;
 
 @Controller
 @Slf4j

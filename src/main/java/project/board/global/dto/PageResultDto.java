@@ -3,7 +3,6 @@ package project.board.global.dto;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import project.board.comment.dto.MyCommentResponse;
 
 import java.util.List;
 import java.util.function.Function;

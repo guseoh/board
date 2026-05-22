@@ -11,6 +11,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
+import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
@@ -49,7 +50,7 @@ class PostServiceTest {
     void save_success_savesPostWithWriter() {
         // given
         Long memberId = 1L;
-        Member writer = member(memberId, "작성자");
+        Member writer = member(memberId);
         PostRequest request = new PostRequest("테스트 제목", "테스트 내용");
         given(memberRepository.findById(memberId)).willReturn(Optional.of(writer));
         given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
@@ -92,7 +93,7 @@ class PostServiceTest {
         // given
         Long writerId = 1L;
         Long postId = 10L;
-        Post post = post(postId, "기존 제목", "기존 내용", member(writerId, "작성자"));
+        Post post = post(postId, "기존 제목", "기존 내용", member(writerId));
         PostRequest request = new PostRequest("수정 제목", "수정 내용");
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
@@ -111,7 +112,7 @@ class PostServiceTest {
         Long writerId = 1L;
         Long otherMemberId = 2L;
         Long postId = 10L;
-        Post post = post(postId, "기존 제목", "기존 내용", member(writerId, "작성자"));
+        Post post = post(postId, "기존 제목", "기존 내용", member(writerId));
         PostRequest request = new PostRequest("수정 제목", "수정 내용");
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
@@ -129,7 +130,7 @@ class PostServiceTest {
         // given
         Long writerId = 1L;
         Long postId = 10L;
-        Post post = post(postId, "삭제 제목", "삭제 내용", member(writerId, "작성자"));
+        Post post = post(postId, "삭제 제목", "삭제 내용", member(writerId));
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // when
@@ -157,7 +158,7 @@ class PostServiceTest {
     @DisplayName("검색은 제목에 키워드가 포함된 게시글 목록을 응답 DTO로 변환한다")
     void search_success_mapsPostListResponses() {
         // given
-        Member writer = member(1L, "작성자");
+        Member writer = member(1L);
         Post first = post(10L, "Spring Boot 테스트", "내용1", writer);
         Post second = post(11L, "Spring Security 테스트", "내용2", writer);
         given(postRepository.findByTitleContaining("Spring")).willReturn(List.of(first, second));
@@ -172,8 +173,8 @@ class PostServiceTest {
                 .containsExactly("작성자", "작성자");
     }
 
-    private Member member(Long id, String nickname) {
-        Member member = Member.create(nickname, nickname + "@example.com", "encoded", Role.USER);
+    private Member member(Long id) {
+        Member member = Member.create("작성자", "작성자" + "@example.com", "encoded", Role.USER, LoginType.LOCAL);
         ReflectionTestUtils.setField(member, "id", id);
         return member;
     }

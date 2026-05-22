@@ -1,23 +1,15 @@
 package project.board.member.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import project.board.comment.dto.MyCommentPageResponse;
 import project.board.comment.service.CommentService;
-import project.board.global.dto.PageRequestDto;
-import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberCreateRequest;
 import project.board.member.service.MemberService;
 import project.board.post.service.PostService;

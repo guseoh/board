@@ -5,7 +5,6 @@ import lombok.Getter;
 import project.board.comment.entity.Comment;
 import project.board.global.dto.PageResultDto;
 
-import java.util.List;
 
 @Getter
 @Builder

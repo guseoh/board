@@ -5,8 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.board.comment.dto.*;
@@ -16,7 +14,6 @@ import project.board.global.dto.PageRequestDto;
 import project.board.global.dto.PageResultDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
-import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.entity.Post;
@@ -74,21 +71,6 @@ public class CommentService {
 
         commentRepository.delete(comment);
     }
-
-    @Transactional(readOnly = true)
-    public List<CommentDto.Response> findAll(Long postId) {
-
-        if (!postRepository.existsById(postId)) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND, "/post/" + postId);
-        }
-
-        List<Comment> comments = commentRepository.findAllByPostIdOrderByIdAsc(postId);
-
-        return comments.stream()
-                .map(CommentDto.Response::from)
-                .toList();
-    }
-
 
     // 내가 작성한 댓글 조회
     public Long myCommentCount(Long memberId) {
