@@ -50,7 +50,7 @@ class MemberServiceTest {
     @DisplayName("회원가입은 이메일과 닉네임이 중복되지 않고 비밀번호 확인이 일치하면 USER 권한 회원을 저장한다")
     void signUp_success_savesUserWithEncodedPassword() {
         // given
-        MemberCreateRequest request = createRequest("테스터", "tester@example.com", "password1", "password1");
+        MemberCreateRequest request = createRequest("tester@example.com", "password1", "password1");
         given(memberRepository.existsByEmail("tester@example.com")).willReturn(false);
         given(memberRepository.existsByNickname("테스터")).willReturn(false);
         given(passwordEncoder.encode("password1")).willReturn("encoded-password");
@@ -78,7 +78,7 @@ class MemberServiceTest {
     @DisplayName("회원가입은 이미 사용 중인 이메일이면 예외를 던지고 저장하지 않는다")
     void signUp_duplicateEmail_throwsException() {
         // given
-        MemberCreateRequest request = createRequest("테스터", "duplicate@example.com", "password1", "password1");
+        MemberCreateRequest request = createRequest("duplicate@example.com", "password1", "password1");
         given(memberRepository.existsByEmail("duplicate@example.com")).willReturn(true);
 
         // when & then
@@ -92,7 +92,7 @@ class MemberServiceTest {
     @DisplayName("회원가입은 비밀번호와 비밀번호 확인이 다르면 예외를 던지고 저장하지 않는다")
     void signUp_passwordMismatch_throwsException() {
         // given
-        MemberCreateRequest request = createRequest("테스터", "tester@example.com", "password1", "different1");
+        MemberCreateRequest request = createRequest("tester@example.com", "password1", "different1");
         given(memberRepository.existsByEmail("tester@example.com")).willReturn(false);
         given(memberRepository.existsByNickname("테스터")).willReturn(false);
 
@@ -161,15 +161,15 @@ class MemberServiceTest {
         memberService.deleteForAdmin(memberId);
 
         // then
-        verify(commentRepository).deleteAllByMember(member);
-        verify(commentRepository).deleteAllByPostMember(member);
-        verify(postRepository).deleteAllByMember(member);
+        verify(commentRepository).deleteAllByMemberId(memberId);
+        verify(commentRepository).deleteAllByPostMemberId(memberId);
+        verify(postRepository).deleteAllByMemberId(memberId);
         verify(memberRepository).delete(member);
     }
 
-    private MemberCreateRequest createRequest(String nickname, String email, String password, String passwordConfirm) {
+    private MemberCreateRequest createRequest(String email, String password, String passwordConfirm) {
         MemberCreateRequest request = new MemberCreateRequest();
-        request.setNickname(nickname);
+        request.setNickname("테스터");
         request.setEmail(email);
         request.setPassword(password);
         request.setPasswordConfirm(passwordConfirm);

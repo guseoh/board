@@ -18,19 +18,22 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
+    //todo: 개선
     List<Comment> findAllByPostIdOrderByIdAsc(Long postId);
+
+//    Page<Comment> findAllByPostIdOrderByIdAsc(Long postId, Pageable pageable);
 
     @Modifying
     @Query("delete from Comment c where c.post.id = :id")
-    void deleteById(@Param("id") Long postId);
+    void deleteByPostId(@Param("id") Long postId);
 
     @Modifying
-    @Query("delete from Comment c where c.member = :member")
-    void deleteAllByMember(@Param("member") Member member);
+    @Query("delete from Comment c where c.member.id = :memberId")
+    void deleteAllByMemberId(@Param("memberId") Long memberId);
 
     @Modifying
-    @Query("delete from Comment c where c.post.member = :member")
-    void deleteAllByPostMember(@Param("member") Member member);
+    @Query("delete from Comment c where c.post.member.id = :memberId")
+    void deleteAllByPostMemberId(@Param("memberId") Long memberId);
 
     // 전체 작성 댓글 (내가 쓴)
     long countByMemberId(Long memberId);

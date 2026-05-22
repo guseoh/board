@@ -1,15 +1,11 @@
 package project.board.post.repository;
 
-import org.springframework.cglib.core.Local;
-import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.security.access.prepost.PreAuthorize;
-import project.board.member.entity.Member;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.entity.Post;
 
@@ -24,6 +20,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("update Post p set p.viewCount = p.viewCount + 1 where p.id = :postId")
     int incrementViewCount(@Param("postId") Long postId);
 
+    //todo: 아래 메서드와 비교
     @Query("select p from Post p join fetch p.member")
     Page<Post> findAllWithMember(Pageable pageable);
 
@@ -37,22 +34,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select count(p) from Post p where p.member.id = :memberId")
     Long countMyPosts(@Param("memberId") Long memberId);
 
-//    @Query("select count(p) " +
-//            "from Post p " +
-//            "where p.createdAt >= :startDay " +
-//            "and p.createdAt < :nextDay " +
-//            "and p.member.id = :memberId")
-//    Long countTodayMyPosts(@Param("startDay") LocalDateTime startDay,
-//                           @Param("nextDay") LocalDateTime nextDay,
-//                           @Param("memberId") Long memberId);
-
     Long countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(Long memberId, LocalDateTime startDay, LocalDateTime nextDay);
 
     List<Post> findAllByMemberId(Long memberId);
 
     @Modifying
-    @Query("delete from Post p where p.member = :member")
-    void deleteAllByMember(@Param("member") Member member);
+    @Query("delete from Post p where p.member.id = :memberId")
+    void deleteAllByMemberId(@Param("memberId") Long memberId);
 
 
     // 제목, 조회수, 생성일자

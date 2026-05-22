@@ -92,7 +92,7 @@ public class PostService {
 
         validateWriter(find, memberId);
 
-        commentRepository.deleteById(id);
+        commentRepository.deleteByPostId(id);
 
         postRepository.delete(find);
     }
@@ -101,7 +101,7 @@ public class PostService {
     public void deleteForAdmin(Long postId) {
         Post find = getPost(postId);
 
-        commentRepository.deleteById(postId);
+        commentRepository.deleteByPostId(postId);
 
         postRepository.deleteById(postId);
 
@@ -128,8 +128,10 @@ public class PostService {
         return postRepository.countTodayPosts(startDay, nextDay);
     }
 
-    //todo: 방어코드?
     public Long myPostCount(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(MEMBER_NOT_FOUND);
+        }
         return postRepository.countMyPosts(memberId);
     }
 

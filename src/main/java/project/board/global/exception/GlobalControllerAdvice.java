@@ -31,7 +31,7 @@ public class GlobalControllerAdvice {
                     """.formatted(
                     errorCode.name(),
                     errorCode.getMessage(),
-                    errorCode.getRedirectUrl()
+                    e.getRedirectUrl()
             ));
         }
 

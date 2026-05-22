@@ -16,7 +16,6 @@ import project.board.comment.dto.CommentRequestDto;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
-import project.board.member.entity.Member;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRequest;
 import project.board.post.dto.response.PostDetailsResponse;
@@ -42,7 +41,7 @@ public class PostController {
 
         model.addAttribute("totalCount", page.getTotalCount());
         model.addAttribute("todayCount", postService.todayWrite());
-        model.addAttribute("memberCount", memberService.count());
+        model.addAttribute("memberCount", memberService.countMember());
 
         if (user != null) {
             model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
@@ -63,21 +62,21 @@ public class PostController {
                          HttpServletRequest request,
                          HttpServletResponse response) {
 
-        if (IncreaseViewCount(id, request, response)) {
+        if (increaseViewCount(id, request, response)) {
             postService.viewCount(id);
         }
 
         PostDetailsResponse post = postService.findOne(id);
 
         model.addAttribute("post", post);
-        model.addAttribute("comments", commentService.findAll(id));
+        model.addAttribute("comments", post.getComments());
         model.addAttribute("commentForm", new CommentRequestDto());
         model.addAttribute("memberId", customUserDetails != null ? customUserDetails.getMemberId() : null);
 
         return "post/detail";
     }
 
-    private boolean IncreaseViewCount(Long id, HttpServletRequest request, HttpServletResponse response) {
+    private boolean increaseViewCount(Long id, HttpServletRequest request, HttpServletResponse response) {
 
         final String cookieName = "View_Count";
         final String token = "|" + id + "|";

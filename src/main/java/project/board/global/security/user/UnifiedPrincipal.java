@@ -1,11 +1,13 @@
 package project.board.global.security.user;
 
+import lombok.Builder;
 import lombok.Getter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 
 import java.util.Collection;
@@ -20,6 +22,7 @@ public class UnifiedPrincipal implements UserDetails, OAuth2User {
     private final Long memberId;
     private final String email;
     private final String role;
+    private final LoginType loginType;
 
     // formLogin
     private final String password;
@@ -29,12 +32,14 @@ public class UnifiedPrincipal implements UserDetails, OAuth2User {
     private final String providerId;
     private final Map<String, Object> attributes;
 
-    public UnifiedPrincipal(String nickname, Long memberId, String email, String role, String password, String provider, String providerId, Map<String, Object> attributes) {
+    @Builder
+    public UnifiedPrincipal(String nickname, Long memberId, String email, String role, String password, LoginType loginType, String provider, String providerId, Map<String, Object> attributes) {
         this.nickname = nickname;
         this.memberId = memberId;
         this.email = email;
         this.role = role;
         this.password = password;
+        this.loginType = loginType;
         this.provider = provider;
         this.providerId = providerId;
         this.attributes = attributes;
@@ -47,6 +52,7 @@ public class UnifiedPrincipal implements UserDetails, OAuth2User {
                 member.getEmail(),
                 member.getRole().getKey(),
                 member.getPassword(),
+                member.getLoginType(),
                 null,
                 null,
                 null

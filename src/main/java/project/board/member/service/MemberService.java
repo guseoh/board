@@ -9,7 +9,11 @@ import project.board.comment.repository.CommentRepository;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.dto.request.MemberCreateRequest;
+import project.board.member.dto.request.MemberNicknameUpdateRequest;
+import project.board.member.dto.request.MemberPasswordUpdateRequest;
 import project.board.member.dto.request.MemberUpdateRequest;
+import project.board.member.dto.response.MemberUpdateResponse;
+import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
@@ -22,13 +26,14 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class MemberService {
 
-    private final MemberRepository memberRepository;
+    private final MemberRepository  memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
 
     @Transactional
     public Long signUp(MemberCreateRequest request) {
+
         if (memberRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
@@ -47,13 +52,14 @@ public class MemberService {
                 request.getNickname(),
                 request.getEmail(),
                 encoded,
-                Role.USER
+                Role.USER,
+                LoginType.LOCAL
         );
 
         return memberRepository.save(member).getId();
     }
 
-    public Long count() {
+    public Long countMember() {
         return memberRepository.count();
     }
 
@@ -64,69 +70,43 @@ public class MemberService {
 
     @Transactional
     public void roleChange(String role, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
-                CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Member member = validateMember(memberId);
 
         member.changeRole(Role.valueOf(role));
     }
 
     @Transactional
     public void deleteForAdmin(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        validateMember(memberId);
 
-        // 회원이 작성한 댓글
-        commentRepository.deleteAllByMember(member);
-
-        // 회원이 작성한 게시글 안 댓글
-        commentRepository.deleteAllByPostMember(member);
-
-        // 회원이 작성한 게시글
-        postRepository.deleteAllByMember(member);
-
-        // 회원 제거
-        memberRepository.delete(member);
+        MemberRemovalPolicy(memberId);
     }
 
     @Transactional
     public void withdraw(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(
-                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        validateMember(memberId);
 
-        memberRepository.delete(member);
+        // 회원이 작성한 댓글
+        MemberRemovalPolicy(memberId);
     }
 
 
-    public MemberUpdateRequest getMyProfile(Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
-                CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    public MemberUpdateResponse getMyProfile(Long memberId) {
+        Member member = validateMember(memberId);
 
-        return MemberUpdateRequest.builder()
-                .email(member.getEmail())
+        return MemberUpdateResponse.builder()
                 .nickname(member.getNickname())
+                .email(member.getEmail())
+                .passwordChangeable(member.getLoginType() == LoginType.LOCAL)
                 .build();
     }
 
     @Transactional
-    public void updateMyProfile(Long memberId, MemberUpdateRequest request) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new
-                CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    public void updatePassword(Long memberId, MemberPasswordUpdateRequest request) {
 
-        if (StringUtils.hasText(request.getNickname())) {
-            member.changeNickname(request.getNickname().trim());
-        }
-
-        if (StringUtils.hasText(request.getNickname())) {
-            String newNickName = request.getNickname().trim();
-
-            if (!newNickName.equals(member.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
-                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
-            }
-            member.changeNickname(newNickName);
-        }
+        Member member = validateMember(memberId);
 
         if (StringUtils.hasText(request.getNewPassword())) {
-
             // 현재 비밀번호 입력하지 않은 경우
             if (!StringUtils.hasText(request.getCurrentPassword())) {
                 throw new CustomException(ErrorCode.PASSWORD_CURRENT_REQUIRED);
@@ -148,5 +128,44 @@ public class MemberService {
 
             member.changePassword(encoded);
         }
+    }
+
+    @Transactional
+    public MemberUpdateResponse updateNickname(Long memberId, MemberNicknameUpdateRequest request) {
+
+        Member member = validateMember(memberId);
+
+        if (StringUtils.hasText(request.getNickname())) {
+            String newNickName = request.getNickname().trim();
+
+            if (!newNickName.equals(member.getNickname()) && memberRepository.existsByNicknameAndIdNot(newNickName, memberId)) {
+                throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+            }
+            member.changeNickname(newNickName);
+        }
+
+        return MemberUpdateResponse.builder()
+                .nickname(member.getNickname())
+                .email(member.getEmail())
+                .build();
+    }
+
+    private Member validateMember(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(
+                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    private void MemberRemovalPolicy(Long memberId) {
+        // 회원이 작성한 댓글
+        commentRepository.deleteAllByMemberId(memberId);
+
+        // 회원이 작성한 게시글에 달린 댓글
+        commentRepository.deleteAllByPostMemberId(memberId);
+
+        // 회원이 작성한 게시글
+        postRepository.deleteAllByMemberId(memberId);
+
+        // 회원 제거
+        memberRepository.deleteById(memberId);
     }
 }

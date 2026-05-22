@@ -5,7 +5,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,8 +20,13 @@ import project.board.comment.dto.MyCommentPageResponse;
 import project.board.comment.dto.MyRecentComment;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
+import project.board.global.exception.CustomException;
+import project.board.global.exception.ErrorCode;
 import project.board.global.security.user.UnifiedPrincipal;
+import project.board.member.dto.request.MemberNicknameUpdateRequest;
+import project.board.member.dto.request.MemberPasswordUpdateRequest;
 import project.board.member.dto.request.MemberUpdateRequest;
+import project.board.member.dto.response.MemberUpdateResponse;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.service.PostService;
@@ -37,13 +46,19 @@ public class MyController {
     @GetMapping("/my")
     public String myForm(Model model, @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
+        if (user == null || user.getMemberId() == null) {
+            throw new CustomException(ErrorCode.MEMBER_NOT_AUTHENTICATION);
+        }
 
-        model.addAttribute("myCommentCount", commentService.myCommentCount(user.getMemberId()));
+        Long memberId = user.getMemberId();
 
-        model.addAttribute("recentPosts", postService.recentPosts(user.getMemberId()));
+        model.addAttribute("myPostCount", postService.myPostCount(memberId));
 
-        model.addAttribute("recentComments", commentService.recentComments(user.getMemberId()));
+        model.addAttribute("myCommentCount", commentService.myCommentCount(memberId));
+
+        model.addAttribute("recentPosts", postService.recentPosts(memberId));
+
+        model.addAttribute("recentComments", commentService.recentComments(memberId));
 
         return "my/my";
 
@@ -71,9 +86,10 @@ public class MyController {
     @GetMapping("/my/comments")
     public String myCommentForm(PageRequestDto request,
                                 @RequestParam(required = false) String keyword,
-                                Model model) {
+                                Model model,
+                                @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        MyCommentPageResponse pageResponse = commentService.myCommentPage(request, keyword);
+        MyCommentPageResponse pageResponse = commentService.myCommentPage(user.getMemberId(), request, keyword);
 
         model.addAttribute("pageResponse", pageResponse);
 
@@ -101,18 +117,23 @@ public class MyController {
     }
 
     @GetMapping("/my/edit")
-    public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user,
-                           Model model) {
+    public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user, Model model) {
 
-        MemberUpdateRequest form = memberService.getMyProfile(user.getMemberId());
+        MemberUpdateResponse form = memberService.getMyProfile(user.getMemberId());
+
+        MemberNicknameUpdateRequest nicknameRequest = new MemberNicknameUpdateRequest();
+        nicknameRequest.setNickname(form.getNickname());
+
 
         model.addAttribute("form", form);
+        model.addAttribute("nicknameRequest", nicknameRequest);
+        model.addAttribute("passwordRequest", new MemberPasswordUpdateRequest());
 
         return "my/myEdit";
     }
 
-    @PostMapping("/my/edit")
-    public String Edit(@Valid @ModelAttribute("form") MemberUpdateRequest request,
+    @PostMapping("/my/edit/nickname")
+    public String EditNickname(@Valid @ModelAttribute("form") MemberNicknameUpdateRequest request,
                         BindingResult bindingResult,
                        RedirectAttributes ra,
                        @AuthenticationPrincipal UnifiedPrincipal user) {
@@ -121,11 +142,52 @@ public class MyController {
             return "my/myEdit";
         }
 
-        memberService.updateMyProfile(user.getMemberId(), request);
+        MemberUpdateResponse memberUpdateResponse = memberService.updateNickname(user.getMemberId(), request);
 
-        ra.addFlashAttribute("msg", "회원 정보가 수정되었습니다.");
+        ra.addFlashAttribute("msg", "닉네임이 수정되었습니다.");
 
-        log.info("회원 정보 수정 성공! - memberId={}, Nickname{} ", user.getMemberId(), user.getNickname());
+        log.info("회원 닉네임 변경 성공! - memberId={}, Nickname{} ", user.getMemberId(), user.getNickname());
+
+        refreshAuthentication(memberUpdateResponse.getNickname(), user);
+
+        return "redirect:/";
+    }
+
+    private void refreshAuthentication(String newNickname, UnifiedPrincipal currentUser) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        UnifiedPrincipal newUser = UnifiedPrincipal.builder()
+                .memberId(currentUser.getMemberId())
+                .email(currentUser.getEmail())
+                .nickname(newNickname)
+                .role(currentUser.getRole())
+                .loginType(currentUser.getLoginType())
+                .build();
+
+        Authentication newAuthentication = new UsernamePasswordAuthenticationToken(
+                newUser,
+                authentication.getCredentials(),
+                authentication.getAuthorities()
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+    }
+
+    @PostMapping("/my/edit/password")
+    public String EditPassword(@Valid @ModelAttribute("form") MemberPasswordUpdateRequest request,
+                        BindingResult bindingResult,
+                       RedirectAttributes ra,
+                       @AuthenticationPrincipal UnifiedPrincipal user) {
+
+        if (bindingResult.hasErrors()) {
+            return "my/myEdit";
+        }
+
+        memberService.updatePassword(user.getMemberId(), request);
+
+        ra.addFlashAttribute("msg", "비밀번호가 수정되었습니다.");
+
+        log.info("회원 비밀번호 변경 성공! - memberId={}, Nickname{} ", user.getMemberId(), user.getNickname());
 
         return "redirect:/";
     }
