@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.thymeleaf.model.IModel;
 import project.board.comment.dto.MyCommentPageResponse;
 import project.board.comment.dto.MyRecentComment;
 import project.board.comment.service.CommentService;
@@ -133,12 +134,18 @@ public class MyController {
     }
 
     @PostMapping("/my/edit/nickname")
-    public String EditNickname(@Valid @ModelAttribute("form") MemberNicknameUpdateRequest request,
-                        BindingResult bindingResult,
-                       RedirectAttributes ra,
-                       @AuthenticationPrincipal UnifiedPrincipal user) {
+    public String editNickname(@Valid @ModelAttribute("nicknameRequest") MemberNicknameUpdateRequest request,
+                               BindingResult bindingResult,
+                               Model model,
+                               RedirectAttributes ra,
+                               @AuthenticationPrincipal UnifiedPrincipal user) {
 
         if (bindingResult.hasErrors()) {
+            MemberUpdateResponse form = memberService.getMyProfile(user.getMemberId());
+
+            model.addAttribute("form", form);
+            model.addAttribute("passwordRequest", new MemberPasswordUpdateRequest());
+
             return "my/myEdit";
         }
 
@@ -174,12 +181,19 @@ public class MyController {
     }
 
     @PostMapping("/my/edit/password")
-    public String EditPassword(@Valid @ModelAttribute("form") MemberPasswordUpdateRequest request,
-                        BindingResult bindingResult,
-                       RedirectAttributes ra,
-                       @AuthenticationPrincipal UnifiedPrincipal user) {
+    public String editPassword(@Valid @ModelAttribute("passwordRequest") MemberPasswordUpdateRequest request,
+                               BindingResult bindingResult,
+                               Model model,
+                               RedirectAttributes ra,
+                               @AuthenticationPrincipal UnifiedPrincipal user) {
 
         if (bindingResult.hasErrors()) {
+
+            MemberUpdateResponse form = memberService.getMyProfile(user.getMemberId());
+
+            model.addAttribute("form", form);
+            model.addAttribute("nicknameRequest", form.getNickname());
+
             return "my/myEdit";
         }
 
