@@ -152,26 +152,6 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("댓글 목록 조회는 게시글이 존재하면 게시글 댓글을 id 오름차순 응답 DTO 목록으로 반환한다")
-    void findAll_postExists_returnsComments() {
-        // given
-        Long postId = 10L;
-        Member writer = member(1L, "댓글작성자");
-        Post post = post(postId, "제목", "내용", member(2L, "게시글작성자"));
-        Comment first = comment(100L, "첫 댓글", writer, post);
-        Comment second = comment(101L, "두 번째 댓글", writer, post);
-        given(postRepository.existsById(postId)).willReturn(true);
-        given(commentRepository.findAllByPostIdOrderByIdAsc(postId)).willReturn(List.of(first, second));
-
-        // when
-        List<CommentDto.Response> responses = commentService.findAll(postId);
-
-        // then
-        assertThat(responses).extracting(CommentDto.Response::getContent)
-                .containsExactly("첫 댓글", "두 번째 댓글");
-    }
-
-    @Test
     @DisplayName("내 댓글 수 조회는 인증된 UnifiedPrincipal의 회원 id로 댓글 수를 조회한다")
     void myCommentCount_authenticatedPrincipal_countsByLoginMemberId() {
         // given

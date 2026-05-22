@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/login", "/loginForm", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/post/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
                         .requestMatchers("/my/**").authenticated()
                         .anyRequest().permitAll()
                 )

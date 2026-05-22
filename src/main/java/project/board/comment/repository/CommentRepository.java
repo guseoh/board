@@ -10,18 +10,11 @@ import org.springframework.data.repository.query.Param;
 import project.board.comment.dto.MyCommentResponse;
 import project.board.comment.dto.MyRecentComment;
 import project.board.comment.entity.Comment;
-import project.board.global.dto.PageResultDto;
-import project.board.member.entity.Member;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-
-    //todo: 개선
-    List<Comment> findAllByPostIdOrderByIdAsc(Long postId);
-
-//    Page<Comment> findAllByPostIdOrderByIdAsc(Long postId, Pageable pageable);
 
     @Modifying
     @Query("delete from Comment c where c.post.id = :id")

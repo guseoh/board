@@ -25,7 +25,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional //todo: ??
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
@@ -36,7 +36,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
 //        OAuthUserInfo oAuthUserInfo = null;
 //
 //
-//        //todo: switch 방식 개선
+//
 //        if ("google".equals(provider)) {
 //            oAuthUserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
 //        } else if ("naver".equals(provider)) {

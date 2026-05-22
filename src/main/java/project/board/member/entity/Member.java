@@ -2,7 +2,6 @@ package project.board.member.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import project.board.comment.entity.Comment;
 import project.board.global.entity.BaseEntity;
 import project.board.post.entity.Post;
 

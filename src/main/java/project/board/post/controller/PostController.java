@@ -121,7 +121,6 @@ public class PostController {
         return true;
     }
 
-    //todo: 개선
     @GetMapping("/posts/search")
     public String search(@RequestParam String keyword, Model model) {
         List<PostListResponse> posts = postService.search(keyword);
@@ -175,13 +174,8 @@ public class PostController {
 
         PostDetailsResponse post = postService.findOne(id);
 
-        //todo: 개선
-        PostRequest form = new PostRequest();
-        form.setTitle(post.getTitle());
-        form.setContent(post.getContent());
-
         model.addAttribute("mode", "edit");
-        model.addAttribute("form", form);
+        model.addAttribute("form", PostRequest.from(post));
         model.addAttribute("actionUrl", "/post/" + id + "/edit");
         model.addAttribute("submitLabel", "수정");
 

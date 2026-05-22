@@ -11,7 +11,6 @@ import project.board.global.exception.ErrorCode;
 import project.board.member.dto.request.MemberCreateRequest;
 import project.board.member.dto.request.MemberNicknameUpdateRequest;
 import project.board.member.dto.request.MemberPasswordUpdateRequest;
-import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.dto.response.MemberUpdateResponse;
 import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
@@ -63,7 +62,6 @@ public class MemberService {
         return memberRepository.count();
     }
 
-    //todo: 개선
     public List<Member> findAllForAdmin() {
         return memberRepository.findAll();
     }

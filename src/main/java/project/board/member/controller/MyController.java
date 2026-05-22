@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
@@ -17,7 +16,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.dto.MyCommentPageResponse;
-import project.board.comment.dto.MyRecentComment;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.exception.CustomException;
@@ -25,13 +23,9 @@ import project.board.global.exception.ErrorCode;
 import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberNicknameUpdateRequest;
 import project.board.member.dto.request.MemberPasswordUpdateRequest;
-import project.board.member.dto.request.MemberUpdateRequest;
 import project.board.member.dto.response.MemberUpdateResponse;
 import project.board.member.service.MemberService;
-import project.board.post.dto.request.PostRecent;
 import project.board.post.service.PostService;
-
-import java.util.List;
 
 @Controller
 @Slf4j
@@ -133,12 +127,18 @@ public class MyController {
     }
 
     @PostMapping("/my/edit/nickname")
-    public String EditNickname(@Valid @ModelAttribute("form") MemberNicknameUpdateRequest request,
-                        BindingResult bindingResult,
-                       RedirectAttributes ra,
-                       @AuthenticationPrincipal UnifiedPrincipal user) {
+    public String editNickname(@Valid @ModelAttribute("nicknameRequest") MemberNicknameUpdateRequest request,
+                               BindingResult bindingResult,
+                               Model model,
+                               RedirectAttributes ra,
+                               @AuthenticationPrincipal UnifiedPrincipal user) {
 
         if (bindingResult.hasErrors()) {
+            MemberUpdateResponse form = memberService.getMyProfile(user.getMemberId());
+
+            model.addAttribute("form", form);
+            model.addAttribute("passwordRequest", new MemberPasswordUpdateRequest());
+
             return "my/myEdit";
         }
 
@@ -174,12 +174,19 @@ public class MyController {
     }
 
     @PostMapping("/my/edit/password")
-    public String EditPassword(@Valid @ModelAttribute("form") MemberPasswordUpdateRequest request,
-                        BindingResult bindingResult,
-                       RedirectAttributes ra,
-                       @AuthenticationPrincipal UnifiedPrincipal user) {
+    public String editPassword(@Valid @ModelAttribute("passwordRequest") MemberPasswordUpdateRequest request,
+                               BindingResult bindingResult,
+                               Model model,
+                               RedirectAttributes ra,
+                               @AuthenticationPrincipal UnifiedPrincipal user) {
 
         if (bindingResult.hasErrors()) {
+
+            MemberUpdateResponse form = memberService.getMyProfile(user.getMemberId());
+
+            model.addAttribute("form", form);
+            model.addAttribute("nicknameRequest", form.getNickname());
+
             return "my/myEdit";
         }
 
