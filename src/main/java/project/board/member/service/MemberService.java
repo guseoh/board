@@ -94,8 +94,9 @@ public class MemberService {
 
         return MemberUpdateResponse.builder()
                 .nickname(member.getNickname())
+                .email(member.getEmail())
+                .passwordChangeable(member.getLoginType() == LoginType.LOCAL)
                 .build();
-
     }
 
     @Transactional

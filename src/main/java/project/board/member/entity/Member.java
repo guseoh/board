@@ -38,17 +38,21 @@ public class Member extends BaseEntity {
 
     private String providerId;  // ex) 구글 로그인 한 유저의 고유 ID가 들어감
 
-    public static Member create(String nickname, String email, String encodedPassword, Role role) {
+    @Enumerated(EnumType.STRING)
+    private LoginType loginType;    // 로그인 구분
+
+    public static Member create(String nickname, String email, String encodedPassword, Role role, LoginType loginType) {
         Member m = new Member();
         m.nickname = nickname;
         m.email = email;
         m.password = encodedPassword;
         m.role = role;
+        m.loginType = loginType;
         return m;
     }
 
     // OAuth Member 생성
-    public static Member createOAuth(String nickname, String email, String DummyPassword, Role role, String provider, String providerId) {
+    public static Member createOAuth(String nickname, String email, String DummyPassword, Role role, String provider, String providerId, LoginType loginType) {
         Member m = new Member();
         m.nickname = nickname;
         m.email = email;
@@ -56,17 +60,10 @@ public class Member extends BaseEntity {
         m.role = role;
         m.provider = provider;
         m.providerId = providerId;
+        m.loginType = loginType;
         return m;
     }
 
-    public void updateOAuth(String provider, String providerId) {
-        this.provider = provider;
-        this.providerId = providerId;
-    }
-
-//    public void changeEmail(String email) {
-//        this.email = email;
-//    }
 
     public void changeNickname(String nickname) {
         this.nickname = nickname;

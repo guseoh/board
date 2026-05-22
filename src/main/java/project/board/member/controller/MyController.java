@@ -17,7 +17,10 @@ import project.board.comment.dto.MyRecentComment;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.security.user.UnifiedPrincipal;
+import project.board.member.dto.request.MemberNicknameUpdateRequest;
+import project.board.member.dto.request.MemberPasswordUpdateRequest;
 import project.board.member.dto.request.MemberUpdateRequest;
+import project.board.member.dto.response.MemberUpdateResponse;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.service.PostService;
@@ -103,13 +106,29 @@ public class MyController {
         return "redirect:/";
     }
 
-    @GetMapping("/my/edit")
-    public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user,
-                           Model model) {
+//    @GetMapping("/my/edit")
+//    public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user,
+//                           Model model) {
+//
+//        MemberUpdateRequest form = memberService.getMyProfile(user.getMemberId());
+//
+//        model.addAttribute("form", form);
+//
+//        return "my/myEdit";
+//    }
 
-        MemberUpdateRequest form = memberService.getMyProfile(user.getMemberId());
+    @GetMapping("/my/edit")
+    public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user, Model model) {
+
+        MemberUpdateResponse form = memberService.getMyProfile(user.getMemberId());
+
+        MemberNicknameUpdateRequest nicknameRequest = new MemberNicknameUpdateRequest();
+        nicknameRequest.setNickname(form.getNickname());
+
 
         model.addAttribute("form", form);
+        model.addAttribute("nicknameRequest", nicknameRequest);
+        model.addAttribute("passwordRequest", new MemberPasswordUpdateRequest());
 
         return "my/myEdit";
     }
