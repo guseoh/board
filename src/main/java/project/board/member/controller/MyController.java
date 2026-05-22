@@ -20,6 +20,8 @@ import project.board.comment.dto.MyCommentPageResponse;
 import project.board.comment.dto.MyRecentComment;
 import project.board.comment.service.CommentService;
 import project.board.global.dto.PageRequestDto;
+import project.board.global.exception.CustomException;
+import project.board.global.exception.ErrorCode;
 import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.dto.request.MemberNicknameUpdateRequest;
 import project.board.member.dto.request.MemberPasswordUpdateRequest;
@@ -43,6 +45,10 @@ public class MyController {
 
     @GetMapping("/my")
     public String myForm(Model model, @AuthenticationPrincipal UnifiedPrincipal user) {
+
+        if (user == null || user.getMemberId() == null) {
+            throw new CustomException(ErrorCode.MEMBER_NOT_AUTHENTICATION);
+        }
 
         Long memberId = user.getMemberId();
 
@@ -109,17 +115,6 @@ public class MyController {
 
         return "redirect:/";
     }
-
-//    @GetMapping("/my/edit")
-//    public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user,
-//                           Model model) {
-//
-//        MemberUpdateRequest form = memberService.getMyProfile(user.getMemberId());
-//
-//        model.addAttribute("form", form);
-//
-//        return "my/myEdit";
-//    }
 
     @GetMapping("/my/edit")
     public String EditForm(@AuthenticationPrincipal UnifiedPrincipal user, Model model) {

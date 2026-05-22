@@ -128,8 +128,10 @@ public class PostService {
         return postRepository.countTodayPosts(startDay, nextDay);
     }
 
-    //todo: 방어코드?
     public Long myPostCount(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(MEMBER_NOT_FOUND);
+        }
         return postRepository.countMyPosts(memberId);
     }
 
