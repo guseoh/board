@@ -12,9 +12,33 @@
         </button>
 
         <div class="collapse navbar-collapse" id="nav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${activeMenu == 'post'} ? ' active' : ''"
+                       th:href="@{/}">
+                        <i class="bi bi-house-door me-1"></i> 게시판
+                    </a>
+                </li>
 
-            <!-- 오른쪽 영역: ms-auto 핵심 -->
-            <div class="d-flex align-items-center gap-2 ms-auto">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link"
+                       th:classappend="${activeMenu == 'my' or activeMenu == 'my-posts' or activeMenu == 'my-comments'} ? ' active' : ''"
+                       th:href="@{/my}">
+                        <i class="bi bi-person-circle me-1"></i> 마이페이지
+                    </a>
+                </li>
+
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link"
+                       th:classappend="${activeMenu == 'admin'} ? ' active' : ''"
+                       th:href="@{/admin}">
+                        <i class="bi bi-shield-lock me-1"></i> 관리자
+                    </a>
+                </li>
+            </ul>
+
+            <div class="navbar-actions d-flex gap-2 ms-auto">
                 <div sec:authorize="isAnonymous()" class="d-flex gap-2">
                     <a class="btn btn-login btn-sm" th:href="@{/loginForm}">로그인</a>
                     <a class="btn btn-signup btn-sm" th:href="@{/signup}">회원가입</a>
@@ -30,7 +54,6 @@
                     </form>
                 </div>
             </div>
-
         </div>
     </div>
 </nav>

@@ -6,7 +6,7 @@
 <div th:replace="~{fragments/navbar :: navbar('my')}"></div>
 
 <div class="page-wrap my-page">
-    <div class="container py-4" style="max-width: 900px;">
+    <div class="container py-4 settings-container">
 
         <div th:if="${msg}" class="alert alert-success alert-dismissible fade show" role="alert">
             <span th:text="${msg}">완료</span>

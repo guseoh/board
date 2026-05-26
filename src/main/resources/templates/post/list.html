@@ -60,7 +60,6 @@
                     </div>
                 </div>
 
-                <!-- 오른쪽: 내 정보 카드 -->
                 <div class="col-lg-4">
                     <div class="card my-info-card h-100 shadow-sm">
                         <div class="card-body p-4">
@@ -104,7 +103,6 @@
                                 </div>
                             </div>
 
-                            <!-- 비로그인 상태 -->
                             <div sec:authorize="isAnonymous()">
                                 <div class="my-info-guest-icon mb-3">
                                     <i class="bi bi-person-lock"></i>
@@ -123,7 +121,6 @@
             </div>
         </section>
 
-        <!-- 검색 + 작성 버튼 -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
             <form th:action="@{/posts/search}" method="get" class="d-flex board-search-form">
                 <input type="text"
@@ -136,7 +133,7 @@
                 </button>
             </form>
 
-            <div class="d-flex gap-2">
+            <div class="board-list-actions d-flex gap-2">
                 <a class="btn btn-outline-light" th:href="@{/}">
                     <i class="bi bi-list-ul me-1"></i> 전체 글
                 </a>
@@ -146,11 +143,10 @@
             </div>
         </div>
 
-        <!-- 게시글 목록 -->
         <div class="card shadow-sm">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0 board-table">
+                    <thead>
                     <tr>
                         <th style="width: 90px;">번호</th>
                         <th>제목</th>
@@ -190,7 +186,6 @@
             </div>
         </div>
 
-        <!-- 페이징 -->
         <nav class="mt-4"
              th:if="${page != null and !#lists.isEmpty(page.pageList)}"
              aria-label="게시글 페이지 이동">
