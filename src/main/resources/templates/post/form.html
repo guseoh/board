@@ -50,6 +50,39 @@
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <div class="attachment-upload-box">
+                            <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
+                                <div>
+                                    <label class="form-label mb-1" for="postAttachments">첨부파일</label>
+                                    <p class="attachment-help mb-0">
+                                        이미지 또는 문서 파일을 첨부할 수 있습니다. 현재는 UI만 제공되며, 실제 업로드 처리는 추후 구현 예정입니다.
+                                    </p>
+                                </div>
+                                <span class="attachment-count" id="attachmentCount">선택된 파일 0개</span>
+                            </div>
+
+                            <input type="file"
+                                   id="postAttachments"
+                                   name="_attachmentFiles"
+                                   class="form-control"
+                                   accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip"
+                                   multiple
+                                   aria-describedby="attachmentHelp">
+
+                            <div id="attachmentHelp" class="form-text mt-2">
+                                업로드 저장, 삭제, 다운로드 기능은 백엔드 구현 후 연결됩니다.
+                            </div>
+
+                            <div class="attachment-selected mt-3">
+                                <div class="attachment-empty" id="attachmentEmpty">
+                                    선택된 파일이 없습니다.
+                                </div>
+                                <ul class="attachment-file-list list-unstyled mb-0 d-none" id="attachmentFileList"></ul>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="post-form-actions">
                         <a class="btn btn-post-action btn-post-cancel" th:href="@{/}">
                             취소
@@ -70,5 +103,54 @@
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('postAttachments');
+        const count = document.getElementById('attachmentCount');
+        const empty = document.getElementById('attachmentEmpty');
+        const list = document.getElementById('attachmentFileList');
+
+        if (!input || !count || !empty || !list) return;
+
+        input.addEventListener('change', function () {
+            const files = Array.from(input.files || []);
+
+            count.textContent = '선택된 파일 ' + files.length + '개';
+            list.innerHTML = '';
+
+            if (files.length === 0) {
+                empty.classList.remove('d-none');
+                list.classList.add('d-none');
+                return;
+            }
+
+            empty.classList.add('d-none');
+            list.classList.remove('d-none');
+
+            files.forEach(function (file) {
+                const item = document.createElement('li');
+                item.className = 'attachment-file-item';
+
+                const name = document.createElement('span');
+                name.className = 'attachment-file-name';
+                name.textContent = file.name;
+
+                const size = document.createElement('span');
+                size.className = 'attachment-file-size';
+                size.textContent = formatFileSize(file.size);
+
+                item.appendChild(name);
+                item.appendChild(size);
+                list.appendChild(item);
+            });
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+    });
+</script>
 </body>
 </html>
