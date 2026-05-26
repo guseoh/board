@@ -28,7 +28,9 @@ public enum ErrorCode {
 
     // comment
     COMMENT_NOT_FOUND("/", "해당 댓글은 존재하지 않습니다."),
-    COMMENT_NOT_OWNER("/", "해당 댓글 작성자가 아닙니다.");
+    COMMENT_NOT_OWNER("/", "해당 댓글 작성자가 아닙니다."),
+    COMMENT_INVALID_PARENT("/", "부모 댓글이 현재 게시글의 댓글이 아닙니다."),
+    REPLY_DEPTH_NOT_ALLOWED("/", "대댓글의 대댓글은 안됩니다.");
 
     private final String redirectUrl;
     private final String message;

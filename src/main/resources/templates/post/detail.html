@@ -168,6 +168,105 @@
                                             </div>
                                         </form>
                                     </div>
+
+                                    <div class="mt-2"
+                                         th:if="${#authentication != null && #authentication.name != 'anonymousUser'}">
+                                        <form th:action="@{/post/{postId}/comment/{parentId}/replies(postId=${post.id}, parentId=${c.id})}"
+                                              method="post"
+                                              class="d-flex gap-2 align-items-start mt-2">
+
+                                            <textarea name="content"
+                                                      class="form-control comment-textarea"
+                                                      rows="2"
+                                                      placeholder="답글을 입력하세요"></textarea>
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-post-submit flex-shrink-0">
+                                                답글 등록
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="mt-2"
+                                         th:if="${#authentication == null || #authentication.name == 'anonymousUser'}">
+                                        <a class="small text-muted"
+                                           th:href="@{/loginForm}">
+                                            답글을 쓰려면 로그인이 필요합니다.
+                                        </a>
+                                    </div>
+
+                                    <div class="ms-5 mt-3"
+                                         th:if="${c.replies != null && !c.replies.isEmpty()}">
+                                        <div class="border-start ps-3 py-2"
+                                             th:each="reply : ${c.replies}">
+
+                                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                                        <strong th:text="${reply.nickname != null ? reply.nickname : '알 수 없음'}">
+                                                            작성자
+                                                        </strong>
+
+                                                        <span class="text-muted small"
+                                                              th:text="${reply.createdAt != null ? #temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">
+                                                            -
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="comment-view comment-content"
+                                                         th:attr="data-comment-id=${reply.id}"
+                                                         th:text="${reply.content}">
+                                                        대댓글 내용
+                                                    </div>
+
+                                                    <div class="comment-edit d-none mt-2"
+                                                         th:attr="data-comment-id=${reply.id}">
+                                                        <form th:action="@{/post/{postId}/comment/{commentId}/edit(postId=${post.id}, commentId=${reply.id})}"
+                                                              method="post"
+                                                              class="border rounded-3 p-2">
+
+                                                            <textarea name="content"
+                                                                      class="form-control comment-textarea"
+                                                                      rows="3"
+                                                                      th:text="${reply.content}"></textarea>
+
+                                                            <div class="d-flex justify-content-end gap-2 mt-2">
+                                                                <button type="button"
+                                                                        class="btn btn-sm btn-post-cancel"
+                                                                        th:attr="data-cancel-id=${reply.id}"
+                                                                        onclick="cancelEdit(this)">
+                                                                    취소
+                                                                </button>
+
+                                                                <button type="submit" class="btn btn-sm btn-post-submit">
+                                                                    저장
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex gap-2 flex-shrink-0"
+                                                     th:if="${memberId != null && reply.memberId == memberId}">
+
+                                                    <button class="btn btn-sm btn-post-submit"
+                                                            type="button"
+                                                            th:attr="data-edit-id=${reply.id}"
+                                                            onclick="startEdit(this)">
+                                                        수정
+                                                    </button>
+
+                                                    <form th:action="@{/post/{postId}/comment/{commentId}/delete(postId=${post.id}, commentId=${reply.id})}"
+                                                          method="post"
+                                                          onsubmit="return confirm('댓글을 삭제할까요?');">
+                                                        <button class="btn btn-sm btn-post-delete" type="submit">
+                                                            삭제
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

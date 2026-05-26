@@ -33,9 +33,8 @@ public class Post extends BaseEntity {
     private Member member;
 
     @OneToMany(mappedBy = "post")
+    @OrderBy("id asc")
     private List<Comment> comments = new ArrayList<>();
-
-
 
     public static Post create(String title, String content, Member member) {
 

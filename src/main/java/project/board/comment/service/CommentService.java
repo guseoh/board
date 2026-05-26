@@ -33,7 +33,7 @@ public class CommentService {
     private final PostRepository postRepository;
 
 
-    public CommentDto.Response create(CommentRequestDto commentDto, Long memberId, Long postId) {
+    public CommentResponse create(CommentRequestDto commentDto, Long memberId, Long postId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -41,14 +41,33 @@ public class CommentService {
         Post post = postRepository.findById(postId).orElseThrow(
                 () -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        Comment comment = Comment.create(commentDto.getContent(), member, post);
+        Comment comment = Comment.create(commentDto.getContent(), member, post, null);
 
         Comment saved = commentRepository.save(comment);
 
-        return CommentDto.Response.from(saved);
+        return CommentResponse.from(saved);
     }
 
-    public CommentDto.Response update(Long commentId, Long memberId, Long postId, CommentRequestDto dto) {
+
+    public CommentResponse createReply(CommentRequestDto commentDto, Long memberId, Long postId, Long parentId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        Comment parent = commentRepository.findById(parentId).orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+        validateReply(parent, post);
+
+        Comment reply = Comment.create(commentDto.getContent(), member, post, parent);
+
+        Comment saved = commentRepository.save(reply);
+
+        return CommentResponse.from(saved);
+    }
+
+    public CommentResponse update(Long commentId, Long memberId, Long postId, CommentRequestDto dto) {
 
         Comment comment = commentRepository.findById(commentId).orElseThrow(
                 () -> new CustomException(ErrorCode.COMMENT_NOT_FOUND, "/post/" + postId)
@@ -58,7 +77,7 @@ public class CommentService {
 
         comment.changeContent(dto.getContent());
 
-        return CommentDto.Response.from(comment);
+        return CommentResponse.from(comment);
     }
 
     public void delete(Long memberId, Long commentId, Long postId) {
@@ -76,6 +95,7 @@ public class CommentService {
     public Long myCommentCount(Long memberId) {
         return commentRepository.countByMemberId(memberId);
     }
+
 
     public MyCommentPageResponse myCommentPage(Long memberId, PageRequestDto request, String keyword) {
 
@@ -124,4 +144,14 @@ public class CommentService {
         }
     }
 
+
+    private static void validateReply(Comment parent, Post post) {
+        if (!parent.getPost().getId().equals(post.getId())) {
+            throw new CustomException(ErrorCode.COMMENT_INVALID_PARENT);
+        }
+
+        if (parent.isReply()) {
+            throw new CustomException(ErrorCode.COMMENT_INVALID_PARENT);
+        }
+    }
 }
