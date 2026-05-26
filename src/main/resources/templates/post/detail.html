@@ -8,7 +8,7 @@
     <div class="container py-4 detail-container">
 
         <div class="card shadow-sm okky-post-header mb-3">
-            <div class="card-body d-flex justify-content-between align-items-start gap-3">
+            <div class="card-body d-flex justify-content-between align-items-start gap-3 post-detail-header">
                 <div class="flex-grow-1">
                     <h3 class="post-title" th:text="${post.title}">제목</h3>
 
@@ -21,7 +21,7 @@
                     </div>
                 </div>
 
-                <div class="d-flex gap-2 flex-wrap justify-content-end">
+                <div class="post-detail-actions d-flex gap-2 flex-wrap justify-content-end">
                     <a class="btn btn-sm btn-post-list" th:href="@{/}">
                         목록
                     </a>
@@ -79,7 +79,7 @@
                           th:action="@{/post/{postId}/comment(postId=${post.id})}"
                           th:object="${commentForm}"
                           method="post"
-                          class="d-flex gap-3 align-items-start">
+                          class="comment-form d-flex gap-3 align-items-start">
 
                         <div class="comment-avatar">
                             <span th:text="${loginNickname != null ? #strings.substring(loginNickname,0,1) : '나'}">
@@ -173,7 +173,7 @@
                                          th:if="${#authentication != null && #authentication.name != 'anonymousUser'}">
                                         <form th:action="@{/post/{postId}/comment/{parentId}/replies(postId=${post.id}, parentId=${c.id})}"
                                               method="post"
-                                              class="d-flex gap-2 align-items-start mt-2">
+                                              class="comment-reply-form d-flex gap-2 align-items-start mt-2">
 
                                             <textarea name="content"
                                                       class="form-control comment-textarea"
@@ -195,7 +195,7 @@
                                         </a>
                                     </div>
 
-                                    <div class="ms-5 mt-3"
+                                    <div class="comment-replies mt-3"
                                          th:if="${c.replies != null && !c.replies.isEmpty()}">
                                         <div class="border-start ps-3 py-2"
                                              th:each="reply : ${c.replies}">
