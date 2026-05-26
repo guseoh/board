@@ -41,6 +41,30 @@ public class CommentController {
         return "redirect:/post/" + postId;
     }
 
+    @PostMapping("/post/{postId}/comment/{parentId}/replies")
+    public String createReply(@PathVariable Long postId,
+                              @PathVariable Long parentId,
+                              @ModelAttribute("commentForm") @Valid CommentRequestDto requestDto,
+                              BindingResult bindingResult,
+                              @AuthenticationPrincipal UnifiedPrincipal user,
+                              RedirectAttributes ra) {
+
+        if (user == null) {
+            ra.addAttribute("redirect", "/post/" + postId);
+            return "redirect:/loginForm";
+        }
+
+        if (bindingResult.hasErrors()) {
+            ra.addFlashAttribute("error", "댓글 내용을 확인해주세요");
+            return "redirect:/post/" + postId;
+        }
+
+        commentService.createReply(requestDto, user.getMemberId(), postId, parentId);
+
+        return "redirect:/post/" + postId;
+    }
+
+
     @PostMapping("/post/{postId}/comment/{commentId}/edit")
     public String update(@PathVariable Long postId,
                          @PathVariable Long commentId,
@@ -63,10 +87,9 @@ public class CommentController {
     @PostMapping("/post/{postId}/comment/{commentId}/delete")
     public String delete(@PathVariable Long postId,
                          @PathVariable Long commentId,
-                         @AuthenticationPrincipal UnifiedPrincipal customUserDetails) {
-        commentService.delete(customUserDetails.getMemberId(), commentId, postId);
+                         @AuthenticationPrincipal UnifiedPrincipal user) {
 
-
+        commentService.delete(user.getMemberId(), commentId, postId);
         return "redirect:/post/" + postId;
     }
 }

@@ -2,7 +2,7 @@ package project.board.post.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import project.board.comment.dto.CommentDto;
+import project.board.comment.dto.CommentResponse;
 import project.board.member.entity.Member;
 import project.board.post.entity.Post;
 
@@ -19,7 +19,7 @@ public class PostDetailsResponse {
     private int viewCount;
 
     private LocalDateTime createdAt;
-    private List<CommentDto.Response> comments;
+    private List<CommentResponse> comments;
 
     private MemberSummary member;
 
@@ -37,7 +37,7 @@ public class PostDetailsResponse {
         }
     }
 
-    public static PostDetailsResponse from(Post post, List<CommentDto.Response> comments) {
+    public static PostDetailsResponse from(Post post, List<CommentResponse> comments) {
         return PostDetailsResponse.builder()
                 .id(post.getId())
                 .title(post.getTitle())

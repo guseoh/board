@@ -8,7 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import project.board.comment.dto.CommentDto;
+import project.board.comment.dto.CommentResponse;
+import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.dto.PageRequestDto;
 import project.board.global.dto.PageResultDto;
@@ -50,11 +51,12 @@ public class PostService {
         return PostListResponse.from(saved);
     }
 
-    public PostDetailsResponse findOne(Long id){
-        Post post = getPost(id);
+    public PostDetailsResponse findOne(Long postId){
+        Post post = getPost(postId);
 
-        List<CommentDto.Response> comments = post.getComments().stream()
-                .map(CommentDto.Response::from)
+        List<CommentResponse> comments = post.getComments().stream()
+                .filter(Comment::rootComment)
+                .map(CommentResponse::from)
                 .toList();
 
         return PostDetailsResponse.from(post, comments);
