@@ -8,17 +8,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.dto.request.MemberCreateRequest;
-import project.board.member.dto.request.MemberUpdateRequest;
+import project.board.member.dto.request.MemberNicknameUpdateRequest;
+import project.board.member.dto.request.MemberPasswordUpdateRequest;
+import project.board.member.dto.response.MemberUpdateResponse;
+import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
 import project.board.post.repository.PostRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +29,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static project.board.testsupport.TestFixtures.member;
+import static project.board.testsupport.TestFixtures.oauthMember;
+import static project.board.testsupport.TestFixtures.setId;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
@@ -47,138 +54,189 @@ class MemberServiceTest {
     private MemberService memberService;
 
     @Test
-    @DisplayName("회원가입은 이메일과 닉네임이 중복되지 않고 비밀번호 확인이 일치하면 USER 권한 회원을 저장한다")
-    void signUp_success_savesUserWithEncodedPassword() {
-        // given
-        MemberCreateRequest request = createRequest("tester@example.com", "password1", "password1");
+    @DisplayName("signs up a local user after duplicate and password checks")
+    void signUpSuccess() {
+        MemberCreateRequest request = createRequest("tester@example.com", "tester", "password1", "password1");
         given(memberRepository.existsByEmail("tester@example.com")).willReturn(false);
-        given(memberRepository.existsByNickname("테스터")).willReturn(false);
-        given(passwordEncoder.encode("password1")).willReturn("encoded-password");
+        given(memberRepository.existsByNickname("tester")).willReturn(false);
+        given(passwordEncoder.encode("password1")).willReturn("encoded");
         given(memberRepository.save(any(Member.class))).willAnswer(invocation -> {
             Member saved = invocation.getArgument(0);
-            ReflectionTestUtils.setField(saved, "id", 1L);
+            setId(saved, 1L);
             return saved;
         });
 
-        // when
         Long memberId = memberService.signUp(request);
 
-        // then
         assertThat(memberId).isEqualTo(1L);
-        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
-        verify(memberRepository).save(memberCaptor.capture());
-        Member savedMember = memberCaptor.getValue();
-        assertThat(savedMember.getNickname()).isEqualTo("테스터");
-        assertThat(savedMember.getEmail()).isEqualTo("tester@example.com");
-        assertThat(savedMember.getPassword()).isEqualTo("encoded-password");
-        assertThat(savedMember.getRole()).isEqualTo(Role.USER);
+        ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+        verify(memberRepository).save(captor.capture());
+        assertThat(captor.getValue().getRole()).isEqualTo(Role.USER);
+        assertThat(captor.getValue().getLoginType()).isEqualTo(LoginType.LOCAL);
+        assertThat(captor.getValue().getPassword()).isEqualTo("encoded");
     }
 
     @Test
-    @DisplayName("회원가입은 이미 사용 중인 이메일이면 예외를 던지고 저장하지 않는다")
-    void signUp_duplicateEmail_throwsException() {
-        // given
-        MemberCreateRequest request = createRequest("duplicate@example.com", "password1", "password1");
-        given(memberRepository.existsByEmail("duplicate@example.com")).willReturn(true);
-
-        // when & then
-        assertThatThrownBy(() -> memberService.signUp(request))
+    @DisplayName("rejects duplicate email, duplicate nickname and password mismatch")
+    void signUpValidationFailures() {
+        MemberCreateRequest duplicateEmail = createRequest("dup@example.com", "tester", "password1", "password1");
+        given(memberRepository.existsByEmail("dup@example.com")).willReturn(true);
+        assertThatThrownBy(() -> memberService.signUp(duplicateEmail))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
-        verify(memberRepository, never()).save(any(Member.class));
-    }
 
-    @Test
-    @DisplayName("회원가입은 비밀번호와 비밀번호 확인이 다르면 예외를 던지고 저장하지 않는다")
-    void signUp_passwordMismatch_throwsException() {
-        // given
-        MemberCreateRequest request = createRequest("tester@example.com", "password1", "different1");
-        given(memberRepository.existsByEmail("tester@example.com")).willReturn(false);
-        given(memberRepository.existsByNickname("테스터")).willReturn(false);
+        MemberCreateRequest duplicateNickname = createRequest("ok@example.com", "dup", "password1", "password1");
+        given(memberRepository.existsByEmail("ok@example.com")).willReturn(false);
+        given(memberRepository.existsByNickname("dup")).willReturn(true);
+        assertThatThrownBy(() -> memberService.signUp(duplicateNickname))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.DUPLICATE_NICKNAME.getMessage());
 
-        // when & then
-        assertThatThrownBy(() -> memberService.signUp(request))
+        MemberCreateRequest mismatch = createRequest("ok2@example.com", "ok", "password1", "password2");
+        given(memberRepository.existsByEmail("ok2@example.com")).willReturn(false);
+        given(memberRepository.existsByNickname("ok")).willReturn(false);
+        assertThatThrownBy(() -> memberService.signUp(mismatch))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.PASSWORD_MISMATCH.getMessage());
-        verify(passwordEncoder, never()).encode(any());
-        verify(memberRepository, never()).save(any(Member.class));
+
+        verify(memberRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("프로필 수정은 닉네임 공백을 제거하고 현재 비밀번호 검증 후 새 비밀번호로 변경한다")
-    void updateMyProfile_success_trimsNicknameAndChangesPassword() {
-        // given
-        Long memberId = 1L;
-        Member member = member(memberId, "기존닉네임", "member@example.com", "encoded-current", Role.USER);
-        MemberUpdateRequest request = MemberUpdateRequest.builder()
-                .nickname("  새닉네임  ")
-                .currentPassword("current1")
-                .newPassword("newpass1")
-                .newPasswordConfirm("newpass1")
-                .build();
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(passwordEncoder.matches("current1", "encoded-current")).willReturn(true);
+    @DisplayName("reads member counts, admin list and local profile")
+    void readQueries() {
+        Member member = member(1L);
+        given(memberRepository.count()).willReturn(1L);
+        given(memberRepository.findAll()).willReturn(List.of(member));
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+
+        MemberUpdateResponse profile = memberService.getMyProfile(1L);
+
+        assertThat(memberService.countMember()).isEqualTo(1L);
+        assertThat(memberService.findAllForAdmin()).containsExactly(member);
+        assertThat(profile.getNickname()).isEqualTo(member.getNickname());
+        assertThat(profile.isPasswordChangeable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("marks OAuth profile as not password changeable")
+    void oauthProfileCannotChangePassword() {
+        Member oauth = oauthMember(2L, "google", "google-1");
+        given(memberRepository.findById(2L)).willReturn(Optional.of(oauth));
+
+        MemberUpdateResponse profile = memberService.getMyProfile(2L);
+
+        assertThat(profile.isPasswordChangeable()).isFalse();
+    }
+
+    @Test
+    @DisplayName("updates nickname after trimming and rejects duplicate nickname")
+    void updateNickname() {
+        Member member = member(1L, "old", "old@example.com", Role.USER);
+        MemberNicknameUpdateRequest request = nicknameRequest(" new ");
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.existsByNicknameAndIdNot("new", 1L)).willReturn(false);
+
+        MemberUpdateResponse response = memberService.updateNickname(1L, request);
+
+        assertThat(response.getNickname()).isEqualTo("new");
+        assertThat(member.getNickname()).isEqualTo("new");
+
+        MemberNicknameUpdateRequest duplicate = nicknameRequest("dup");
+        given(memberRepository.existsByNicknameAndIdNot("dup", 1L)).willReturn(true);
+        assertThatThrownBy(() -> memberService.updateNickname(1L, duplicate))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.DUPLICATE_NICKNAME.getMessage());
+    }
+
+    @Test
+    @DisplayName("updates password and validates current and confirmation values")
+    void updatePassword() {
+        Member member = member(1L, "user", "user@example.com", Role.USER);
+        MemberPasswordUpdateRequest request = passwordRequest("current1", "newpass1", "newpass1");
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(passwordEncoder.matches("current1", member.getPassword())).willReturn(true);
         given(passwordEncoder.encode("newpass1")).willReturn("encoded-new");
 
-        // when
-        memberService.updateMyProfile(memberId, request);
+        memberService.updatePassword(1L, request);
 
-        // then
-        assertThat(member.getNickname()).isEqualTo("새닉네임");
         assertThat(member.getPassword()).isEqualTo("encoded-new");
-    }
 
-    @Test
-    @DisplayName("프로필 수정은 새 비밀번호 입력 시 현재 비밀번호가 틀리면 예외를 던진다")
-    void updateMyProfile_invalidCurrentPassword_throwsException() {
-        // given
-        Long memberId = 1L;
-        Member member = member(memberId, "기존닉네임", "member@example.com", "encoded-current", Role.USER);
-        MemberUpdateRequest request = MemberUpdateRequest.builder()
-                .currentPassword("wrongpass1")
-                .newPassword("newpass1")
-                .newPasswordConfirm("newpass1")
-                .build();
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(passwordEncoder.matches("wrongpass1", "encoded-current")).willReturn(false);
+        assertThatThrownBy(() -> memberService.updatePassword(1L, passwordRequest("", "newpass1", "newpass1")))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.PASSWORD_CURRENT_REQUIRED.getMessage());
 
-        // when & then
-        assertThatThrownBy(() -> memberService.updateMyProfile(memberId, request))
+        given(passwordEncoder.matches("wrongpass1", "encoded-new")).willReturn(false);
+        assertThatThrownBy(() -> memberService.updatePassword(1L, passwordRequest("wrongpass1", "newpass1", "newpass1")))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.PASSWORD_INVALID.getMessage());
-        verify(passwordEncoder, never()).encode(any());
+
+        given(passwordEncoder.matches("current1", "encoded-new")).willReturn(true);
+        assertThatThrownBy(() -> memberService.updatePassword(1L, passwordRequest("current1", "newpass1", "different1")))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.PASSWORD_CONFIRM.getMessage());
     }
 
     @Test
-    @DisplayName("관리자 회원 삭제는 회원의 댓글, 회원 게시글의 댓글, 회원 게시글을 먼저 삭제한 뒤 회원을 삭제한다")
-    void deleteForAdmin_success_deletesRelatedDataBeforeMember() {
-        // given
-        Long memberId = 1L;
-        Member member = member(memberId, "삭제회원", "delete@example.com", "encoded", Role.USER);
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+    @DisplayName("changes role and rejects missing member")
+    void roleChange() {
+        Member member = member(1L);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        // when
-        memberService.deleteForAdmin(memberId);
+        memberService.roleChange("ADMIN", 1L);
 
-        // then
-        verify(commentRepository).deleteAllByMemberId(memberId);
-        verify(commentRepository).deleteAllByPostMemberId(memberId);
-        verify(postRepository).deleteAllByMemberId(memberId);
-        verify(memberRepository).delete(member);
+        assertThat(member.getRole()).isEqualTo(Role.ADMIN);
+        assertThatThrownBy(() -> memberService.roleChange("ADMIN", 99L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
-    private MemberCreateRequest createRequest(String email, String password, String passwordConfirm) {
+    @Test
+    @DisplayName("withdraw and admin delete remove dependent comments and posts first")
+    void deletePolicies() {
+        Member member = member(1L);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+
+        memberService.withdraw(1L);
+        memberService.deleteForAdmin(1L);
+
+        verify(commentRepository, times(2)).deleteAllByMemberId(1L);
+        verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);
+        verify(postRepository, times(2)).deleteAllByMemberId(1L);
+        verify(memberRepository, times(2)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("throws when profile target member is missing")
+    void missingMember() {
+        given(memberRepository.findById(404L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> memberService.getMyProfile(404L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    private MemberCreateRequest createRequest(String email, String nickname, String password, String confirm) {
         MemberCreateRequest request = new MemberCreateRequest();
-        request.setNickname("테스터");
         request.setEmail(email);
+        request.setNickname(nickname);
         request.setPassword(password);
-        request.setPasswordConfirm(passwordConfirm);
+        request.setPasswordConfirm(confirm);
         return request;
     }
 
-    private Member member(Long id, String nickname, String email, String password, Role role) {
-        Member member = Member.create(nickname, email, password, role);
-        ReflectionTestUtils.setField(member, "id", id);
-        return member;
+    private MemberNicknameUpdateRequest nicknameRequest(String nickname) {
+        MemberNicknameUpdateRequest request = new MemberNicknameUpdateRequest();
+        request.setNickname(nickname);
+        return request;
+    }
+
+    private MemberPasswordUpdateRequest passwordRequest(String current, String password, String confirm) {
+        MemberPasswordUpdateRequest request = new MemberPasswordUpdateRequest();
+        request.setCurrentPassword(current);
+        request.setNewPassword(password);
+        request.setNewPasswordConfirm(confirm);
+        return request;
     }
 }
