@@ -1,28 +1,29 @@
 package project.board.comment.service;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
-import project.board.comment.dto.CommentDto;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import project.board.comment.dto.CommentRequestDto;
+import project.board.comment.dto.CommentResponse;
+import project.board.comment.dto.MyCommentPageResponse;
+import project.board.comment.dto.MyCommentResponse;
+import project.board.comment.dto.MyRecentComment;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
+import project.board.global.dto.PageRequestDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
-import project.board.global.security.user.UnifiedPrincipal;
 import project.board.member.entity.Member;
-import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +33,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static project.board.testsupport.TestFixtures.comment;
+import static project.board.testsupport.TestFixtures.member;
+import static project.board.testsupport.TestFixtures.post;
+import static project.board.testsupport.TestFixtures.reply;
+import static project.board.testsupport.TestFixtures.setId;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -48,167 +54,143 @@ class CommentServiceTest {
     @InjectMocks
     private CommentService commentService;
 
-    @AfterEach
-    void clearSecurityContext() {
-        SecurityContextHolder.clearContext();
-    }
-
     @Test
-    @DisplayName("댓글 작성은 회원과 게시글이 존재하면 댓글을 저장하고 응답 DTO를 반환한다")
-    void create_success_savesCommentAndReturnsResponse() {
-        // given
-        Long memberId = 1L;
-        Long postId = 10L;
-        Member member = member(memberId, "댓글작성자");
-        Post post = post(postId, "게시글 제목", "게시글 내용", member(2L, "게시글작성자"));
-        CommentRequestDto request = commentRequest("댓글 내용");
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+    @DisplayName("creates a root comment when member and post exist")
+    void createSuccess() {
+        Member member = member(1L);
+        Post post = post(10L, member(2L));
+        CommentRequestDto request = request("comment content");
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
         given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> {
             Comment saved = invocation.getArgument(0);
-            ReflectionTestUtils.setField(saved, "id", 100L);
+            setId(saved, 100L);
             return saved;
         });
 
-        // when
-        CommentDto.Response response = commentService.create(request, memberId, postId);
+        CommentResponse response = commentService.create(request, 1L, 10L);
 
-        // then
         assertThat(response.getId()).isEqualTo(100L);
-        assertThat(response.getContent()).isEqualTo("댓글 내용");
-        assertThat(response.getMemberId()).isEqualTo(memberId);
-        assertThat(response.getNickname()).isEqualTo("댓글작성자");
-        assertThat(response.getPostId()).isEqualTo(postId);
+        assertThat(response.getContent()).isEqualTo("comment content");
+        assertThat(response.getMemberId()).isEqualTo(1L);
+        assertThat(response.getPostId()).isEqualTo(10L);
         verify(commentRepository).save(any(Comment.class));
     }
 
     @Test
-    @DisplayName("댓글 작성은 회원이 존재하지 않으면 회원 없음 예외를 던지고 저장하지 않는다")
-    void create_memberNotFound_throwsException() {
-        // given
-        Long memberId = 999L;
-        Long postId = 10L;
-        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+    @DisplayName("does not load post when comment writer is missing")
+    void createMemberNotFound() {
+        given(memberRepository.findById(1L)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> commentService.create(commentRequest("댓글 내용"), memberId, postId))
+        assertThatThrownBy(() -> commentService.create(request("comment"), 1L, 10L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
-        verify(postRepository, never()).findById(postId);
-        verify(commentRepository, never()).save(any(Comment.class));
+        verify(postRepository, never()).findById(any());
+        verify(commentRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("댓글 수정은 작성자 본인이 요청하면 댓글 내용을 변경하고 응답 DTO를 반환한다")
-    void update_owner_success_changesContent() {
-        // given
-        Long memberId = 1L;
-        Long postId = 10L;
-        Long commentId = 100L;
-        Comment comment = comment(commentId, "기존 댓글", member(memberId, "댓글작성자"), post(postId, "제목", "내용", member(2L, "게시글작성자")));
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    @DisplayName("creates reply only for root comment on the same post")
+    void createReplySuccessAndInvalidParent() {
+        Member member = member(1L);
+        Post post = post(10L, member(2L));
+        Post otherPost = post(20L, member(3L));
+        Comment parent = comment(100L, "parent", member(2L), post);
+        Comment child = reply(101L, "child", member, post, parent);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+        given(commentRepository.findById(100L)).willReturn(Optional.of(parent));
+        given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> {
+            Comment saved = invocation.getArgument(0);
+            setId(saved, 200L);
+            return saved;
+        });
 
-        // when
-        CommentDto.Response response = commentService.update(commentId, memberId, postId, commentRequest("수정 댓글"));
+        CommentResponse response = commentService.createReply(request("reply"), 1L, 10L, 100L);
 
-        // then
-        assertThat(comment.getContent()).isEqualTo("수정 댓글");
-        assertThat(response.getContent()).isEqualTo("수정 댓글");
+        assertThat(response.getId()).isEqualTo(200L);
+        assertThat(response.getContent()).isEqualTo("reply");
+
+        given(postRepository.findById(20L)).willReturn(Optional.of(otherPost));
+        assertThatThrownBy(() -> commentService.createReply(request("reply"), 1L, 20L, 100L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_INVALID_PARENT.getMessage());
+
+        given(commentRepository.findById(101L)).willReturn(Optional.of(child));
+        assertThatThrownBy(() -> commentService.createReply(request("reply"), 1L, 10L, 101L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_INVALID_PARENT.getMessage());
     }
 
     @Test
-    @DisplayName("댓글 수정은 작성자가 아니면 예외를 던지고 내용을 변경하지 않는다")
-    void update_notOwner_throwsException() {
-        // given
-        Long ownerId = 1L;
-        Long otherMemberId = 2L;
-        Long postId = 10L;
-        Long commentId = 100L;
-        Comment comment = comment(commentId, "기존 댓글", member(ownerId, "댓글작성자"), post(postId, "제목", "내용", member(3L, "게시글작성자")));
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    @DisplayName("updates and deletes comments only for their owner")
+    void updateAndDeleteOwnerOnly() {
+        Member owner = member(1L);
+        Post post = post(10L, member(2L));
+        Comment comment = comment(100L, "old", owner, post);
+        given(commentRepository.findById(100L)).willReturn(Optional.of(comment));
 
-        // when & then
-        assertThatThrownBy(() -> commentService.update(commentId, otherMemberId, postId, commentRequest("수정 댓글")))
+        CommentResponse response = commentService.update(100L, 1L, 10L, request("changed"));
+        commentService.delete(1L, 100L, 10L);
+
+        assertThat(response.getContent()).isEqualTo("changed");
+        verify(commentRepository).delete(comment);
+        assertThatThrownBy(() -> commentService.update(100L, 2L, 10L, request("fail")))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.COMMENT_NOT_OWNER.getMessage());
-        assertThat(comment.getContent()).isEqualTo("기존 댓글");
     }
 
     @Test
-    @DisplayName("댓글 삭제는 작성자 본인이 요청하면 댓글을 삭제한다")
-    void delete_owner_success_deletesComment() {
-        // given
-        Long memberId = 1L;
-        Long postId = 10L;
-        Long commentId = 100L;
-        Comment comment = comment(commentId, "삭제 댓글", member(memberId, "댓글작성자"), post(postId, "제목", "내용", member(2L, "게시글작성자")));
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    @DisplayName("throws COMMENT_NOT_FOUND when updating missing comment")
+    void updateMissingComment() {
+        given(commentRepository.findById(404L)).willReturn(Optional.empty());
 
-        // when
-        commentService.delete(memberId, commentId, postId);
-
-        // then
-        verify(commentRepository).delete(comment);
+        assertThatThrownBy(() -> commentService.update(404L, 1L, 10L, request("changed")))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
     }
 
     @Test
-    @DisplayName("내 댓글 수 조회는 인증된 UnifiedPrincipal의 회원 id로 댓글 수를 조회한다")
-    void myCommentCount_authenticatedPrincipal_countsByLoginMemberId() {
-        // given
-        Long loginMemberId = 1L;
-        loginAs(loginMemberId);
-        given(commentRepository.countByMemberId(loginMemberId)).willReturn(3L);
+    @DisplayName("returns my comment stats, page and recent comments")
+    void myCommentQueries() {
+        MyCommentResponse myComment = new MyCommentResponse(1L, 10L, "post title", "comment", LocalDateTime.now());
+        MyRecentComment recent = MyRecentComment.builder()
+                .id(1L)
+                .title("post title")
+                .content("comment")
+                .createdAt(LocalDateTime.now())
+                .build();
+        given(commentRepository.countByMemberId(1L)).willReturn(3L);
+        given(commentRepository.countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any()))
+                .willReturn(1L);
+        given(commentRepository.countByMemberIdAndCreatedAtGreaterThanEqual(any(), any()))
+                .willReturn(2L);
+        given(commentRepository.findMyComments(any(), any(), any()))
+                .willReturn(new PageImpl<>(List.of(myComment), PageRequest.of(0, 5), 1));
+        given(commentRepository.findRecentComments(any(), any())).willReturn(List.of(recent));
 
-        // when
-        Long count = commentService.myCommentCount(999L);
-
-        // then
-        assertThat(count).isEqualTo(3L);
-        verify(commentRepository).countByMemberId(loginMemberId);
-    }
-
-    @Test
-    @DisplayName("내 댓글 수 조회는 UnifiedPrincipal 인증 정보가 아니면 인증 정보 불일치 예외를 던진다")
-    void myCommentCount_invalidPrincipal_throwsException() {
-        // given
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("plain-user", "password")
+        MyCommentPageResponse page = commentService.myCommentPage(
+                1L,
+                PageRequestDto.builder().page(1).size(5).build(),
+                "comment"
         );
 
-        // when & then
-        assertThatThrownBy(() -> commentService.myCommentCount(1L))
+        assertThat(commentService.myCommentCount(1L)).isEqualTo(3L);
+        assertThat(page.getMyCommentCount()).isEqualTo(3L);
+        assertThat(page.getTodayMyCommentCount()).isEqualTo(1L);
+        assertThat(page.getRecentCommentCount()).isEqualTo(2L);
+        assertThat(page.getComments().getDtoList()).extracting(MyCommentResponse::getContent)
+                .containsExactly("comment");
+        assertThat(commentService.recentComments(1L)).extracting(MyRecentComment::getTitle)
+                .containsExactly("post title");
+        assertThatThrownBy(() -> commentService.myCommentPage(null, PageRequestDto.builder().build(), null))
                 .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.MEMBER_NOT_AUTHENTICATION.getMessage());
+                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
-    private CommentRequestDto commentRequest(String content) {
+    private CommentRequestDto request(String content) {
         CommentRequestDto request = new CommentRequestDto();
         request.setContent(content);
         return request;
-    }
-
-    private Member member(Long id, String nickname) {
-        Member member = Member.create(nickname, nickname + "@example.com", "encoded", Role.USER);
-        ReflectionTestUtils.setField(member, "id", id);
-        return member;
-    }
-
-    private Post post(Long id, String title, String content, Member member) {
-        Post post = Post.create(title, content, member);
-        ReflectionTestUtils.setField(post, "id", id);
-        return post;
-    }
-
-    private Comment comment(Long id, String content, Member member, Post post) {
-        Comment comment = Comment.create(content, member, post);
-        ReflectionTestUtils.setField(comment, "id", id);
-        return comment;
-    }
-
-    private void loginAs(Long memberId) {
-        UnifiedPrincipal principal = new UnifiedPrincipal("사용자", memberId, "user@example.com", "ROLE_USER", "password", null, null, null);
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(principal, "password", principal.getAuthorities())
-        );
     }
 }

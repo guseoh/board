@@ -942,6 +942,105 @@ textarea:focus {
   resize: vertical;
 }
 
+.attachment-upload-box,
+.attachment-empty-state {
+  background: rgba(255, 255, 255, .035);
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.attachment-help,
+.attachment-empty-desc {
+  color: rgba(236, 239, 244, .62);
+  font-size: .94rem;
+  line-height: 1.6;
+}
+
+.attachment-count {
+  align-self: flex-start;
+  background: rgba(79, 140, 255, .14);
+  border: 1px solid rgba(79, 140, 255, .22);
+  border-radius: 999px;
+  color: #cfe0ff;
+  font-size: .88rem;
+  font-weight: 750;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.attachment-selected {
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  padding-top: 14px;
+}
+
+.attachment-empty {
+  color: rgba(236, 239, 244, .62);
+}
+
+.attachment-file-list,
+.attachment-preview-list {
+  display: grid;
+  gap: 8px;
+}
+
+.attachment-file-item {
+  align-items: center;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.attachment-file-name {
+  color: #f1f5fb;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-file-size {
+  color: rgba(236, 239, 244, .58);
+  flex-shrink: 0;
+  font-size: .88rem;
+}
+
+.attachment-title {
+  color: #f2f5fb;
+  font-weight: 800;
+}
+
+.attachment-empty-state {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.attachment-thumbnail-placeholder {
+  align-items: center;
+  background: rgba(79, 140, 255, .12);
+  border: 1px solid rgba(79, 140, 255, .18);
+  border-radius: 8px;
+  color: #a9caff;
+  display: flex;
+  flex-shrink: 0;
+  font-size: 1.35rem;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.attachment-empty-title {
+  color: #f1f5fb;
+  font-weight: 750;
+  margin-bottom: 2px;
+}
+
 .post-form-actions,
 .my-edit-actions {
   align-items: center;
@@ -1175,6 +1274,10 @@ textarea:focus {
 
   .post-form-page textarea.form-control {
     min-height: 280px;
+  }
+
+  .attachment-empty-state {
+    align-items: flex-start;
   }
 
   .recent-item,
