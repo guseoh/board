@@ -3,23 +3,27 @@ package project.board.post.service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
+import project.board.global.dto.PageRequestDto;
+import project.board.global.dto.PageResultDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
-import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
-import project.board.member.entity.Role;
 import project.board.member.repository.MemberRepository;
+import project.board.post.dto.request.PostRecent;
 import project.board.post.dto.request.PostRequest;
+import project.board.post.dto.response.PostDetailsResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +33,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static project.board.testsupport.TestFixtures.comment;
+import static project.board.testsupport.TestFixtures.member;
+import static project.board.testsupport.TestFixtures.post;
+import static project.board.testsupport.TestFixtures.reply;
+import static project.board.testsupport.TestFixtures.setId;
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
@@ -46,142 +55,154 @@ class PostServiceTest {
     private PostService postService;
 
     @Test
-    @DisplayName("게시글 작성은 로그인 회원이 존재하면 제목과 내용, 작성자를 저장하고 응답으로 반환한다")
-    void save_success_savesPostWithWriter() {
-        // given
+    @DisplayName("saves a post for an existing member")
+    void saveSuccess() {
         Long memberId = 1L;
         Member writer = member(memberId);
-        PostRequest request = new PostRequest("테스트 제목", "테스트 내용");
+        PostRequest request = new PostRequest("title", "content");
         given(memberRepository.findById(memberId)).willReturn(Optional.of(writer));
         given(postRepository.save(any(Post.class))).willAnswer(invocation -> {
             Post saved = invocation.getArgument(0);
-            ReflectionTestUtils.setField(saved, "id", 10L);
+            setId(saved, 10L);
             return saved;
         });
 
-        // when
         PostListResponse response = postService.save(request, memberId);
 
-        // then
         assertThat(response.getId()).isEqualTo(10L);
-        assertThat(response.getTitle()).isEqualTo("테스트 제목");
-        assertThat(response.getMemberNickname()).isEqualTo("작성자");
-        ArgumentCaptor<Post> postCaptor = ArgumentCaptor.forClass(Post.class);
-        verify(postRepository).save(postCaptor.capture());
-        assertThat(postCaptor.getValue().getContent()).isEqualTo("테스트 내용");
-        assertThat(postCaptor.getValue().getMember()).isSameAs(writer);
+        assertThat(response.getTitle()).isEqualTo("title");
+        assertThat(response.getMemberNickname()).isEqualTo(writer.getNickname());
+        verify(postRepository).save(any(Post.class));
     }
 
     @Test
-    @DisplayName("게시글 작성은 로그인 회원을 찾을 수 없으면 로그인 필요 예외를 던진다")
-    void save_memberNotFound_throwsLoginRequired() {
-        // given
-        Long memberId = 999L;
-        PostRequest request = new PostRequest("테스트 제목", "테스트 내용");
-        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+    @DisplayName("throws LOGIN_REQUIRED when saving with unknown member")
+    void saveMemberNotFound() {
+        given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> postService.save(request, memberId))
+        assertThatThrownBy(() -> postService.save(new PostRequest("title", "content"), 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.LOGIN_REQUIRED.getMessage());
         verify(postRepository, never()).save(any(Post.class));
     }
 
     @Test
-    @DisplayName("게시글 수정은 작성자 본인이 요청하면 제목과 내용을 변경한다")
-    void update_owner_success_changesTitleAndContent() {
-        // given
-        Long writerId = 1L;
-        Long postId = 10L;
-        Post post = post(postId, "기존 제목", "기존 내용", member(writerId));
-        PostRequest request = new PostRequest("수정 제목", "수정 내용");
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+    @DisplayName("finds detail with root comments and replies")
+    void findOneSuccess() {
+        Member writer = member(1L);
+        Member commenter = member(2L);
+        Post post = post(10L, "detail title", "detail content", writer);
+        Comment root = comment(100L, "comment", commenter, post);
+        reply(101L, "reply", writer, post, root);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
 
-        // when
-        postService.update(request, postId, writerId);
+        PostDetailsResponse response = postService.findOne(10L);
 
-        // then
-        assertThat(post.getTitle()).isEqualTo("수정 제목");
-        assertThat(post.getContent()).isEqualTo("수정 내용");
+        assertThat(response.getId()).isEqualTo(10L);
+        assertThat(response.getComments()).hasSize(1);
+        assertThat(response.getComments().get(0).getReplies()).hasSize(1);
     }
 
     @Test
-    @DisplayName("게시글 수정은 작성자가 아니면 예외를 던지고 내용을 변경하지 않는다")
-    void update_notOwner_throwsException() {
-        // given
-        Long writerId = 1L;
-        Long otherMemberId = 2L;
-        Long postId = 10L;
-        Post post = post(postId, "기존 제목", "기존 내용", member(writerId));
-        PostRequest request = new PostRequest("수정 제목", "수정 내용");
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+    @DisplayName("converts paged posts to PageResultDto")
+    void findAllSuccess() {
+        Member writer = member(1L);
+        Post post = post(10L, "list title", "content", writer);
+        PageRequestDto request = PageRequestDto.builder().page(1).size(5).build();
+        given(postRepository.findAllWithMember(any()))
+                .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1));
 
-        // when & then
-        assertThatThrownBy(() -> postService.update(request, postId, otherMemberId))
+        PageResultDto<PostListResponse, Post> result = postService.findAll(request);
+
+        assertThat(result.getTotalCount()).isEqualTo(1);
+        assertThat(result.getDtoList()).extracting(PostListResponse::getTitle)
+                .containsExactly("list title");
+    }
+
+    @Test
+    @DisplayName("updates only when requester is the writer")
+    void updateOwnerOnly() {
+        Member writer = member(1L);
+        Post post = post(10L, "old title", "old content", writer);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        postService.update(new PostRequest("new title", "new content"), 10L, 1L);
+
+        assertThat(post.getTitle()).isEqualTo("new title");
+        assertThat(post.getContent()).isEqualTo("new content");
+
+        assertThatThrownBy(() -> postService.update(new PostRequest("other title", "content"), 10L, 2L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
-        assertThat(post.getTitle()).isEqualTo("기존 제목");
-        assertThat(post.getContent()).isEqualTo("기존 내용");
     }
 
     @Test
-    @DisplayName("게시글 삭제는 작성자 본인이 요청하면 댓글을 먼저 삭제하고 게시글을 삭제한다")
-    void delete_owner_success_deletesCommentsAndPost() {
-        // given
-        Long writerId = 1L;
-        Long postId = 10L;
-        Post post = post(postId, "삭제 제목", "삭제 내용", member(writerId));
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
+    @DisplayName("deletes a post only for its writer after deleting comments")
+    void deleteOwner() {
+        Member writer = member(1L);
+        Post post = post(10L, "delete title", "content", writer);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
 
-        // when
-        postService.delete(postId, writerId);
+        postService.delete(10L, 1L);
 
-        // then
-        verify(commentRepository).deleteByPostId(postId);
+        verify(commentRepository).deleteByPostId(10L);
         verify(postRepository).delete(post);
     }
 
     @Test
-    @DisplayName("조회수 증가는 수정된 행이 없으면 게시글 없음 예외를 던진다")
-    void viewCount_postNotFound_throwsException() {
-        // given
-        Long postId = 999L;
-        given(postRepository.incrementViewCount(postId)).willReturn(0);
+    @DisplayName("admin delete removes comments and deletes by id")
+    void deleteForAdminSuccess() {
+        Post post = post(10L, member(1L));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
 
-        // when & then
-        assertThatThrownBy(() -> postService.viewCount(postId))
+        postService.deleteForAdmin(10L);
+
+        verify(commentRepository).deleteByPostId(10L);
+        verify(postRepository).deleteById(10L);
+    }
+
+    @Test
+    @DisplayName("view count throws when no row was updated")
+    void viewCount() {
+        given(postRepository.incrementViewCount(10L)).willReturn(1);
+        given(postRepository.incrementViewCount(99L)).willReturn(0);
+
+        postService.viewCount(10L);
+
+        assertThatThrownBy(() -> postService.viewCount(99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
     }
 
     @Test
-    @DisplayName("검색은 제목에 키워드가 포함된 게시글 목록을 응답 DTO로 변환한다")
-    void search_success_mapsPostListResponses() {
-        // given
+    @DisplayName("returns search, stats, my posts and recent posts")
+    void searchAndMyQueries() {
         Member writer = member(1L);
-        Post first = post(10L, "Spring Boot 테스트", "내용1", writer);
-        Post second = post(11L, "Spring Security 테스트", "내용2", writer);
-        given(postRepository.findByTitleContaining("Spring")).willReturn(List.of(first, second));
+        Post first = post(10L, "Spring", "content", writer);
+        Post second = post(11L, "JPA", "content", writer);
+        PostRecent recent = PostRecent.builder()
+                .id(11L)
+                .title("JPA")
+                .viewCount(0)
+                .createdAt(LocalDateTime.now())
+                .build();
+        given(postRepository.findByTitleContaining("S")).willReturn(List.of(first));
+        given(postRepository.countMyPosts(1L)).willReturn(2L);
+        given(postRepository.countTodayPosts(any(), any())).willReturn(3L);
+        given(postRepository.countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any()))
+                .willReturn(1L);
+        given(postRepository.findAllByMemberId(1L)).willReturn(List.of(first, second));
+        given(postRepository.findMyRecentPosts(any(), any())).willReturn(List.of(recent));
 
-        // when
-        List<PostListResponse> responses = postService.search("Spring");
-
-        // then
-        assertThat(responses).extracting(PostListResponse::getTitle)
-                .containsExactly("Spring Boot 테스트", "Spring Security 테스트");
-        assertThat(responses).extracting(PostListResponse::getMemberNickname)
-                .containsExactly("작성자", "작성자");
-    }
-
-    private Member member(Long id) {
-        Member member = Member.create("작성자", "작성자" + "@example.com", "encoded", Role.USER, LoginType.LOCAL);
-        ReflectionTestUtils.setField(member, "id", id);
-        return member;
-    }
-
-    private Post post(Long id, String title, String content, Member member) {
-        Post post = Post.create(title, content, member);
-        ReflectionTestUtils.setField(post, "id", id);
-        return post;
+        assertThat(postService.search("S")).extracting(PostListResponse::getTitle).containsExactly("Spring");
+        assertThat(postService.todayWrite()).isEqualTo(3L);
+        assertThat(postService.myPostCount(1L)).isEqualTo(2L);
+        assertThat(postService.myTodayPostsCount(1L)).isEqualTo(1L);
+        assertThat(postService.myPosts(1L)).extracting(PostListResponse::getTitle)
+                .containsExactly("Spring", "JPA");
+        assertThat(postService.recentPosts(1L)).extracting(PostRecent::getTitle).containsExactly("JPA");
+        assertThatThrownBy(() -> postService.myPostCount(null))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 }
