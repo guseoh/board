@@ -32,7 +32,7 @@ class SecurityConfigTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("anonymous users are redirected from my pages and post writes")
+    @DisplayName("익명 사용자는 마이페이지와 게시글 작성에서 리다이렉트된다")
     void anonymousAccessIsRestricted() throws Exception {
         mockMvc.perform(get("/my"))
                 .andExpect(status().is3xxRedirection())
@@ -44,7 +44,7 @@ class SecurityConfigTest {
     }
 
     @Test
-    @DisplayName("admin URLs reject USER and allow ADMIN")
+    @DisplayName("관리자 경로는 일반 사용자를 거부하고 관리자를 허용한다")
     void adminAccessControl() throws Exception {
         mockMvc.perform(get("/admin").with(authentication(authToken(Role.USER))))
                 .andExpect(status().isForbidden());
@@ -54,7 +54,7 @@ class SecurityConfigTest {
     }
 
     @Test
-    @DisplayName("POST requests protected by security require CSRF token")
+    @DisplayName("보안이 적용된 쓰기 요청에는 위조 방지 토큰이 필요하다")
     void csrfRequiredForPost() throws Exception {
         mockMvc.perform(post("/post/new")
                         .with(authentication(authToken(Role.USER)))
@@ -64,7 +64,7 @@ class SecurityConfigTest {
     }
 
     @Test
-    @DisplayName("login success redirects by role")
+    @DisplayName("로그인 성공 시 역할에 따라 리다이렉트한다")
     void loginSuccessRedirectsByRole() throws Exception {
         CustomLoginSuccessHandler handler = new CustomLoginSuccessHandler();
         MockHttpServletRequest request = new MockHttpServletRequest();

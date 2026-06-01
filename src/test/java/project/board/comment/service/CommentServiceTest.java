@@ -55,7 +55,7 @@ class CommentServiceTest {
     private CommentService commentService;
 
     @Test
-    @DisplayName("creates a root comment when member and post exist")
+    @DisplayName("회원과 게시글이 존재하면 최상위 댓글을 생성한다")
     void createSuccess() {
         Member member = member(1L);
         Post post = post(10L, member(2L));
@@ -78,7 +78,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("does not load post when comment writer is missing")
+    @DisplayName("댓글 작성자가 없으면 게시글을 조회하지 않는다")
     void createMemberNotFound() {
         given(memberRepository.findById(1L)).willReturn(Optional.empty());
 
@@ -90,7 +90,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("creates reply only for root comment on the same post")
+    @DisplayName("같은 게시글의 최상위 댓글에만 답글을 생성한다")
     void createReplySuccessAndInvalidParent() {
         Member member = member(1L);
         Post post = post(10L, member(2L));
@@ -123,7 +123,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("updates and deletes comments only for their owner")
+    @DisplayName("댓글 작성자만 댓글을 수정하고 삭제할 수 있다")
     void updateAndDeleteOwnerOnly() {
         Member owner = member(1L);
         Post post = post(10L, member(2L));
@@ -141,7 +141,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("throws COMMENT_NOT_FOUND when updating missing comment")
+    @DisplayName("수정할 댓글이 없으면 댓글 없음 예외를 던진다")
     void updateMissingComment() {
         given(commentRepository.findById(404L)).willReturn(Optional.empty());
 
@@ -151,7 +151,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("returns my comment stats, page and recent comments")
+    @DisplayName("내 댓글 통계, 페이지, 최근 댓글을 반환한다")
     void myCommentQueries() {
         MyCommentResponse myComment = new MyCommentResponse(1L, 10L, "post title", "comment", LocalDateTime.now());
         MyRecentComment recent = MyRecentComment.builder()

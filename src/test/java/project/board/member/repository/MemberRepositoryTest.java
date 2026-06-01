@@ -22,7 +22,7 @@ class MemberRepositoryTest {
     private MemberRepository memberRepository;
 
     @Test
-    @DisplayName("finds local member by email and checks duplicates")
+    @DisplayName("이메일로 로컬 회원을 조회하고 중복 여부를 확인한다")
     void findByEmailAndExists() {
         Member saved = memberRepository.save(Member.create(
                 "tester",
@@ -40,7 +40,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    @DisplayName("finds OAuth member by provider and providerId")
+    @DisplayName("제공자와 제공자 식별자로 소셜 로그인 회원을 조회한다")
     void findByProviderAndProviderId() {
         Member saved = memberRepository.save(Member.createOAuth(
                 "google-user",

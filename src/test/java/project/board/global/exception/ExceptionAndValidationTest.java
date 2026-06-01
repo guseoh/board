@@ -35,7 +35,7 @@ class ExceptionAndValidationTest {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Test
-    @DisplayName("CustomException exposes ErrorCode message and redirect")
+    @DisplayName("커스텀 예외는 에러 코드 메시지와 리다이렉트를 제공한다")
     void customExceptionFields() {
         CustomException exception = new CustomException(ErrorCode.POST_NOT_FOUND, "/post/1");
 
@@ -45,7 +45,7 @@ class ExceptionAndValidationTest {
     }
 
     @Test
-    @DisplayName("Global advice returns signup view for signup business errors")
+    @DisplayName("전역 예외 처리는 회원가입 비즈니스 오류에 회원가입 화면을 반환한다")
     void globalAdviceSignupError() throws Exception {
         DiscordNotifier discordNotifier = mock(DiscordNotifier.class);
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
@@ -61,7 +61,7 @@ class ExceptionAndValidationTest {
     }
 
     @Test
-    @DisplayName("Global advice redirects and flashes message for other custom errors")
+    @DisplayName("전역 예외 처리는 그 외 커스텀 오류를 리다이렉트하고 메시지를 전달한다")
     void globalAdviceRedirects() throws Exception {
         DiscordNotifier discordNotifier = mock(DiscordNotifier.class);
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
@@ -77,7 +77,7 @@ class ExceptionAndValidationTest {
     }
 
     @Test
-    @DisplayName("Bean validation keeps view and model errors")
+    @DisplayName("빈 검증 실패 시 화면과 모델 오류를 유지한다")
     void beanValidationFailureKeepsView() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController()).build();
 
@@ -90,7 +90,7 @@ class ExceptionAndValidationTest {
     }
 
     @Test
-    @DisplayName("request DTO validation catches invalid inputs")
+    @DisplayName("요청 객체 검증은 잘못된 입력을 잡아낸다")
     void dtoValidation() {
         PostRequest postRequest = new PostRequest("", "");
         CommentRequestDto commentRequest = new CommentRequestDto();

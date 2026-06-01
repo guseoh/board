@@ -55,7 +55,7 @@ class PostServiceTest {
     private PostService postService;
 
     @Test
-    @DisplayName("saves a post for an existing member")
+    @DisplayName("존재하는 회원의 게시글을 저장한다")
     void saveSuccess() {
         Long memberId = 1L;
         Member writer = member(memberId);
@@ -76,7 +76,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("throws LOGIN_REQUIRED when saving with unknown member")
+    @DisplayName("알 수 없는 회원으로 게시글 저장 시 로그인이 필요하다는 예외를 던진다")
     void saveMemberNotFound() {
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
@@ -87,7 +87,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("finds detail with root comments and replies")
+    @DisplayName("최상위 댓글과 답글을 포함한 상세 정보를 조회한다")
     void findOneSuccess() {
         Member writer = member(1L);
         Member commenter = member(2L);
@@ -104,7 +104,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("converts paged posts to PageResultDto")
+    @DisplayName("페이징된 게시글을 페이지 결과 객체로 변환한다")
     void findAllSuccess() {
         Member writer = member(1L);
         Post post = post(10L, "list title", "content", writer);
@@ -120,7 +120,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("updates only when requester is the writer")
+    @DisplayName("요청자가 작성자인 경우에만 게시글을 수정한다")
     void updateOwnerOnly() {
         Member writer = member(1L);
         Post post = post(10L, "old title", "old content", writer);
@@ -137,7 +137,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("deletes a post only for its writer after deleting comments")
+    @DisplayName("댓글 삭제 후 작성자만 게시글을 삭제할 수 있다")
     void deleteOwner() {
         Member writer = member(1L);
         Post post = post(10L, "delete title", "content", writer);
@@ -150,7 +150,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("admin delete removes comments and deletes by id")
+    @DisplayName("관리자 삭제는 댓글을 제거하고 식별자로 게시글을 삭제한다")
     void deleteForAdminSuccess() {
         Post post = post(10L, member(1L));
         given(postRepository.findById(10L)).willReturn(Optional.of(post));
@@ -162,7 +162,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("view count throws when no row was updated")
+    @DisplayName("조회수 증가 시 수정된 행이 없으면 예외를 던진다")
     void viewCount() {
         given(postRepository.incrementViewCount(10L)).willReturn(1);
         given(postRepository.incrementViewCount(99L)).willReturn(0);
@@ -175,7 +175,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("returns search, stats, my posts and recent posts")
+    @DisplayName("검색 결과, 통계, 내 게시글, 최근 게시글을 반환한다")
     void searchAndMyQueries() {
         Member writer = member(1L);
         Post first = post(10L, "Spring", "content", writer);

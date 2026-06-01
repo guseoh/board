@@ -43,7 +43,7 @@ class CommentRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    @DisplayName("bulk deletes comments by post, member and writer")
+    @DisplayName("게시글, 회원, 작성자 기준으로 댓글을 일괄 삭제한다")
     void deleteQueries() {
         Member writer = saveMember("writer", "writer@example.com");
         Member commenter = saveMember("commenter", "commenter@example.com");
@@ -69,7 +69,7 @@ class CommentRepositoryTest {
     }
 
     @Test
-    @DisplayName("finds my comments, recent comments and count queries")
+    @DisplayName("내 댓글, 최근 댓글, 개수 쿼리를 조회한다")
     void myCommentQueries() {
         Member writer = saveMember("writer", "writer@example.com");
         Member commenter = saveMember("commenter", "commenter@example.com");

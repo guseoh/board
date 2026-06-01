@@ -84,7 +84,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("MemberController shows signup, signs up and handles validation failure")
+    @DisplayName("회원 컨트롤러는 회원가입 화면 조회, 가입 처리, 검증 실패 처리를 수행한다")
     void memberController() throws Exception {
         mockMvc.perform(get("/signup"))
                 .andExpect(status().isOk())
@@ -116,7 +116,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("PostController lists, details, creates, edits, deletes and searches posts")
+    @DisplayName("게시글 컨트롤러는 목록, 상세, 작성, 수정, 삭제, 검색 요청을 처리한다")
     void postController() throws Exception {
         UnifiedPrincipal user = principal(1L, Role.USER);
         Member writer = member(1L);
@@ -193,7 +193,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("CommentController creates, replies, updates, deletes and redirects anonymous users")
+    @DisplayName("댓글 컨트롤러는 작성, 답글, 수정, 삭제를 처리하고 익명 사용자를 리다이렉트한다")
     void commentController() throws Exception {
         UnifiedPrincipal user = principal(1L, Role.USER);
 
@@ -238,7 +238,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("MyController returns dashboard, posts, comments, edit, password and withdraw flows")
+    @DisplayName("마이페이지 컨트롤러는 대시보드, 게시글, 댓글, 정보 수정, 비밀번호, 탈퇴 흐름을 반환한다")
     void myController() throws Exception {
         UnifiedPrincipal user = principal(1L, Role.USER);
         Member writer = member(1L);
@@ -310,7 +310,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("AdminController returns dashboard, management pages and command redirects")
+    @DisplayName("관리자 컨트롤러는 대시보드, 관리 화면, 명령 리다이렉트를 반환한다")
     void adminController() throws Exception {
         Member admin = member(1L, "admin", "admin@example.com", Role.ADMIN);
         Post post = post(10L, "title", "content", admin);
@@ -351,7 +351,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("anonymous comment request does not call service")
+    @DisplayName("익명 댓글 요청은 서비스를 호출하지 않는다")
     void anonymousCommentDoesNotCallService() throws Exception {
         mockMvc.perform(post("/post/10/comment").with(anonymousPrincipal()).param("content", "comment"))
                 .andExpect(status().is3xxRedirection())
