@@ -41,7 +41,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
 
     @Query("""
-                select new project.board.comment.dto.MyCommentResponse(
+                select new project.board.comment.dto.response.MyCommentResponse(
                     c.id, p.id, p.title, c.content, c.createdAt
                 )
                 from Comment c
@@ -62,7 +62,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
 
     @Query("""
-        select new project.board.comment.dto.MyRecentComment(
+        select new project.board.comment.dto.response.MyRecentCommentResponse(
             c.id,
             p.title,
             c.content,
