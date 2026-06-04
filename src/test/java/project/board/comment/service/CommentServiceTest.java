@@ -15,7 +15,7 @@ import project.board.comment.dto.MyCommentResponse;
 import project.board.comment.dto.MyRecentComment;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
-import project.board.global.dto.PageRequestDto;
+import project.board.global.pagination.PageRequestDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;

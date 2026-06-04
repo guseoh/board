@@ -1,4 +1,4 @@
-package project.board.member.controller;
+package project.board.member.controller.view;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

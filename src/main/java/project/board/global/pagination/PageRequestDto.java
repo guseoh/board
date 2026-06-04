@@ -1,4 +1,4 @@
-package project.board.global.dto;
+package project.board.global.pagination;
 
 import lombok.*;
 import org.springframework.data.domain.PageRequest;

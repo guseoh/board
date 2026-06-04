@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.security.principal.UnifiedPrincipal;
 
 import java.util.Optional;
 

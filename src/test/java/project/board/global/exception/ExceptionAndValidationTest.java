@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import project.board.comment.dto.CommentRequestDto;
+import project.board.global.exception.handler.GlobalViewControllerAdvice;
 import project.board.global.notification.discord.DiscordNotifier;
 import project.board.member.dto.request.MemberCreateRequest;
 import project.board.post.dto.request.PostRequest;
@@ -49,7 +50,7 @@ class ExceptionAndValidationTest {
     void globalAdviceSignupError() throws Exception {
         DiscordNotifier discordNotifier = mock(DiscordNotifier.class);
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
-                .setControllerAdvice(new GlobalControllerAdvice(discordNotifier))
+                .setControllerAdvice(new GlobalViewControllerAdvice(discordNotifier))
                 .build();
 
         mockMvc.perform(get("/duplicate-email"))
@@ -65,7 +66,7 @@ class ExceptionAndValidationTest {
     void globalAdviceRedirects() throws Exception {
         DiscordNotifier discordNotifier = mock(DiscordNotifier.class);
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
-                .setControllerAdvice(new GlobalControllerAdvice(discordNotifier))
+                .setControllerAdvice(new GlobalViewControllerAdvice(discordNotifier))
                 .build();
 
         mockMvc.perform(get("/missing-post"))

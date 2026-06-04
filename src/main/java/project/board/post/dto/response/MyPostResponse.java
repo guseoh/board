@@ -2,7 +2,7 @@ package project.board.post.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import project.board.global.dto.PageResultDto;
+import project.board.global.pagination.PageResultDto;
 import project.board.post.entity.Post;
 
 @Getter

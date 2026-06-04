@@ -1,4 +1,4 @@
-package project.board.global.security.user;
+package project.board.global.security.principal;
 
 import lombok.Builder;
 import lombok.Getter;

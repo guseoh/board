@@ -12,8 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import project.board.global.security.config.oauth.CustomOauth2UserService;
-import project.board.global.security.user.CustomLoginSuccessHandler;
+import project.board.global.security.oauth.CustomOauth2UserService;
+import project.board.global.security.handler.CustomLoginSuccessHandler;
 import project.board.global.security.user.CustomUserDetailsService;
 
 @Configuration

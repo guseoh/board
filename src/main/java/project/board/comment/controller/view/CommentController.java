@@ -1,4 +1,4 @@
-package project.board.comment.controller;
+package project.board.comment.controller.view;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.dto.CommentRequestDto;
 import project.board.comment.service.CommentService;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.security.principal.UnifiedPrincipal;
 
 @Controller
 @RequiredArgsConstructor

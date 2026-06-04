@@ -1,4 +1,4 @@
-package project.board.member.controller;
+package project.board.mypage.controller.view;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.dto.MyCommentPageResponse;
 import project.board.comment.service.CommentService;
-import project.board.global.dto.PageRequestDto;
+import project.board.global.pagination.PageRequestDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.security.principal.UnifiedPrincipal;
 import project.board.member.dto.request.MemberNicknameUpdateRequest;
 import project.board.member.dto.request.MemberPasswordUpdateRequest;
 import project.board.member.dto.response.MemberUpdateResponse;

@@ -1,4 +1,4 @@
-package project.board.global.security.config.oauth;
+package project.board.global.security.oauth;
 
 import lombok.AllArgsConstructor;
 

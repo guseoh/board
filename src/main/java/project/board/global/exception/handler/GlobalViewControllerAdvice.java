@@ -1,4 +1,4 @@
-package project.board.global.exception;
+package project.board.global.exception.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,13 +6,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import project.board.global.exception.CustomException;
+import project.board.global.exception.ErrorCode;
 import project.board.global.notification.discord.DiscordNotifier;
 import project.board.member.dto.request.MemberCreateRequest;
 
 @ControllerAdvice
 @Slf4j
 @RequiredArgsConstructor
-public class GlobalControllerAdvice {
+public class GlobalViewControllerAdvice {
 
     private final DiscordNotifier discordNotifier;
 

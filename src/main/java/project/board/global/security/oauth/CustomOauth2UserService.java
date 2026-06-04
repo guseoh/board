@@ -1,4 +1,4 @@
-package project.board.global.security.config.oauth;
+package project.board.global.security.oauth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.security.principal.UnifiedPrincipal;
 import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;

@@ -1,4 +1,4 @@
-package project.board.global.logger;
+package project.board.global.logging;
 
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
 

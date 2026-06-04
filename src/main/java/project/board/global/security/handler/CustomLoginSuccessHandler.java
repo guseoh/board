@@ -1,4 +1,4 @@
-package project.board.global.security.user;
+package project.board.global.security.handler;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import project.board.global.security.principal.UnifiedPrincipal;
 
 import java.io.IOException;
 

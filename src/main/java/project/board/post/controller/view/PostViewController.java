@@ -1,4 +1,4 @@
-package project.board.post.controller;
+package project.board.post.controller.view;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import project.board.comment.dto.CommentRequestDto;
 import project.board.comment.service.CommentService;
-import project.board.global.dto.PageRequestDto;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.pagination.PageRequestDto;
+import project.board.global.security.principal.UnifiedPrincipal;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRequest;
 import project.board.post.dto.response.PostDetailsResponse;
@@ -27,7 +27,7 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 @Slf4j
-public class PostController {
+public class PostViewController {
 
     private final MemberService memberService;
     private final PostService postService;
