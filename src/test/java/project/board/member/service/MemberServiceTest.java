@@ -54,7 +54,7 @@ class MemberServiceTest {
     private MemberService memberService;
 
     @Test
-    @DisplayName("signs up a local user after duplicate and password checks")
+    @DisplayName("중복과 비밀번호 확인 검증 후 로컬 회원을 가입시킨다")
     void signUpSuccess() {
         MemberCreateRequest request = createRequest("tester@example.com", "tester", "password1", "password1");
         given(memberRepository.existsByEmail("tester@example.com")).willReturn(false);
@@ -77,7 +77,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("rejects duplicate email, duplicate nickname and password mismatch")
+    @DisplayName("중복 이메일, 중복 닉네임, 비밀번호 불일치 시 회원가입 검증에 실패한다")
     void signUpValidationFailures() {
         MemberCreateRequest duplicateEmail = createRequest("dup@example.com", "tester", "password1", "password1");
         given(memberRepository.existsByEmail("dup@example.com")).willReturn(true);
@@ -103,7 +103,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("reads member counts, admin list and local profile")
+    @DisplayName("회원 수, 관리자 목록, 로컬 프로필을 조회한다")
     void readQueries() {
         Member member = member(1L);
         given(memberRepository.count()).willReturn(1L);
@@ -113,13 +113,13 @@ class MemberServiceTest {
         MemberUpdateResponse profile = memberService.getMyProfile(1L);
 
         assertThat(memberService.countMember()).isEqualTo(1L);
-        assertThat(memberService.findAllForAdmin()).containsExactly(member);
+        assertThat(memberService.getMembersForAdmin()).containsExactly(member);
         assertThat(profile.getNickname()).isEqualTo(member.getNickname());
         assertThat(profile.isPasswordChangeable()).isTrue();
     }
 
     @Test
-    @DisplayName("marks OAuth profile as not password changeable")
+    @DisplayName("소셜 로그인 프로필은 비밀번호를 변경할 수 없도록 표시한다")
     void oauthProfileCannotChangePassword() {
         Member oauth = oauthMember(2L, "google", "google-1");
         given(memberRepository.findById(2L)).willReturn(Optional.of(oauth));
@@ -130,7 +130,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("updates nickname after trimming and rejects duplicate nickname")
+    @DisplayName("닉네임을 공백 제거 후 수정하고 중복 닉네임은 거부한다")
     void updateNickname() {
         Member member = member(1L, "old", "old@example.com", Role.USER);
         MemberNicknameUpdateRequest request = nicknameRequest(" new ");
@@ -150,7 +150,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("updates password and validates current and confirmation values")
+    @DisplayName("비밀번호를 수정하고 현재 비밀번호와 확인 값을 검증한다")
     void updatePassword() {
         Member member = member(1L, "user", "user@example.com", Role.USER);
         MemberPasswordUpdateRequest request = passwordRequest("current1", "newpass1", "newpass1");
@@ -178,28 +178,28 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("changes role and rejects missing member")
+    @DisplayName("역할을 변경하고 존재하지 않는 회원은 거부한다")
     void roleChange() {
         Member member = member(1L);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        memberService.roleChange("ADMIN", 1L);
+        memberService.changeMemberRole("ADMIN", 1L);
 
         assertThat(member.getRole()).isEqualTo(Role.ADMIN);
-        assertThatThrownBy(() -> memberService.roleChange("ADMIN", 99L))
+        assertThatThrownBy(() -> memberService.changeMemberRole("ADMIN", 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
     @Test
-    @DisplayName("withdraw and admin delete remove dependent comments and posts first")
+    @DisplayName("회원 탈퇴와 관리자 삭제 시 연관 댓글과 게시글을 먼저 삭제한다")
     void deletePolicies() {
         Member member = member(1L);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
         memberService.withdraw(1L);
-        memberService.deleteForAdmin(1L);
+        memberService.deleteMemberByAdmin(1L);
 
         verify(commentRepository, times(2)).deleteAllByMemberId(1L);
         verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);
@@ -208,7 +208,7 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("throws when profile target member is missing")
+    @DisplayName("프로필 대상 회원이 없으면 예외를 던진다")
     void missingMember() {
         given(memberRepository.findById(404L)).willReturn(Optional.empty());
 

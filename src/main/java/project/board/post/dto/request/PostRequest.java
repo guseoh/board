@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostDetailResponse;
 
 @Getter
 @NoArgsConstructor
@@ -20,8 +20,7 @@ public class PostRequest {
     @NotBlank(message = "내용은 필수입니다.")
     private String content;
 
-    public static PostRequest from(PostDetailsResponse post) {
-
+    public static PostRequest from(PostDetailResponse post) {
         PostRequest request = new PostRequest();
         request.setTitle(post.getTitle());
         request.setContent(post.getContent());

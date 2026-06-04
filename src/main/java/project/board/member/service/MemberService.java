@@ -62,19 +62,19 @@ public class MemberService {
         return memberRepository.count();
     }
 
-    public List<Member> findAllForAdmin() {
+    public List<Member> getMembersForAdmin() {
         return memberRepository.findAll();
     }
 
     @Transactional
-    public void roleChange(String role, Long memberId) {
+    public void changeMemberRole(String role, Long memberId) {
         Member member = validateMember(memberId);
 
         member.changeRole(Role.valueOf(role));
     }
 
     @Transactional
-    public void deleteForAdmin(Long memberId) {
+    public void deleteMemberByAdmin(Long memberId) {
         validateMember(memberId);
 
         MemberRemovalPolicy(memberId);

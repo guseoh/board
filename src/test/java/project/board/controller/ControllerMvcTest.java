@@ -14,20 +14,20 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
-import project.board.comment.dto.MyCommentPageResponse;
-import project.board.comment.dto.MyCommentResponse;
+import project.board.comment.dto.response.MyCommentPageResponse;
+import project.board.comment.dto.response.MyCommentResponse;
 import project.board.comment.repository.CommentRepository;
 import project.board.comment.service.CommentService;
-import project.board.global.dto.PageRequestDto;
-import project.board.global.dto.PageResultDto;
+import project.board.global.pagination.PageRequestDto;
+import project.board.global.pagination.PageResultDto;
 import project.board.global.notification.discord.DiscordNotifier;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.security.principal.UnifiedPrincipal;
 import project.board.member.dto.response.MemberUpdateResponse;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRecent;
-import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.service.PostService;
@@ -39,7 +39,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -84,7 +83,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("MemberController shows signup, signs up and handles validation failure")
+    @DisplayName("회원 컨트롤러는 회원가입 화면 조회, 가입 처리, 검증 실패 처리를 수행한다")
     void memberController() throws Exception {
         mockMvc.perform(get("/signup"))
                 .andExpect(status().isOk())
@@ -116,7 +115,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("PostController lists, details, creates, edits, deletes and searches posts")
+    @DisplayName("게시글 컨트롤러는 목록, 상세, 작성, 수정, 삭제, 검색 요청을 처리한다")
     void postController() throws Exception {
         UnifiedPrincipal user = principal(1L, Role.USER);
         Member writer = member(1L);
@@ -125,10 +124,10 @@ class ControllerMvcTest {
                 new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1),
                 PostListResponse::from
         );
-        PostDetailsResponse detail = PostDetailsResponse.from(post, List.of());
+        PostDetailResponse detail = PostDetailResponse.from(post, List.of());
 
         given(postService.findAll(any(PageRequestDto.class))).willReturn(page);
-        given(postService.todayWrite()).willReturn(1L);
+        given(postService.countTodayPosts()).willReturn(1L);
         given(memberService.countMember()).willReturn(2L);
         given(postService.myPostCount(1L)).willReturn(3L);
         given(commentService.myCommentCount(1L)).willReturn(4L);
@@ -193,7 +192,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("CommentController creates, replies, updates, deletes and redirects anonymous users")
+    @DisplayName("댓글 컨트롤러는 작성, 답글, 수정, 삭제를 처리하고 익명 사용자를 리다이렉트한다")
     void commentController() throws Exception {
         UnifiedPrincipal user = principal(1L, Role.USER);
 
@@ -238,7 +237,7 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("MyController returns dashboard, posts, comments, edit, password and withdraw flows")
+    @DisplayName("마이페이지 컨트롤러는 대시보드, 게시글, 댓글, 정보 수정, 비밀번호, 탈퇴 흐름을 반환한다")
     void myController() throws Exception {
         UnifiedPrincipal user = principal(1L, Role.USER);
         Member writer = member(1L);
@@ -257,10 +256,10 @@ class ControllerMvcTest {
                 .build();
         given(postService.myPostCount(1L)).willReturn(1L);
         given(commentService.myCommentCount(1L)).willReturn(2L);
-        given(postService.recentPosts(1L)).willReturn(List.of(new PostRecent(10L, "title", 0, LocalDateTime.now())));
+        given(postService.getRecentPosts(1L)).willReturn(List.of(new PostRecent(10L, "title", 0, LocalDateTime.now())));
         given(commentService.recentComments(1L)).willReturn(List.of());
         given(postService.findAll(any(PageRequestDto.class))).willReturn(page);
-        given(postService.todayWrite()).willReturn(3L);
+        given(postService.countTodayPosts()).willReturn(3L);
         given(postService.myTodayPostsCount(1L)).willReturn(4L);
         given(postService.myPosts(1L)).willReturn(List.of(PostListResponse.from(post)));
         given(commentService.myCommentPage(eq(1L), any(PageRequestDto.class), any())).willReturn(commentPage);
@@ -273,7 +272,7 @@ class ControllerMvcTest {
         mockMvc.perform(get("/my").with(authenticated(user)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("my/my"))
-                .andExpect(model().attributeExists("myPostCount", "myCommentCount", "recentPosts", "recentComments"));
+                .andExpect(model().attributeExists("myPostCount", "myCommentCount", "getRecentPosts", "recentComments"));
 
         mockMvc.perform(get("/my/posts").with(authenticated(user)))
                 .andExpect(status().isOk())
@@ -310,14 +309,14 @@ class ControllerMvcTest {
     }
 
     @Test
-    @DisplayName("AdminController returns dashboard, management pages and command redirects")
+    @DisplayName("관리자 컨트롤러는 대시보드, 관리 화면, 명령 리다이렉트를 반환한다")
     void adminController() throws Exception {
         Member admin = member(1L, "admin", "admin@example.com", Role.ADMIN);
         Post post = post(10L, "title", "content", admin);
         given(postService.count()).willReturn(10L);
         given(memberService.countMember()).willReturn(2L);
         given(postService.findAllAdmin()).willReturn(List.of(post));
-        given(memberService.findAllForAdmin()).willReturn(List.of(admin));
+        given(memberService.getMembersForAdmin()).willReturn(List.of(admin));
 
         mockMvc.perform(get("/admin"))
                 .andExpect(status().isOk())
@@ -342,16 +341,16 @@ class ControllerMvcTest {
         mockMvc.perform(post("/admin/users/1/role").param("role", "ADMIN"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"));
-        verify(memberService).roleChange("ADMIN", 1L);
+        verify(memberService).changeMemberRole("ADMIN", 1L);
 
         mockMvc.perform(post("/admin/users/1/delete"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"));
-        verify(memberService).deleteForAdmin(1L);
+        verify(memberService).deleteMemberByAdmin(1L);
     }
 
     @Test
-    @DisplayName("anonymous comment request does not call service")
+    @DisplayName("익명 댓글 요청은 서비스를 호출하지 않는다")
     void anonymousCommentDoesNotCallService() throws Exception {
         mockMvc.perform(post("/post/10/comment").with(anonymousPrincipal()).param("content", "comment"))
                 .andExpect(status().is3xxRedirection())

@@ -37,7 +37,7 @@ class PostRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    @DisplayName("fetches post list with writer and searches by title")
+    @DisplayName("작성자와 함께 게시글 목록을 조회하고 제목으로 검색한다")
     void findAllWithMemberAndSearch() {
         Member writer = saveMember("writer", "writer@example.com");
         postRepository.save(Post.create("Spring board", "content1", writer));
@@ -55,7 +55,7 @@ class PostRepositoryTest {
     }
 
     @Test
-    @DisplayName("finds my posts, recent posts and count queries")
+    @DisplayName("내 게시글, 최근 게시글, 개수 쿼리를 조회한다")
     void findMyPostsAndCounts() {
         Member writer = saveMember("writer", "writer@example.com");
         Member other = saveMember("other", "other@example.com");
@@ -80,7 +80,7 @@ class PostRepositoryTest {
     }
 
     @Test
-    @DisplayName("increments view count and bulk deletes by member")
+    @DisplayName("조회수를 증가시키고 회원 기준으로 게시글을 일괄 삭제한다")
     void incrementViewCountAndDeleteAllByMemberId() {
         Member writer = saveMember("writer", "writer@example.com");
         Post post = postRepository.save(Post.create("view post", "content", writer));

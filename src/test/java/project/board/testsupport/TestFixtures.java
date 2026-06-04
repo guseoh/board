@@ -2,7 +2,7 @@ package project.board.testsupport;
 
 import org.springframework.test.util.ReflectionTestUtils;
 import project.board.comment.entity.Comment;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.security.principal.UnifiedPrincipal;
 import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 import project.board.member.entity.Role;

@@ -54,4 +54,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     List<PostRecent> findMyRecentPosts(@Param("memberId") Long memberId, Pageable pageable);
 
+
+
 }

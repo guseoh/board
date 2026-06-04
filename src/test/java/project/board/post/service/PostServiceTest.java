@@ -10,15 +10,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
-import project.board.global.dto.PageRequestDto;
-import project.board.global.dto.PageResultDto;
+import project.board.global.pagination.PageRequestDto;
+import project.board.global.pagination.PageResultDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.dto.request.PostRequest;
-import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
@@ -55,7 +55,7 @@ class PostServiceTest {
     private PostService postService;
 
     @Test
-    @DisplayName("saves a post for an existing member")
+    @DisplayName("존재하는 회원의 게시글을 저장한다")
     void saveSuccess() {
         Long memberId = 1L;
         Member writer = member(memberId);
@@ -76,7 +76,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("throws LOGIN_REQUIRED when saving with unknown member")
+    @DisplayName("알 수 없는 회원으로 게시글 저장 시 로그인이 필요하다는 예외를 던진다")
     void saveMemberNotFound() {
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
@@ -87,8 +87,8 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("finds detail with root comments and replies")
-    void findOneSuccess() {
+    @DisplayName("최상위 댓글과 답글을 포함한 상세 정보를 조회한다")
+    void getPostDetailSuccess() {
         Member writer = member(1L);
         Member commenter = member(2L);
         Post post = post(10L, "detail title", "detail content", writer);
@@ -96,7 +96,7 @@ class PostServiceTest {
         reply(101L, "reply", writer, post, root);
         given(postRepository.findById(10L)).willReturn(Optional.of(post));
 
-        PostDetailsResponse response = postService.findOne(10L);
+        PostDetailResponse response = postService.findOne(10L);
 
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getComments()).hasSize(1);
@@ -104,7 +104,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("converts paged posts to PageResultDto")
+    @DisplayName("페이징된 게시글을 페이지 결과 객체로 변환한다")
     void findAllSuccess() {
         Member writer = member(1L);
         Post post = post(10L, "list title", "content", writer);
@@ -120,7 +120,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("updates only when requester is the writer")
+    @DisplayName("요청자가 작성자인 경우에만 게시글을 수정한다")
     void updateOwnerOnly() {
         Member writer = member(1L);
         Post post = post(10L, "old title", "old content", writer);
@@ -137,7 +137,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("deletes a post only for its writer after deleting comments")
+    @DisplayName("댓글 삭제 후 작성자만 게시글을 삭제할 수 있다")
     void deleteOwner() {
         Member writer = member(1L);
         Post post = post(10L, "delete title", "content", writer);
@@ -150,7 +150,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("admin delete removes comments and deletes by id")
+    @DisplayName("관리자 삭제는 댓글을 제거하고 식별자로 게시글을 삭제한다")
     void deleteForAdminSuccess() {
         Post post = post(10L, member(1L));
         given(postRepository.findById(10L)).willReturn(Optional.of(post));
@@ -162,7 +162,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("view count throws when no row was updated")
+    @DisplayName("조회수 증가 시 수정된 행이 없으면 예외를 던진다")
     void viewCount() {
         given(postRepository.incrementViewCount(10L)).willReturn(1);
         given(postRepository.incrementViewCount(99L)).willReturn(0);
@@ -175,7 +175,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("returns search, stats, my posts and recent posts")
+    @DisplayName("검색 결과, 통계, 내 게시글, 최근 게시글을 반환한다")
     void searchAndMyQueries() {
         Member writer = member(1L);
         Post first = post(10L, "Spring", "content", writer);
@@ -195,12 +195,12 @@ class PostServiceTest {
         given(postRepository.findMyRecentPosts(any(), any())).willReturn(List.of(recent));
 
         assertThat(postService.search("S")).extracting(PostListResponse::getTitle).containsExactly("Spring");
-        assertThat(postService.todayWrite()).isEqualTo(3L);
+        assertThat(postService.countTodayPosts()).isEqualTo(3L);
         assertThat(postService.myPostCount(1L)).isEqualTo(2L);
         assertThat(postService.myTodayPostsCount(1L)).isEqualTo(1L);
         assertThat(postService.myPosts(1L)).extracting(PostListResponse::getTitle)
                 .containsExactly("Spring", "JPA");
-        assertThat(postService.recentPosts(1L)).extracting(PostRecent::getTitle).containsExactly("JPA");
+        assertThat(postService.getRecentPosts(1L)).extracting(PostRecent::getTitle).containsExactly("JPA");
         assertThatThrownBy(() -> postService.myPostCount(null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());

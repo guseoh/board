@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class EntityDomainTest {
 
     @Test
-    @DisplayName("Member supports local and OAuth creation and mutable profile fields")
+    @DisplayName("회원은 로컬 및 소셜 로그인 생성을 지원하고 프로필 필드를 변경할 수 있다")
     void memberCreateAndChange() {
         Member local = Member.create("local", "local@example.com", "encoded", Role.USER, LoginType.LOCAL);
         Member oauth = Member.createOAuth(
@@ -43,7 +43,7 @@ class EntityDomainTest {
     }
 
     @Test
-    @DisplayName("Post creation validates required fields and connects writer")
+    @DisplayName("게시글 생성 시 필수 값을 검증하고 작성자를 연결한다")
     void postCreateValidatesAndAssignsMember() {
         Member writer = Member.create("writer", "writer@example.com", "encoded", Role.USER, LoginType.LOCAL);
 
@@ -66,7 +66,7 @@ class EntityDomainTest {
     }
 
     @Test
-    @DisplayName("Post change validates title and content")
+    @DisplayName("게시글 변경 시 제목과 내용을 검증한다")
     void postChangeValidatesContent() {
         Member writer = Member.create("writer", "writer@example.com", "encoded", Role.USER, LoginType.LOCAL);
         Post post = Post.create("old title", "old content", writer);
@@ -84,7 +84,7 @@ class EntityDomainTest {
     }
 
     @Test
-    @DisplayName("Comment creation connects post, member, parent and children")
+    @DisplayName("댓글 생성 시 게시글, 회원, 부모 댓글, 자식 댓글을 연결한다")
     void commentCreateReplyAndChange() {
         Member writer = Member.create("writer", "writer@example.com", "encoded", Role.USER, LoginType.LOCAL);
         Member commenter = Member.create("commenter", "commenter@example.com", "encoded", Role.USER, LoginType.LOCAL);

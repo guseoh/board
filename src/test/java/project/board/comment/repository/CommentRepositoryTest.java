@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
-import project.board.comment.dto.MyCommentResponse;
-import project.board.comment.dto.MyRecentComment;
+import project.board.comment.dto.response.MyCommentResponse;
+import project.board.comment.dto.response.MyRecentCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.global.security.config.JpaConfig;
 import project.board.member.entity.LoginType;
@@ -43,7 +43,7 @@ class CommentRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    @DisplayName("bulk deletes comments by post, member and writer")
+    @DisplayName("게시글, 회원, 작성자 기준으로 댓글을 일괄 삭제한다")
     void deleteQueries() {
         Member writer = saveMember("writer", "writer@example.com");
         Member commenter = saveMember("commenter", "commenter@example.com");
@@ -69,7 +69,7 @@ class CommentRepositoryTest {
     }
 
     @Test
-    @DisplayName("finds my comments, recent comments and count queries")
+    @DisplayName("내 댓글, 최근 댓글, 개수 쿼리를 조회한다")
     void myCommentQueries() {
         Member writer = saveMember("writer", "writer@example.com");
         Member commenter = saveMember("commenter", "commenter@example.com");
@@ -83,7 +83,7 @@ class CommentRepositoryTest {
                 "searchable",
                 PageRequest.of(0, 10)
         );
-        List<MyRecentComment> recentComments = commentRepository.findRecentComments(
+        List<MyRecentCommentResponse> recentComments = commentRepository.findRecentComments(
                 commenter.getId(),
                 PageRequest.of(0, 5)
         );

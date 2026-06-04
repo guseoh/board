@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import project.board.comment.dto.MyCommentResponse;
-import project.board.comment.dto.MyRecentComment;
+import project.board.comment.dto.response.MyCommentResponse;
+import project.board.comment.dto.response.MyRecentCommentResponse;
 import project.board.comment.entity.Comment;
 
 import java.time.LocalDateTime;
@@ -74,7 +74,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         order by c.id desc
         """
     )
-    List<MyRecentComment> findRecentComments(
+    List<MyRecentCommentResponse> findRecentComments(
             @Param("memberId") Long memberId,
             Pageable pageable
     );

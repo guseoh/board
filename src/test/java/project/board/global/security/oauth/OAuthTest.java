@@ -10,11 +10,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import project.board.global.security.config.oauth.CustomOauth2UserService;
-import project.board.global.security.config.oauth.GoogleUserInfo;
-import project.board.global.security.config.oauth.KakaoUserInfo;
-import project.board.global.security.config.oauth.NaverUserInfo;
-import project.board.global.security.user.UnifiedPrincipal;
+import project.board.global.security.principal.UnifiedPrincipal;
 import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
@@ -39,7 +35,7 @@ import static project.board.testsupport.TestFixtures.setId;
 class OAuthTest {
 
     @Test
-    @DisplayName("parses Google, Naver and Kakao user information")
+    @DisplayName("구글, 네이버, 카카오 사용자 정보를 파싱한다")
     void parsesProviderUserInfo() {
         GoogleUserInfo google = new GoogleUserInfo(Map.of(
                 "sub", "google-1",
@@ -76,7 +72,7 @@ class OAuthTest {
     }
 
     @Test
-    @DisplayName("Kakao user info falls back when email is missing")
+    @DisplayName("카카오 사용자 정보에 이메일이 없으면 대체 값을 사용한다")
     void kakaoMissingEmailFallback() {
         KakaoUserInfo kakao = new KakaoUserInfo(Map.of(
                 "id", 12345,
@@ -88,7 +84,7 @@ class OAuthTest {
     }
 
     @Test
-    @DisplayName("Custom OAuth service creates a new OAuth member")
+    @DisplayName("커스텀 소셜 로그인 서비스는 새 소셜 로그인 회원을 생성한다")
     void createsNewOauthMember() throws Exception {
         withUserInfoServer(
                 "{\"sub\":\"google-1\",\"email\":\"google@example.com\",\"name\":\"Google User\"}",
@@ -118,7 +114,7 @@ class OAuthTest {
     }
 
     @Test
-    @DisplayName("Custom OAuth service reuses an existing OAuth member")
+    @DisplayName("커스텀 소셜 로그인 서비스는 기존 소셜 로그인 회원을 재사용한다")
     void reusesExistingOauthMember() throws Exception {
         withUserInfoServer(
                 "{\"sub\":\"google-1\",\"email\":\"google@example.com\",\"name\":\"Google User\"}",
@@ -141,7 +137,7 @@ class OAuthTest {
     }
 
     @Test
-    @DisplayName("Custom OAuth service rejects Naver response without response object")
+    @DisplayName("커스텀 소셜 로그인 서비스는 응답 객체가 없는 네이버 응답을 거부한다")
     void rejectsMissingNaverResponse() throws Exception {
         withUserInfoServer(
                 "{\"id\":\"naver-1\",\"email\":\"naver@example.com\",\"name\":\"Naver User\"}",

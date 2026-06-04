@@ -8,14 +8,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import project.board.comment.dto.CommentRequestDto;
-import project.board.comment.dto.CommentResponse;
-import project.board.comment.dto.MyCommentPageResponse;
-import project.board.comment.dto.MyCommentResponse;
-import project.board.comment.dto.MyRecentComment;
+import project.board.comment.dto.request.CommentCreateRequest;
+import project.board.comment.dto.response.CommentResponse;
+import project.board.comment.dto.response.MyCommentPageResponse;
+import project.board.comment.dto.response.MyCommentResponse;
+import project.board.comment.dto.response.MyRecentCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
-import project.board.global.dto.PageRequestDto;
+import project.board.global.pagination.PageRequestDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
@@ -55,11 +55,11 @@ class CommentServiceTest {
     private CommentService commentService;
 
     @Test
-    @DisplayName("creates a root comment when member and post exist")
+    @DisplayName("회원과 게시글이 존재하면 최상위 댓글을 생성한다")
     void createSuccess() {
         Member member = member(1L);
         Post post = post(10L, member(2L));
-        CommentRequestDto request = request("comment content");
+        CommentCreateRequest request = request("comment content");
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(postRepository.findById(10L)).willReturn(Optional.of(post));
         given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> {
@@ -78,7 +78,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("does not load post when comment writer is missing")
+    @DisplayName("댓글 작성자가 없으면 게시글을 조회하지 않는다")
     void createMemberNotFound() {
         given(memberRepository.findById(1L)).willReturn(Optional.empty());
 
@@ -90,7 +90,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("creates reply only for root comment on the same post")
+    @DisplayName("같은 게시글의 최상위 댓글에만 답글을 생성한다")
     void createReplySuccessAndInvalidParent() {
         Member member = member(1L);
         Post post = post(10L, member(2L));
@@ -123,7 +123,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("updates and deletes comments only for their owner")
+    @DisplayName("댓글 작성자만 댓글을 수정하고 삭제할 수 있다")
     void updateAndDeleteOwnerOnly() {
         Member owner = member(1L);
         Post post = post(10L, member(2L));
@@ -141,7 +141,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("throws COMMENT_NOT_FOUND when updating missing comment")
+    @DisplayName("수정할 댓글이 없으면 댓글 없음 예외를 던진다")
     void updateMissingComment() {
         given(commentRepository.findById(404L)).willReturn(Optional.empty());
 
@@ -151,10 +151,10 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("returns my comment stats, page and recent comments")
+    @DisplayName("내 댓글 통계, 페이지, 최근 댓글을 반환한다")
     void myCommentQueries() {
         MyCommentResponse myComment = new MyCommentResponse(1L, 10L, "post title", "comment", LocalDateTime.now());
-        MyRecentComment recent = MyRecentComment.builder()
+        MyRecentCommentResponse recent = MyRecentCommentResponse.builder()
                 .id(1L)
                 .title("post title")
                 .content("comment")
@@ -181,15 +181,15 @@ class CommentServiceTest {
         assertThat(page.getRecentCommentCount()).isEqualTo(2L);
         assertThat(page.getComments().getDtoList()).extracting(MyCommentResponse::getContent)
                 .containsExactly("comment");
-        assertThat(commentService.recentComments(1L)).extracting(MyRecentComment::getTitle)
+        assertThat(commentService.recentComments(1L)).extracting(MyRecentCommentResponse::getTitle)
                 .containsExactly("post title");
         assertThatThrownBy(() -> commentService.myCommentPage(null, PageRequestDto.builder().build(), null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
-    private CommentRequestDto request(String content) {
-        CommentRequestDto request = new CommentRequestDto();
+    private CommentCreateRequest request(String content) {
+        CommentCreateRequest request = new CommentCreateRequest();
         request.setContent(content);
         return request;
     }
