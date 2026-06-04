@@ -1,4 +1,4 @@
-package project.board.post.controller;
+package project.board.global.test;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -10,7 +10,7 @@ import project.board.global.exception.ErrorCode;
 @Profile("local")
 @RestController
 @RequiredArgsConstructor
-public class TestController {
+public class LocalTestController {
 
     @GetMapping("/test/discord-error")
     public String discordErrorTest() {

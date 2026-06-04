@@ -7,7 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import project.board.comment.dto.*;
+import project.board.comment.dto.request.CommentCreateRequest;
+import project.board.comment.dto.response.CommentResponse;
+import project.board.comment.dto.response.MyCommentPageResponse;
+import project.board.comment.dto.response.MyCommentResponse;
+import project.board.comment.dto.response.MyRecentCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.pagination.PageRequestDto;
@@ -33,7 +37,7 @@ public class CommentService {
     private final PostRepository postRepository;
 
 
-    public CommentResponse create(CommentRequestDto commentDto, Long memberId, Long postId) {
+    public CommentResponse createComment(CommentCreateRequest commentDto, Long memberId, Long postId) {
 
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -49,7 +53,7 @@ public class CommentService {
     }
 
 
-    public CommentResponse createReply(CommentRequestDto commentDto, Long memberId, Long postId, Long parentId) {
+    public CommentResponse createReply(CommentCreateRequest commentDto, Long memberId, Long postId, Long parentId) {
         Member member = memberRepository.findById(memberId).orElseThrow(
                 () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -67,7 +71,7 @@ public class CommentService {
         return CommentResponse.from(saved);
     }
 
-    public CommentResponse update(Long commentId, Long memberId, Long postId, CommentRequestDto dto) {
+    public CommentResponse update(Long commentId, Long memberId, Long postId, CommentCreateRequest dto) {
 
         Comment comment = commentRepository.findById(commentId).orElseThrow(
                 () -> new CustomException(ErrorCode.COMMENT_NOT_FOUND, "/post/" + postId)
@@ -92,12 +96,12 @@ public class CommentService {
     }
 
     // 내가 작성한 댓글 조회
-    public Long myCommentCount(Long memberId) {
+    public Long countMyComment(Long memberId) {
         return commentRepository.countByMemberId(memberId);
     }
 
 
-    public MyCommentPageResponse myCommentPage(Long memberId, PageRequestDto request, String keyword) {
+    public MyCommentPageResponse getMyCommentPage(Long memberId, PageRequestDto request, String keyword) {
 
         if (memberId == null) {
             throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
@@ -126,14 +130,14 @@ public class CommentService {
 
 
         return MyCommentPageResponse.builder()
-                .myCommentCount(myCommentCount(memberId))
+                .myCommentCount(countMyComment(memberId))
                 .todayMyCommentCount(todayComment)
                 .recentCommentCount(recentComment)
                 .comments(commentsPage)
                 .build();
     }
 
-    public List<MyRecentComment> recentComments(Long memberId) {
+    public List<MyRecentCommentResponse> recentComments(Long memberId) {
         return commentRepository.findRecentComments(
                 memberId, PageRequest.of(0, 5));
     }

@@ -14,8 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
-import project.board.comment.dto.MyCommentPageResponse;
-import project.board.comment.dto.MyCommentResponse;
+import project.board.comment.dto.response.MyCommentPageResponse;
+import project.board.comment.dto.response.MyCommentResponse;
 import project.board.comment.repository.CommentRepository;
 import project.board.comment.service.CommentService;
 import project.board.global.pagination.PageRequestDto;
@@ -27,7 +27,7 @@ import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRecent;
-import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.service.PostService;
@@ -124,10 +124,10 @@ class ControllerMvcTest {
                 new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1),
                 PostListResponse::from
         );
-        PostDetailsResponse detail = PostDetailsResponse.from(post, List.of());
+        PostDetailResponse detail = PostDetailResponse.from(post, List.of());
 
         given(postService.findAll(any(PageRequestDto.class))).willReturn(page);
-        given(postService.todayWrite()).willReturn(1L);
+        given(postService.countTodayPosts()).willReturn(1L);
         given(memberService.countMember()).willReturn(2L);
         given(postService.myPostCount(1L)).willReturn(3L);
         given(commentService.myCommentCount(1L)).willReturn(4L);
@@ -256,10 +256,10 @@ class ControllerMvcTest {
                 .build();
         given(postService.myPostCount(1L)).willReturn(1L);
         given(commentService.myCommentCount(1L)).willReturn(2L);
-        given(postService.recentPosts(1L)).willReturn(List.of(new PostRecent(10L, "title", 0, LocalDateTime.now())));
+        given(postService.getRecentPosts(1L)).willReturn(List.of(new PostRecent(10L, "title", 0, LocalDateTime.now())));
         given(commentService.recentComments(1L)).willReturn(List.of());
         given(postService.findAll(any(PageRequestDto.class))).willReturn(page);
-        given(postService.todayWrite()).willReturn(3L);
+        given(postService.countTodayPosts()).willReturn(3L);
         given(postService.myTodayPostsCount(1L)).willReturn(4L);
         given(postService.myPosts(1L)).willReturn(List.of(PostListResponse.from(post)));
         given(commentService.myCommentPage(eq(1L), any(PageRequestDto.class), any())).willReturn(commentPage);
@@ -272,7 +272,7 @@ class ControllerMvcTest {
         mockMvc.perform(get("/my").with(authenticated(user)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("my/my"))
-                .andExpect(model().attributeExists("myPostCount", "myCommentCount", "recentPosts", "recentComments"));
+                .andExpect(model().attributeExists("myPostCount", "myCommentCount", "getRecentPosts", "recentComments"));
 
         mockMvc.perform(get("/my/posts").with(authenticated(user)))
                 .andExpect(status().isOk())
@@ -316,7 +316,7 @@ class ControllerMvcTest {
         given(postService.count()).willReturn(10L);
         given(memberService.countMember()).willReturn(2L);
         given(postService.findAllAdmin()).willReturn(List.of(post));
-        given(memberService.findAllForAdmin()).willReturn(List.of(admin));
+        given(memberService.getMembersForAdmin()).willReturn(List.of(admin));
 
         mockMvc.perform(get("/admin"))
                 .andExpect(status().isOk())
@@ -341,12 +341,12 @@ class ControllerMvcTest {
         mockMvc.perform(post("/admin/users/1/role").param("role", "ADMIN"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"));
-        verify(memberService).roleChange("ADMIN", 1L);
+        verify(memberService).changeMemberRole("ADMIN", 1L);
 
         mockMvc.perform(post("/admin/users/1/delete"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"));
-        verify(memberService).deleteForAdmin(1L);
+        verify(memberService).deleteMemberByAdmin(1L);
     }
 
     @Test

@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
-import project.board.comment.dto.MyCommentResponse;
-import project.board.comment.dto.MyRecentComment;
+import project.board.comment.dto.response.MyCommentResponse;
+import project.board.comment.dto.response.MyRecentCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.global.security.config.JpaConfig;
 import project.board.member.entity.LoginType;
@@ -83,7 +83,7 @@ class CommentRepositoryTest {
                 "searchable",
                 PageRequest.of(0, 10)
         );
-        List<MyRecentComment> recentComments = commentRepository.findRecentComments(
+        List<MyRecentCommentResponse> recentComments = commentRepository.findRecentComments(
                 commenter.getId(),
                 PageRequest.of(0, 5)
         );

@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminController {
+public class AdminViewController {
 
     private final PostService postService;
     private final MemberService memberService;
@@ -34,7 +34,7 @@ public class AdminController {
 
     @GetMapping("/posts")
     public String posts(Model model) {
-        List<Post> posts = postService.findAllAdmin();
+        List<Post> posts = postService.getPostsForAdmin();
 
         model.addAttribute("posts", posts);
 
@@ -50,7 +50,7 @@ public class AdminController {
 
     @GetMapping("/users")
     public String members(Model model) {
-        List<Member> members = memberService.findAllForAdmin();
+        List<Member> members = memberService.getMembersForAdmin();
         model.addAttribute("members", members);
 
         return "admin/users";
@@ -59,14 +59,14 @@ public class AdminController {
     @PostMapping("/users/{memberId}/role")
     public String memberUpdate(@PathVariable Long memberId,
                                @RequestParam String role) {
-        memberService.roleChange(role, memberId);
+        memberService.changeMemberRole(role, memberId);
 
         return "redirect:/admin";
     }
 
     @PostMapping("/users/{memberId}/delete")
     public String memberDelete(@PathVariable Long memberId) {
-        memberService.deleteForAdmin(memberId);
+        memberService.deleteMemberByAdmin(memberId);
 
         return "redirect:/admin";
     }

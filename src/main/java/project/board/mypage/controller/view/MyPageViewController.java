@@ -15,7 +15,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import project.board.comment.dto.MyCommentPageResponse;
+import project.board.comment.dto.response.MyCommentPageResponse;
 import project.board.comment.service.CommentService;
 import project.board.global.pagination.PageRequestDto;
 import project.board.global.exception.CustomException;
@@ -30,7 +30,7 @@ import project.board.post.service.PostService;
 @Controller
 @Slf4j
 @RequiredArgsConstructor
-public class MyController {
+public class MyPageViewController {
 
     private final MemberService memberService;
     private final PostService postService;
@@ -46,11 +46,11 @@ public class MyController {
 
         Long memberId = user.getMemberId();
 
-        model.addAttribute("myPostCount", postService.myPostCount(memberId));
+        model.addAttribute("myPostCount", postService.countMyPosts(memberId));
 
-        model.addAttribute("myCommentCount", commentService.myCommentCount(memberId));
+        model.addAttribute("myCommentCount", commentService.countMyComment(memberId));
 
-        model.addAttribute("recentPosts", postService.recentPosts(memberId));
+        model.addAttribute("getRecentPosts", postService.getRecentPosts(memberId));
 
         model.addAttribute("recentComments", commentService.recentComments(memberId));
 
@@ -63,14 +63,14 @@ public class MyController {
                               Model model,
                               @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        var page = postService.findAll(pageRequestDto);
+        var page = postService.getPosts(pageRequestDto);
 
-        model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
+        model.addAttribute("myPostCount", postService.countMyPosts(user.getMemberId()));
 
-        model.addAttribute("todayMyPostCount", postService.todayWrite());
+        model.addAttribute("todayMyPostCount", postService.countTodayPosts());
         model.addAttribute("myPostViewCount", postService.myTodayPostsCount(user.getMemberId()));
 
-        model.addAttribute("posts", postService.myPosts(user.getMemberId()));
+        model.addAttribute("posts", postService.getMyPosts(user.getMemberId()));
         model.addAttribute("page", page);
         model.addAttribute("keyword", pageRequestDto.getKeyword());
 
@@ -83,7 +83,7 @@ public class MyController {
                                 Model model,
                                 @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        MyCommentPageResponse pageResponse = commentService.myCommentPage(user.getMemberId(), request, keyword);
+        MyCommentPageResponse pageResponse = commentService.getMyCommentPage(user.getMemberId(), request, keyword);
 
         model.addAttribute("pageResponse", pageResponse);
 

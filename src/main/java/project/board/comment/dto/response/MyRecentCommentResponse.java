@@ -1,4 +1,4 @@
-package project.board.comment.dto;
+package project.board.comment.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @AllArgsConstructor
-public class MyRecentComment {
+public class MyRecentCommentResponse {
 
     private Long id;
     private String title;

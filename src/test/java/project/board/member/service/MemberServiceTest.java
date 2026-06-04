@@ -113,7 +113,7 @@ class MemberServiceTest {
         MemberUpdateResponse profile = memberService.getMyProfile(1L);
 
         assertThat(memberService.countMember()).isEqualTo(1L);
-        assertThat(memberService.findAllForAdmin()).containsExactly(member);
+        assertThat(memberService.getMembersForAdmin()).containsExactly(member);
         assertThat(profile.getNickname()).isEqualTo(member.getNickname());
         assertThat(profile.isPasswordChangeable()).isTrue();
     }
@@ -184,10 +184,10 @@ class MemberServiceTest {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        memberService.roleChange("ADMIN", 1L);
+        memberService.changeMemberRole("ADMIN", 1L);
 
         assertThat(member.getRole()).isEqualTo(Role.ADMIN);
-        assertThatThrownBy(() -> memberService.roleChange("ADMIN", 99L))
+        assertThatThrownBy(() -> memberService.changeMemberRole("ADMIN", 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -199,7 +199,7 @@ class MemberServiceTest {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
         memberService.withdraw(1L);
-        memberService.deleteForAdmin(1L);
+        memberService.deleteMemberByAdmin(1L);
 
         verify(commentRepository, times(2)).deleteAllByMemberId(1L);
         verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);

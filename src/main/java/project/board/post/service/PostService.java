@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import project.board.comment.dto.CommentResponse;
+import project.board.comment.dto.response.CommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.pagination.PageRequestDto;
@@ -19,7 +19,7 @@ import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.dto.request.PostRequest;
-import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
@@ -42,7 +42,7 @@ public class PostService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public PostListResponse save(PostRequest request, Long memberId) {
+    public PostListResponse createPost(PostRequest request, Long memberId) {
         Member member = memberRepository.findById(memberId).orElseThrow(() ->
                 new CustomException(LOGIN_REQUIRED));
 
@@ -51,7 +51,7 @@ public class PostService {
         return PostListResponse.from(saved);
     }
 
-    public PostDetailsResponse findOne(Long postId){
+    public PostDetailResponse getPostDetail(Long postId){
         Post post = getPost(postId);
 
         List<CommentResponse> comments = post.getComments().stream()
@@ -59,10 +59,10 @@ public class PostService {
                 .map(CommentResponse::from)
                 .toList();
 
-        return PostDetailsResponse.from(post, comments);
+        return PostDetailResponse.from(post, comments);
     }
 
-    public PageResultDto<PostListResponse, Post> findAll(PageRequestDto pageRequestDto) {
+    public PageResultDto<PostListResponse, Post> getPosts(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
 
         Page<Post> result = postRepository.findAllWithMember(pageable);
@@ -72,7 +72,7 @@ public class PostService {
         return new PageResultDto<>(result, fn);
     }
 
-    public List<Post> findAllAdmin() {
+    public List<Post> getPostsForAdmin() {
         return postRepository.findAllWithMemberForAdmin();
     }
 
@@ -114,29 +114,7 @@ public class PostService {
         if (updated == 0) throw new CustomException(POST_NOT_FOUND);
     }
 
-    public List<PostListResponse> search(String keyword) {
-        return postRepository.findByTitleContaining(keyword)
-                .stream()
-                .map(PostListResponse::from)
-                .toList();
-    }
-
-    public Long todayWrite() {
-
-        LocalDate today = LocalDate.now();
-        LocalDateTime startDay = today.atStartOfDay();
-        LocalDateTime nextDay = today.plusDays(1).atStartOfDay();
-
-        return postRepository.countTodayPosts(startDay, nextDay);
-    }
-
-    public Long myPostCount(Long memberId) {
-        if (memberId == null) {
-            throw new CustomException(MEMBER_NOT_FOUND);
-        }
-        return postRepository.countMyPosts(memberId);
-    }
-
+    //todo: 뭐지?? 아래와 중복
     public Long myTodayPostsCount(Long memberId) {
 
         LocalDate today = LocalDate.now();
@@ -146,13 +124,35 @@ public class PostService {
         return postRepository.countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(memberId, startDay, nextDay);
     }
 
-    public List<PostListResponse> myPosts(Long memberId) {
+    public Long countTodayPosts() {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startDay = today.atStartOfDay();
+        LocalDateTime nextDay = today.plusDays(1).atStartOfDay();
+
+        return postRepository.countTodayPosts(startDay, nextDay);
+    }
+
+    public List<PostListResponse> search(String keyword) {
+        return postRepository.findByTitleContaining(keyword)
+                .stream()
+                .map(PostListResponse::from)
+                .toList();
+    }
+
+    public Long countMyPosts(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(MEMBER_NOT_FOUND);
+        }
+        return postRepository.countMyPosts(memberId);
+    }
+
+    public List<PostListResponse> getMyPosts(Long memberId) {
         return postRepository.findAllByMemberId(memberId).stream()
                 .map(PostListResponse::from)
                 .toList();
     }
 
-    public List<PostRecent> recentPosts(Long memberId) {
+    public List<PostRecent> getRecentPosts(Long memberId) {
         return postRepository.findMyRecentPosts(
                 memberId, PageRequest.of(0, 5)
         );

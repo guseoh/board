@@ -12,13 +12,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import project.board.comment.dto.CommentRequestDto;
+import project.board.comment.dto.request.CommentCreateRequest;
 import project.board.comment.service.CommentService;
 import project.board.global.pagination.PageRequestDto;
 import project.board.global.security.principal.UnifiedPrincipal;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRequest;
-import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.service.PostService;
 
@@ -37,15 +37,15 @@ public class PostViewController {
     public String list(PageRequestDto request, Model model,
                        @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        var page = postService.findAll(request);
+        var page = postService.getPosts(request);
 
         model.addAttribute("totalCount", page.getTotalCount());
-        model.addAttribute("todayCount", postService.todayWrite());
+        model.addAttribute("todayCount", postService.countTodayPosts());
         model.addAttribute("memberCount", memberService.countMember());
 
         if (user != null) {
-            model.addAttribute("myPostCount", postService.myPostCount(user.getMemberId()));
-            model.addAttribute("myCommentCount", commentService.myCommentCount(user.getMemberId()));
+            model.addAttribute("myPostCount", postService.countMyPosts(user.getMemberId()));
+            model.addAttribute("myCommentCount", commentService.countMyComment(user.getMemberId()));
 
         }
 
@@ -66,11 +66,11 @@ public class PostViewController {
             postService.viewCount(id);
         }
 
-        PostDetailsResponse post = postService.findOne(id);
+        PostDetailResponse post = postService.getPostDetail(id);
 
         model.addAttribute("post", post);
         model.addAttribute("comments", post.getComments());
-        model.addAttribute("commentForm", new CommentRequestDto());
+        model.addAttribute("commentForm", new CommentCreateRequest());
         model.addAttribute("memberId", customUserDetails != null ? customUserDetails.getMemberId() : null);
 
         return "post/detail";
@@ -147,7 +147,7 @@ public class PostViewController {
         }
 
         Long memberId = customUserDetails.getMemberId();
-        PostListResponse post = postService.save(request, memberId);
+        PostListResponse post = postService.createPost(request, memberId);
 
         redirectAttributes.addAttribute("id", post.getId());
         redirectAttributes.addFlashAttribute("msg", "게시글이 등록되었습니다.");
@@ -172,7 +172,7 @@ public class PostViewController {
     public String editForm(@PathVariable Long id,
                            Model model) {
 
-        PostDetailsResponse post = postService.findOne(id);
+        PostDetailResponse post = postService.getPostDetail(id);
 
         model.addAttribute("mode", "edit");
         model.addAttribute("form", PostRequest.from(post));

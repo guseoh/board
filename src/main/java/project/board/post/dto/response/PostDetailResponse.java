@@ -2,7 +2,7 @@ package project.board.post.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import project.board.comment.dto.CommentResponse;
+import project.board.comment.dto.response.CommentResponse;
 import project.board.member.entity.Member;
 import project.board.post.entity.Post;
 
@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class PostDetailsResponse {
+public class PostDetailResponse {
 
     private Long id;
     private String title;
@@ -37,8 +37,8 @@ public class PostDetailsResponse {
         }
     }
 
-    public static PostDetailsResponse from(Post post, List<CommentResponse> comments) {
-        return PostDetailsResponse.builder()
+    public static PostDetailResponse from(Post post, List<CommentResponse> comments) {
+        return PostDetailResponse.builder()
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())

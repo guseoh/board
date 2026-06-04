@@ -8,11 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import project.board.comment.dto.CommentRequestDto;
-import project.board.comment.dto.CommentResponse;
-import project.board.comment.dto.MyCommentPageResponse;
-import project.board.comment.dto.MyCommentResponse;
-import project.board.comment.dto.MyRecentComment;
+import project.board.comment.dto.request.CommentCreateRequest;
+import project.board.comment.dto.response.CommentResponse;
+import project.board.comment.dto.response.MyCommentPageResponse;
+import project.board.comment.dto.response.MyCommentResponse;
+import project.board.comment.dto.response.MyRecentCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.pagination.PageRequestDto;
@@ -59,7 +59,7 @@ class CommentServiceTest {
     void createSuccess() {
         Member member = member(1L);
         Post post = post(10L, member(2L));
-        CommentRequestDto request = request("comment content");
+        CommentCreateRequest request = request("comment content");
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(postRepository.findById(10L)).willReturn(Optional.of(post));
         given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> {
@@ -154,7 +154,7 @@ class CommentServiceTest {
     @DisplayName("내 댓글 통계, 페이지, 최근 댓글을 반환한다")
     void myCommentQueries() {
         MyCommentResponse myComment = new MyCommentResponse(1L, 10L, "post title", "comment", LocalDateTime.now());
-        MyRecentComment recent = MyRecentComment.builder()
+        MyRecentCommentResponse recent = MyRecentCommentResponse.builder()
                 .id(1L)
                 .title("post title")
                 .content("comment")
@@ -181,15 +181,15 @@ class CommentServiceTest {
         assertThat(page.getRecentCommentCount()).isEqualTo(2L);
         assertThat(page.getComments().getDtoList()).extracting(MyCommentResponse::getContent)
                 .containsExactly("comment");
-        assertThat(commentService.recentComments(1L)).extracting(MyRecentComment::getTitle)
+        assertThat(commentService.recentComments(1L)).extracting(MyRecentCommentResponse::getTitle)
                 .containsExactly("post title");
         assertThatThrownBy(() -> commentService.myCommentPage(null, PageRequestDto.builder().build(), null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
-    private CommentRequestDto request(String content) {
-        CommentRequestDto request = new CommentRequestDto();
+    private CommentCreateRequest request(String content) {
+        CommentCreateRequest request = new CommentCreateRequest();
         request.setContent(content);
         return request;
     }

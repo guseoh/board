@@ -9,19 +9,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import project.board.comment.dto.CommentRequestDto;
+import project.board.comment.dto.request.CommentCreateRequest;
 import project.board.comment.service.CommentService;
 import project.board.global.security.principal.UnifiedPrincipal;
 
 @Controller
 @RequiredArgsConstructor
-public class CommentController {
+public class CommentViewController {
 
     private final CommentService commentService;
 
     @PostMapping("/post/{postId}/comment")
     public String create(@PathVariable Long postId,
-                         @ModelAttribute("commentForm") @Valid CommentRequestDto requestDto,
+                         @ModelAttribute("commentForm") @Valid CommentCreateRequest requestDto,
                          BindingResult bindingResult,
                          @AuthenticationPrincipal UnifiedPrincipal user,
                          RedirectAttributes ra) {
@@ -36,7 +36,7 @@ public class CommentController {
             return "redirect:/post/" + postId;
         }
 
-        commentService.create(requestDto, user.getMemberId(), postId);
+        commentService.createComment(requestDto, user.getMemberId(), postId);
 
         return "redirect:/post/" + postId;
     }
@@ -44,7 +44,7 @@ public class CommentController {
     @PostMapping("/post/{postId}/comment/{parentId}/replies")
     public String createReply(@PathVariable Long postId,
                               @PathVariable Long parentId,
-                              @ModelAttribute("commentForm") @Valid CommentRequestDto requestDto,
+                              @ModelAttribute("commentForm") @Valid CommentCreateRequest requestDto,
                               BindingResult bindingResult,
                               @AuthenticationPrincipal UnifiedPrincipal user,
                               RedirectAttributes ra) {
@@ -68,7 +68,7 @@ public class CommentController {
     @PostMapping("/post/{postId}/comment/{commentId}/edit")
     public String update(@PathVariable Long postId,
                          @PathVariable Long commentId,
-                         @Valid @ModelAttribute("commentUpdateForm") CommentRequestDto commentRequestDto,
+                         @Valid @ModelAttribute("commentUpdateForm") CommentCreateRequest commentRequestDto,
                          BindingResult bindingResult,
                          @AuthenticationPrincipal UnifiedPrincipal customUserDetails,
                          RedirectAttributes ra) {

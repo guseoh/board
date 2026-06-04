@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import project.board.comment.dto.CommentRequestDto;
+import project.board.comment.dto.request.CommentCreateRequest;
 import project.board.global.exception.handler.GlobalViewControllerAdvice;
 import project.board.global.notification.discord.DiscordNotifier;
 import project.board.member.dto.request.MemberCreateRequest;
@@ -94,7 +94,7 @@ class ExceptionAndValidationTest {
     @DisplayName("요청 객체 검증은 잘못된 입력을 잡아낸다")
     void dtoValidation() {
         PostRequest postRequest = new PostRequest("", "");
-        CommentRequestDto commentRequest = new CommentRequestDto();
+        CommentCreateRequest commentRequest = new CommentCreateRequest();
         commentRequest.setContent("");
         MemberCreateRequest memberRequest = new MemberCreateRequest();
         memberRequest.setNickname("u");

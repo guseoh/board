@@ -1,4 +1,4 @@
-package project.board.comment.dto;
+package project.board.comment.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

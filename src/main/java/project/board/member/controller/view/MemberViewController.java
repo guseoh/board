@@ -16,7 +16,7 @@ import project.board.post.service.PostService;
 
 @Controller
 @RequiredArgsConstructor
-public class MemberController {
+public class MemberViewController {
 
     private final PostService postService;
     private final MemberService memberService;

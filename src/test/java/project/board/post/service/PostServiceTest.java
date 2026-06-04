@@ -18,7 +18,7 @@ import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.dto.request.PostRequest;
-import project.board.post.dto.response.PostDetailsResponse;
+import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
 import project.board.post.repository.PostRepository;
@@ -88,7 +88,7 @@ class PostServiceTest {
 
     @Test
     @DisplayName("최상위 댓글과 답글을 포함한 상세 정보를 조회한다")
-    void findOneSuccess() {
+    void getPostDetailSuccess() {
         Member writer = member(1L);
         Member commenter = member(2L);
         Post post = post(10L, "detail title", "detail content", writer);
@@ -96,7 +96,7 @@ class PostServiceTest {
         reply(101L, "reply", writer, post, root);
         given(postRepository.findById(10L)).willReturn(Optional.of(post));
 
-        PostDetailsResponse response = postService.findOne(10L);
+        PostDetailResponse response = postService.findOne(10L);
 
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getComments()).hasSize(1);
@@ -195,12 +195,12 @@ class PostServiceTest {
         given(postRepository.findMyRecentPosts(any(), any())).willReturn(List.of(recent));
 
         assertThat(postService.search("S")).extracting(PostListResponse::getTitle).containsExactly("Spring");
-        assertThat(postService.todayWrite()).isEqualTo(3L);
+        assertThat(postService.countTodayPosts()).isEqualTo(3L);
         assertThat(postService.myPostCount(1L)).isEqualTo(2L);
         assertThat(postService.myTodayPostsCount(1L)).isEqualTo(1L);
         assertThat(postService.myPosts(1L)).extracting(PostListResponse::getTitle)
                 .containsExactly("Spring", "JPA");
-        assertThat(postService.recentPosts(1L)).extracting(PostRecent::getTitle).containsExactly("JPA");
+        assertThat(postService.getRecentPosts(1L)).extracting(PostRecent::getTitle).containsExactly("JPA");
         assertThatThrownBy(() -> postService.myPostCount(null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
