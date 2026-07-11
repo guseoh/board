@@ -62,6 +62,27 @@ class ExceptionAndValidationTest {
     }
 
     @Test
+    @DisplayName("회원가입 비즈니스 오류는 비밀번호를 제외한 입력값을 유지한다")
+    void globalAdviceSignupErrorKeepsSafeInput() throws Exception {
+        DiscordNotifier discordNotifier = mock(DiscordNotifier.class);
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
+                .setControllerAdvice(new GlobalViewControllerAdvice(discordNotifier))
+                .build();
+
+        mockMvc.perform(post("/duplicate-email")
+                        .param("nickname", "tester")
+                        .param("email", "tester@example.com")
+                        .param("password", "password1")
+                        .param("passwordConfirm", "password1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("member/signup"))
+                .andExpect(model().attribute("form", org.hamcrest.Matchers.hasProperty("nickname", org.hamcrest.Matchers.is("tester"))))
+                .andExpect(model().attribute("form", org.hamcrest.Matchers.hasProperty("email", org.hamcrest.Matchers.is("tester@example.com"))))
+                .andExpect(model().attribute("form", org.hamcrest.Matchers.hasProperty("password", org.hamcrest.Matchers.nullValue())))
+                .andExpect(model().attribute("form", org.hamcrest.Matchers.hasProperty("passwordConfirm", org.hamcrest.Matchers.nullValue())));
+    }
+
+    @Test
     @DisplayName("전역 예외 처리는 그 외 커스텀 오류를 리다이렉트하고 메시지를 전달한다")
     void globalAdviceRedirects() throws Exception {
         DiscordNotifier discordNotifier = mock(DiscordNotifier.class);
@@ -112,6 +133,11 @@ class ExceptionAndValidationTest {
 
         @GetMapping("/duplicate-email")
         String duplicateEmail() {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+
+        @PostMapping("/duplicate-email")
+        String duplicateEmail(@ModelAttribute("form") MemberCreateRequest form) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
 
