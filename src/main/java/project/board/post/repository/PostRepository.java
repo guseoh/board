@@ -34,9 +34,29 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select count(p) from Post p where p.member.id = :memberId")
     Long countMyPosts(@Param("memberId") Long memberId);
 
+    @Query("select coalesce(sum(p.viewCount), 0) from Post p where p.member.id = :memberId")
+    Long sumViewCountByMemberId(@Param("memberId") Long memberId);
+
     Long countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(Long memberId, LocalDateTime startDay, LocalDateTime nextDay);
 
     List<Post> findAllByMemberId(Long memberId);
+
+    @Query(value = """
+            select p from Post p
+            join fetch p.member
+            where p.member.id = :memberId
+              and (:keyword is null or :keyword = '' or p.title like concat('%', :keyword, '%'))
+            """,
+            countQuery = """
+            select count(p) from Post p
+            where p.member.id = :memberId
+              and (:keyword is null or :keyword = '' or p.title like concat('%', :keyword, '%'))
+            """)
+    Page<Post> findMyPosts(
+            @Param("memberId") Long memberId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 
     @Modifying
     @Query("delete from Post p where p.member.id = :memberId")

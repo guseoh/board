@@ -126,13 +126,13 @@ class ControllerMvcTest {
         );
         PostDetailResponse detail = PostDetailResponse.from(post, List.of());
 
-        given(postService.findAll(any(PageRequestDto.class))).willReturn(page);
+        given(postService.getPosts(any(PageRequestDto.class))).willReturn(page);
         given(postService.countTodayPosts()).willReturn(1L);
         given(memberService.countMember()).willReturn(2L);
-        given(postService.myPostCount(1L)).willReturn(3L);
-        given(commentService.myCommentCount(1L)).willReturn(4L);
-        given(postService.findOne(10L)).willReturn(detail);
-        given(postService.save(any(), eq(1L))).willReturn(PostListResponse.from(post));
+        given(postService.countMyPosts(1L)).willReturn(3L);
+        given(commentService.countMyComment(1L)).willReturn(4L);
+        given(postService.getPostDetail(10L)).willReturn(detail);
+        given(postService.createPost(any(), eq(1L))).willReturn(PostListResponse.from(post));
         given(postService.search("title")).willReturn(List.of(PostListResponse.from(post)));
 
         mockMvc.perform(get("/").with(authenticated(user)))
@@ -162,7 +162,7 @@ class ControllerMvcTest {
                         .param("content", "content"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/post/10"));
-        verify(postService).save(any(), eq(1L));
+        verify(postService).createPost(any(), eq(1L));
 
         mockMvc.perform(post("/post/new")
                         .with(authenticated(user))
@@ -201,7 +201,7 @@ class ControllerMvcTest {
                         .param("content", "comment"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/post/10"));
-        verify(commentService).create(any(), eq(1L), eq(10L));
+        verify(commentService).createComment(any(), eq(1L), eq(10L));
 
         mockMvc.perform(post("/post/10/comment")
                         .with(anonymousPrincipal())
@@ -254,15 +254,14 @@ class ControllerMvcTest {
                         new PageImpl<MyCommentResponse>(List.of(), PageRequest.of(0, 5), 0)
                 ))
                 .build();
-        given(postService.myPostCount(1L)).willReturn(1L);
-        given(commentService.myCommentCount(1L)).willReturn(2L);
+        given(postService.countMyPosts(1L)).willReturn(1L);
+        given(commentService.countMyComment(1L)).willReturn(2L);
         given(postService.getRecentPosts(1L)).willReturn(List.of(new PostRecent(10L, "title", 0, LocalDateTime.now())));
         given(commentService.recentComments(1L)).willReturn(List.of());
-        given(postService.findAll(any(PageRequestDto.class))).willReturn(page);
-        given(postService.countTodayPosts()).willReturn(3L);
+        given(postService.getMyPosts(eq(1L), any(PageRequestDto.class))).willReturn(page);
         given(postService.myTodayPostsCount(1L)).willReturn(4L);
-        given(postService.myPosts(1L)).willReturn(List.of(PostListResponse.from(post)));
-        given(commentService.myCommentPage(eq(1L), any(PageRequestDto.class), any())).willReturn(commentPage);
+        given(postService.countMyPostViews(1L)).willReturn(5L);
+        given(commentService.getMyCommentPage(eq(1L), any(PageRequestDto.class), any())).willReturn(commentPage);
         given(memberService.getMyProfile(1L)).willReturn(MemberUpdateResponse.builder()
                 .nickname("user1")
                 .email("user1@example.com")
@@ -277,7 +276,10 @@ class ControllerMvcTest {
         mockMvc.perform(get("/my/posts").with(authenticated(user)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("my/myPost"))
+                .andExpect(model().attribute("todayMyPostCount", 4L))
+                .andExpect(model().attribute("myPostViewCount", 5L))
                 .andExpect(model().attributeExists("posts", "page"));
+        verify(postService).getMyPosts(eq(1L), any(PageRequestDto.class));
 
         mockMvc.perform(get("/my/comments").with(authenticated(user)))
                 .andExpect(status().isOk())
@@ -315,7 +317,7 @@ class ControllerMvcTest {
         Post post = post(10L, "title", "content", admin);
         given(postService.count()).willReturn(10L);
         given(memberService.countMember()).willReturn(2L);
-        given(postService.findAllAdmin()).willReturn(List.of(post));
+        given(postService.getPostsForAdmin()).willReturn(List.of(post));
         given(memberService.getMembersForAdmin()).willReturn(List.of(admin));
 
         mockMvc.perform(get("/admin"))
@@ -356,7 +358,7 @@ class ControllerMvcTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/loginForm?redirect=*"));
 
-        verify(commentService, never()).create(any(), any(), any());
+        verify(commentService, never()).createComment(any(), any(), any());
     }
 
     private UsernamePasswordAuthenticationToken authToken(UnifiedPrincipal principal) {

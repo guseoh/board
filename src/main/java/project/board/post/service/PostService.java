@@ -146,10 +146,22 @@ public class PostService {
         return postRepository.countMyPosts(memberId);
     }
 
-    public List<PostListResponse> getMyPosts(Long memberId) {
-        return postRepository.findAllByMemberId(memberId).stream()
-                .map(PostListResponse::from)
-                .toList();
+    public Long countMyPostViews(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(MEMBER_NOT_FOUND);
+        }
+        return postRepository.sumViewCountByMemberId(memberId);
+    }
+
+    public PageResultDto<PostListResponse, Post> getMyPosts(Long memberId, PageRequestDto request) {
+        if (memberId == null) {
+            throw new CustomException(MEMBER_NOT_FOUND);
+        }
+
+        Pageable pageable = request.getPageable(Sort.by("id").descending());
+        Page<Post> posts = postRepository.findMyPosts(memberId, request.getKeyword(), pageable);
+
+        return new PageResultDto<>(posts, PostListResponse::from);
     }
 
     public List<PostRecent> getRecentPosts(Long memberId) {
