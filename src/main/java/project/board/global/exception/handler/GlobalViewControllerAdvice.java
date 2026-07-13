@@ -1,5 +1,6 @@
 package project.board.global.exception.handler;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ui.Model;
@@ -19,7 +20,7 @@ public class GlobalViewControllerAdvice {
     private final DiscordNotifier discordNotifier;
 
     @ExceptionHandler(CustomException.class)
-    public String customException(CustomException e, RedirectAttributes ra, Model model) {
+    public String customException(CustomException e, RedirectAttributes ra, Model model, HttpServletRequest request) {
         ErrorCode errorCode = e.getErrorCode();
 
         // Discord 알림은 중요한 예외만 전송
@@ -42,8 +43,16 @@ public class GlobalViewControllerAdvice {
         ra.addFlashAttribute("msg", e.getMessage());
 
         if (errorCode == ErrorCode.DUPLICATE_EMAIL || errorCode == ErrorCode.DUPLICATE_NICKNAME || errorCode == ErrorCode.PASSWORD_MISMATCH) {
-
-            model.addAttribute("form", new MemberCreateRequest());
+            MemberCreateRequest submitted = (MemberCreateRequest) model.asMap().get("form");
+            MemberCreateRequest safeForm = new MemberCreateRequest();
+            if (submitted != null) {
+                safeForm.setNickname(submitted.getNickname());
+                safeForm.setEmail(submitted.getEmail());
+            } else {
+                safeForm.setNickname(request.getParameter("nickname"));
+                safeForm.setEmail(request.getParameter("email"));
+            }
+            model.addAttribute("form", safeForm);
 
             model.addAttribute("error", errorCode.getMessage());
             return "member/signup";

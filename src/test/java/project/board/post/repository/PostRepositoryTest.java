@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -59,7 +60,9 @@ class PostRepositoryTest {
     void findMyPostsAndCounts() {
         Member writer = saveMember("writer", "writer@example.com");
         Member other = saveMember("other", "other@example.com");
-        postRepository.save(Post.create("my post 1", "content1", writer));
+        Post first = Post.create("my post 1", "content1", writer);
+        setField(first, "viewCount", 3);
+        postRepository.save(first);
         postRepository.save(Post.create("my post 2", "content2", writer));
         postRepository.save(Post.create("other post", "content3", other));
         flushAndClear();
@@ -68,13 +71,16 @@ class PostRepositoryTest {
                 LocalDate.now().atStartOfDay(),
                 LocalDate.now().plusDays(1).atStartOfDay()
         );
-        List<Post> myPosts = postRepository.findAllByMemberId(writer.getId());
+        Page<Post> myPosts = postRepository.findMyPosts(writer.getId(), "post 1", PageRequest.of(0, 1));
         Long myPostCount = postRepository.countMyPosts(writer.getId());
+        Long myPostViewCount = postRepository.sumViewCountByMemberId(writer.getId());
         List<PostRecent> recentPosts = postRepository.findMyRecentPosts(writer.getId(), PageRequest.of(0, 1));
 
         assertThat(todayCount).isEqualTo(3);
-        assertThat(myPosts).hasSize(2);
+        assertThat(myPosts.getTotalElements()).isEqualTo(1);
+        assertThat(myPosts.getContent()).extracting(Post::getTitle).containsExactly("my post 1");
         assertThat(myPostCount).isEqualTo(2);
+        assertThat(myPostViewCount).isEqualTo(3);
         assertThat(recentPosts).hasSize(1);
         assertThat(recentPosts.get(0).getTitle()).startsWith("my post");
     }

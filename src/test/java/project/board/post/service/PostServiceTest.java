@@ -67,7 +67,7 @@ class PostServiceTest {
             return saved;
         });
 
-        PostListResponse response = postService.save(request, memberId);
+        PostListResponse response = postService.createPost(request, memberId);
 
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getTitle()).isEqualTo("title");
@@ -80,7 +80,7 @@ class PostServiceTest {
     void saveMemberNotFound() {
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> postService.save(new PostRequest("title", "content"), 99L))
+        assertThatThrownBy(() -> postService.createPost(new PostRequest("title", "content"), 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.LOGIN_REQUIRED.getMessage());
         verify(postRepository, never()).save(any(Post.class));
@@ -96,7 +96,7 @@ class PostServiceTest {
         reply(101L, "reply", writer, post, root);
         given(postRepository.findById(10L)).willReturn(Optional.of(post));
 
-        PostDetailResponse response = postService.findOne(10L);
+        PostDetailResponse response = postService.getPostDetail(10L);
 
         assertThat(response.getId()).isEqualTo(10L);
         assertThat(response.getComments()).hasSize(1);
@@ -112,7 +112,7 @@ class PostServiceTest {
         given(postRepository.findAllWithMember(any()))
                 .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1));
 
-        PageResultDto<PostListResponse, Post> result = postService.findAll(request);
+        PageResultDto<PostListResponse, Post> result = postService.getPosts(request);
 
         assertThat(result.getTotalCount()).isEqualTo(1);
         assertThat(result.getDtoList()).extracting(PostListResponse::getTitle)
@@ -188,20 +188,27 @@ class PostServiceTest {
                 .build();
         given(postRepository.findByTitleContaining("S")).willReturn(List.of(first));
         given(postRepository.countMyPosts(1L)).willReturn(2L);
+        given(postRepository.sumViewCountByMemberId(1L)).willReturn(7L);
         given(postRepository.countTodayPosts(any(), any())).willReturn(3L);
         given(postRepository.countByMemberIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any(), any()))
                 .willReturn(1L);
-        given(postRepository.findAllByMemberId(1L)).willReturn(List.of(first, second));
+        given(postRepository.findMyPosts(any(), any(), any()))
+                .willReturn(new PageImpl<>(List.of(first, second), PageRequest.of(0, 5), 2));
         given(postRepository.findMyRecentPosts(any(), any())).willReturn(List.of(recent));
 
         assertThat(postService.search("S")).extracting(PostListResponse::getTitle).containsExactly("Spring");
         assertThat(postService.countTodayPosts()).isEqualTo(3L);
-        assertThat(postService.myPostCount(1L)).isEqualTo(2L);
+        assertThat(postService.countMyPosts(1L)).isEqualTo(2L);
+        assertThat(postService.countMyPostViews(1L)).isEqualTo(7L);
         assertThat(postService.myTodayPostsCount(1L)).isEqualTo(1L);
-        assertThat(postService.myPosts(1L)).extracting(PostListResponse::getTitle)
+        assertThat(postService.getMyPosts(1L, PageRequestDto.builder().page(1).size(5).keyword("post").build())
+                .getDtoList()).extracting(PostListResponse::getTitle)
                 .containsExactly("Spring", "JPA");
         assertThat(postService.getRecentPosts(1L)).extracting(PostRecent::getTitle).containsExactly("JPA");
-        assertThatThrownBy(() -> postService.myPostCount(null))
+        assertThatThrownBy(() -> postService.countMyPosts(null))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+        assertThatThrownBy(() -> postService.countMyPostViews(null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }

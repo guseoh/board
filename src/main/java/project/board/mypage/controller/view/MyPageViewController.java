@@ -63,14 +63,15 @@ public class MyPageViewController {
                               Model model,
                               @AuthenticationPrincipal UnifiedPrincipal user) {
 
-        var page = postService.getPosts(pageRequestDto);
+        Long memberId = user.getMemberId();
+        var page = postService.getMyPosts(memberId, pageRequestDto);
 
-        model.addAttribute("myPostCount", postService.countMyPosts(user.getMemberId()));
+        model.addAttribute("myPostCount", postService.countMyPosts(memberId));
 
-        model.addAttribute("todayMyPostCount", postService.countTodayPosts());
-        model.addAttribute("myPostViewCount", postService.myTodayPostsCount(user.getMemberId()));
+        model.addAttribute("todayMyPostCount", postService.myTodayPostsCount(memberId));
+        model.addAttribute("myPostViewCount", postService.countMyPostViews(memberId));
 
-        model.addAttribute("posts", postService.getMyPosts(user.getMemberId()));
+        model.addAttribute("posts", page.getDtoList());
         model.addAttribute("page", page);
         model.addAttribute("keyword", pageRequestDto.getKeyword());
 

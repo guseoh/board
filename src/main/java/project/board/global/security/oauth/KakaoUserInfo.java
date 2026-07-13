@@ -24,7 +24,7 @@ public class KakaoUserInfo implements OAuthUserInfo{
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
 
         if (kakaoAccount == null || kakaoAccount.get("email") == null) {
-            return getProvider() + "_" + getProviderId() + "oauth.lcoal";
+            return getProvider() + "_" + getProviderId() + "@oauth.local";
         }
 
         return kakaoAccount.get("email").toString();
