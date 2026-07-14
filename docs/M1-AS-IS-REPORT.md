@@ -1,146 +1,236 @@
 # M1 As-Is 조사 보고서
 
-> 기준: 로컬 `recover` / `d333e3868e5bb94073030780ce0910a65b3ef4d8` / 조사일 2026-07-13 (Asia/Seoul)
+> 현재 기준: `develop` / `63d3132eba49d60a1dc1f10ae1574e5cadb325f3` / 갱신일 2026-07-14 (Asia/Seoul)
 
 ## 작업 기준
 
-| 항목 | 확인 결과 |
-| --- | --- |
-| 저장소 | `guseoh/board`, `C:\Users\guseo\IdeaProjects\board` |
-| 기준 브랜치 | `recover` |
-| 기준 HEAD | `d333e3868e5bb94073030780ce0910a65b3ef4d8` (`docs: M0 프로젝트 복구 결과 보고서 작성`) |
-| upstream | `origin/recover`, 기준 HEAD와 일치 |
-| `origin/develop...recover` | develop 고유 0 / recover 고유 5 |
-| 최초 M1 조사 HEAD | `31326e715d39d2a4af9153fb4ccbcf72dc4fb229` |
-| 동기화 | M1 문서를 stash로 보관하고 `pull --ff-only`로 원격 5개 M0 커밋 반영 후 재검토 |
+| 항목               | 확인 결과                                                                     |
+| ---------------- | ------------------------------------------------------------------------- |
+| 저장소              | `guseoh/board`, `C:\Users\guseo\IdeaProjects\board`                       |
+| 현재 기준 브랜치        | `develop`                                                                 |
+| 현재 기준 HEAD       | `63d3132eba49d60a1dc1f10ae1574e5cadb325f3` (`Merge pull request #97`)     |
+| M1 작업 브랜치        | `recover`                                                                 |
+| M1 문서 작성 기준 HEAD | `d333e3868e5bb94073030780ce0910a65b3ef4d8` (`docs: M0 프로젝트 복구 결과 보고서 작성`) |
+| 최초 M1 조사 HEAD    | `31326e715d39d2a4af9153fb4ccbcf72dc4fb229`                                |
+| 동기화              | M1 문서를 stash로 보관하고 `pull --ff-only`로 원격 M0 복구 커밋 5개를 반영한 뒤 재검토            |
+| 통합 결과            | PR #97 `[M0-M1] 프로젝트 복구 및 As-Is 문서화`를 `recover → develop`으로 병합            |
+| `master` 반영 상태   | 미반영. M1 릴리스 검증 후 `develop → master` PR 필요                                 |
 
-반영된 M0 커밋은 회원가입/OAuth 오류 수정, 마이페이지 조회·통계 수정, 테스트 복구, CI·Docker 검증 복구와 M0 보고서다. M1 본문은 동기화 후 코드와 57개 테스트를 기준으로 갱신했다.
+반영된 M0 커밋은 회원가입·OAuth 오류 처리, 마이페이지 조회·통계, 테스트 코드, CI·Docker 검증과 M0 보고서를 복구한다. M1 문서는 동기화된 코드와 57개 테스트를 기준으로 작성했으며, PR #97을 통해 `develop`에 통합했다.
+
+현재 M0 복구 코드와 M1 문서는 `develop`의 기준선이다. 안정·배포 기준 브랜치인 `master`에는 아직 반영되지 않았다.
 
 ## 조사 범위
 
-- 빌드/설정: `build.gradle`, settings, Gradle Wrapper, 공통 properties, Logback, P6Spy
-- main code: `member`, `post`, `comment`, `mypage`, `admin`, `global` Java 파일
-- 요청 흐름: View Controller, 빈 API 클래스, local test Controller, DTO/Validation, Service, Repository, Entity
-- 인증: filter chain, form/OAuth2 login, logout, `UnifiedPrincipal`, user services, success handler, provider adapters
-- 화면: 16개 Thymeleaf template의 form/action/security 표현식과 `static/css/app.css`
-- 테스트: 12개 테스트 클래스, 57개 test method와 test topology
-- 운영: Actions workflow, Dockerfile, 두 Compose, Actuator, Discord notifier, monitor script
-- 기존 문서: API, ERD, REQUIREMENTS, FUTURE_FEATURES, DBML과 `M0-RECOVERY-REPORT.md`
+* 빌드·설정: `build.gradle`, settings, Gradle Wrapper, 공통 properties, Logback, P6Spy
+* main code: `member`, `post`, `comment`, `mypage`, `admin`, `global` Java 파일
+* 요청 흐름: View Controller, 빈 API 클래스, local test Controller, DTO·Validation, Service, Repository, Entity
+* 인증: Security Filter Chain, form/OAuth2 login, logout, `UnifiedPrincipal`, user services, success handler, provider adapters
+* 화면: 16개 Thymeleaf template의 form/action/security 표현식과 `static/css/app.css`
+* 테스트: 12개 테스트 클래스, 57개 test method와 테스트 구성
+* 운영: GitHub Actions workflow, Dockerfile, 두 Compose 파일, Actuator, Discord notifier, monitor script
+* 기존 문서: API, ERD, REQUIREMENTS, FUTURE_FEATURES, DBML과 `M0-RECOVERY-REPORT.md`
 
 ## 현재 시스템 요약
 
-Java 17/Spring Boot 4.0.1 기반 Session 인증 SSR 게시판이다. Browser → Security Filter Chain → View Controller → Service → JPA Repository → MySQL 흐름으로 동작하고 Thymeleaf HTML 또는 Redirect를 반환한다. 게시글·댓글·회원·관리자·마이페이지 기능과 Google/Naver/Kakao OAuth2 login이 있다. 활성 JSON REST API는 없다.
+현재 시스템은 Java 17과 Spring Boot 4.0.1 기반의 Session 인증 SSR 게시판이다.
 
-M0에서 `/my/posts`가 회원·검색·page 조건을 같은 Repository query에 적용하도록 복구됐고, 회원별 오늘 글 수와 누적 조회수도 올바른 Service 결과를 사용한다. 회원가입 정책 오류는 nickname/email만 보존하고 password는 재표시하지 않으며, Kakao email 미제공 시 `kakao_{id}@oauth.local`을 사용한다.
+요청은 다음 흐름으로 처리된다.
+
+```text
+Browser
+→ Spring Security Filter Chain
+→ View Controller
+→ Service
+→ JPA Repository
+→ MySQL
+→ Thymeleaf HTML 또는 Redirect
+```
+
+게시글, 댓글·대댓글, 회원, 관리자, 마이페이지 기능과 Google·Naver·Kakao OAuth2 login이 구현돼 있다. 현재 활성화된 JSON REST API는 없다.
+
+M0에서 `/my/posts`가 회원, 검색어와 페이지 조건을 하나의 Repository query에 적용하도록 복구됐다. 회원별 오늘 작성 글 수와 누적 조회수도 올바른 Service 결과를 사용한다.
+
+회원가입 정책 오류가 발생하면 nickname과 email만 복원하고 password는 다시 노출하지 않는다. Kakao에서 email을 제공하지 않으면 `kakao_{id}@oauth.local` 형식의 대체 이메일을 사용한다.
 
 ## 생성·수정한 문서
 
-| 구분 | 문서 |
-| --- | --- |
+| 구분 | 문서                                                                                                                                              |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | 생성 | `README.md`, `PROJECT-OVERVIEW.md`, `ARCHITECTURE.md`, `PACKAGE-STRUCTURE.md`, `SECURITY.md`, `TESTING-AND-OPERATIONS.md`, `M1-AS-IS-REPORT.md` |
-| 갱신 | `REQUIREMENTS.md`, `API.md`, `ERD.md`, `FUTURE_FEATURES.md` |
-| 제거 | `erd/board.dbml` (M1에서 금지된 DBML legacy artifact) |
-| 유지 | `M0-RECOVERY-REPORT.md` (M0 실행 이력이며 명백한 사실 오류가 없어 미수정) |
+| 갱신 | `REQUIREMENTS.md`, `API.md`, `ERD.md`, `FUTURE_FEATURES.md`                                                                                     |
+| 제거 | `erd/board.dbml` — M1 범위에서 제외된 DBML legacy artifact                                                                                             |
+| 유지 | `M0-RECOVERY-REPORT.md` — M0 실행 이력이며 명백한 사실 오류가 없어 미수정                                                                                          |
 
 ## 기존 문서와 코드의 불일치
 
-- 기존 API/요구사항 문서는 `PostController`, `MemberController`, `MyController`, `AdminController`를 현재 이름처럼 사용했지만 실제 이름은 `PostViewController`, `MemberViewController`, `MyPageViewController`, `AdminViewController`다.
-- 기존 요구사항 ID는 인증과 마이페이지 체계가 현재 요청의 `REQ-AUTH-*`, `REQ-MYPAGE-*`, `REQ-OBSERVABILITY-*`와 달랐다.
-- 기존 ERD 문서는 Mermaid, DBML과 미래 Entity 확장안을 포함했다.
-- 기존 FUTURE_FEATURES는 좋아요·첨부·신고·카테고리 등의 상세 설계를 승인된 현재 기능과 섞었다.
-- M1 최초 초안은 M0 전 코드의 테스트 컴파일 실패와 마이페이지 오류를 기록했으나, fast-forward 후 실제 복구 상태와 성공 검증으로 갱신했다.
+* 기존 API·요구사항 문서는 `PostController`, `MemberController`, `MyController`, `AdminController`를 현재 클래스명처럼 사용했지만 실제 이름은 `PostViewController`, `MemberViewController`, `MyPageViewController`, `AdminViewController`다.
+* 기존 요구사항 ID는 인증과 마이페이지 체계가 현재 문서의 `REQ-AUTH-*`, `REQ-MYPAGE-*`, `REQ-OBSERVABILITY-*`와 달랐다.
+* 기존 ERD 문서는 Mermaid, DBML과 미래 Entity 확장안을 현재 구조와 함께 포함했다.
+* 기존 `FUTURE_FEATURES.md`는 좋아요, 첨부, 신고, 카테고리 등의 미래 설계를 현재 승인 기능과 혼합했다.
+* 최초 M1 초안은 M0 이전 코드의 테스트 컴파일 실패와 마이페이지 오류를 기록했으나, 원격 M0 복구 커밋 반영 후 실제 복구 상태와 성공 검증으로 갱신했다.
 
 ## 패키지와 아키텍처 특징
 
-- 기능별 package 안에 Controller/DTO/Service/Repository/Entity를 배치하고 `global`이 횡단 관심사를 담당한다.
-- `mypage`와 `admin`은 자체 Service 없이 다른 기능 Service를 조합한다.
-- Service가 기능 경계를 넘어 다른 package Repository를 직접 참조해 삭제·상세 DTO 조립을 수행한다.
-- `MemberService`, `PostService`는 read-only 기본 + 쓰기 override이고 `CommentService`는 읽기까지 전체 read-write transaction이다.
-- Post 수정, Member/Comment 수정과 role 변경은 변경 감지를 사용한다.
-- 조회수는 JPQL bulk update, 삭제는 cascade 대신 명시적 bulk delete 순서를 사용한다.
+* 기능별 package 안에 Controller, DTO, Service, Repository와 Entity를 배치하고 `global`이 횡단 관심사를 담당한다.
+* `mypage`와 `admin`은 자체 Service 없이 회원, 게시글과 댓글 Service를 조합한다.
+* 일부 Service는 다른 기능 package의 Repository를 직접 참조해 삭제 흐름이나 상세 DTO 조립을 수행한다.
+* `MemberService`, `PostService`는 read-only 트랜잭션을 기본으로 적용하고 쓰기 메서드에서 별도로 트랜잭션을 연다.
+* `CommentService`는 조회 메서드를 포함해 클래스 전체가 read-write 트랜잭션이다.
+* 게시글, 회원, 댓글 수정과 권한 변경은 JPA 변경 감지를 사용한다.
+* 조회수 증가는 JPQL bulk update를 사용한다.
+* 연관 Entity 삭제는 cascade보다 명시적인 bulk delete 순서에 의존한다.
 
 ## 확인된 기술 부채
 
 ### Naming과 패키지
 
-- `PostRecent`가 request package에 있고 사용되지 않는 `MemberUpdateRequest`, `MemberResponse`, 빈 `PostApiController`가 있다.
-- `EditForm`, `MemberRemovalPolicy` 메서드가 lowerCamelCase 관례와 맞지 않는다.
-- `MemberViewController`가 사용하지 않는 Post/Comment Service를 주입한다.
+* `PostRecent`가 request package에 위치한다.
+* 사용되지 않는 `MemberUpdateRequest`, `MemberResponse`와 빈 `PostApiController`가 존재한다.
+* `EditForm`, `MemberRemovalPolicy` 메서드는 Java lowerCamelCase 관례와 맞지 않는다.
+* `MemberViewController`가 사용하지 않는 Post·Comment Service를 주입한다.
 
 ### Validation과 기능 계약
 
-- 회원가입 email에 `@NotBlank`가 없고 nickname update는 null을 허용한다.
-- DTO title/content/comment에 Entity column length 500 제한이 없다.
-- 탈퇴 확인 문구는 서버가 검증하지 않는다.
-- Admin role 문자열을 enum allow-list DTO 없이 직접 변환한다.
-- 가입 오류 입력 복원은 Advice가 request/model을 직접 읽는 View 전용 로직이다.
+* 회원가입 email 필드에 `@NotBlank`가 없다.
+* nickname 수정 요청이 null을 허용한다.
+* 게시글 title·content와 댓글 content DTO에 Entity의 500자 제한이 반영되지 않았다.
+* 회원 탈퇴 확인 문구를 서버에서 검증하지 않는다.
+* 관리자 Role 변경 요청은 허용된 Enum 값만 받는 DTO 없이 문자열을 직접 변환한다.
+* 회원가입 오류 입력 복원은 Controller Advice가 request와 model을 직접 읽는 View 전용 로직이다.
 
 ### Security
 
-- SOCIAL password 변경 제한이 View에만 있고 Service에 없다.
-- Post edit GET은 permitAll이고 소유권 검증도 없다.
-- Actuator 상세 health/metrics/mappings와 local test route가 공개된다.
-- Google/Naver OAuth 필수 attribute null 처리와 LOCAL/SOCIAL email 연결 정책이 없다.
-- login `redirect` parameter가 success handler에서 무시된다.
+* SOCIAL 회원의 비밀번호 변경 제한이 View에만 있고 Service에서 강제되지 않는다.
+* 게시글 수정 화면 GET 요청은 Security 설정상 공개되며 작성자 소유권 검증도 수행하지 않는다.
+* Actuator의 상세 health, metrics, mappings와 local test route가 공개될 수 있다.
+* Google·Naver OAuth 필수 attribute의 null 처리 정책이 충분하지 않다.
+* 동일 이메일을 사용하는 LOCAL·SOCIAL 계정 연결 정책이 없다.
+* 로그인 form의 `redirect` parameter를 success handler가 사용하지 않는다.
 
 ### JPA와 삭제
 
-- Entity cascade/orphanRemoval이 없고 회원 삭제는 bulk query 순서에 의존한다.
-- self-reference 댓글 자식/부모 삭제 순서를 보장하는 코드와 테스트가 없다.
-- bulk delete는 persistence context auto-clear가 없다.
-- nickname 및 `(provider,providerId)` DB unique가 없다.
-- `ddl-auto=update`이고 migration 파일이 없다.
+* Entity에 cascade와 orphanRemoval이 없으며 회원 삭제는 bulk query 실행 순서에 의존한다.
+* 자기참조 댓글의 자식·부모 삭제 순서를 보장하는 코드와 테스트가 없다.
+* bulk delete 이후 영속성 컨텍스트를 자동으로 비우지 않는다.
+* nickname과 `(provider, providerId)`에 DB unique 제약이 없다.
+* `ddl-auto=update`를 사용하고 있으며 migration 파일이 없다.
 
 ### Pagination과 조회
 
-- 전체 게시글 제목 검색은 pagination하지 않는다.
-- `PageRequestDto`의 page/size 범위 Validation이 없다.
-- 빈 페이지에서 `PageResultDto.pageList` 표현은 별도 경계 검증이 필요하다.
-- 검색과 상세 DTO 변환의 LAZY association query 수를 측정·보장하는 테스트가 없다.
+* 전체 게시글 제목 검색은 pagination을 사용하지 않는다.
+* `PageRequestDto`의 page와 size 범위 Validation이 없다.
+* 빈 결과 페이지에서 `PageResultDto.pageList`가 올바르게 표현되는지 경계 검증이 필요하다.
+* 검색과 상세 DTO 변환 과정의 LAZY association query 수를 측정하거나 보장하는 테스트가 없다.
 
 ### 테스트와 배포
 
-- MVC slice는 filter를 제외하므로 별도 Security 통합 테스트와 함께 보아야 한다.
-- CI는 test 후 bootJar를 만들지만 artifact를 EC2에 전달하지 않고 EC2가 source를 다시 pull/build한다.
-- 배포 health check는 Actuator가 아닌 root HEAD이며 rollback/무중단 절차가 없다.
-- Docker 실행 stage도 JRE가 아닌 JDK image다.
+* MVC slice 테스트는 Security Filter를 제외하므로 별도 Security 통합 테스트와 함께 해석해야 한다.
+* CI는 테스트 후 Boot JAR를 생성하지만 해당 artifact를 EC2에 전달하지 않는다.
+* EC2는 배포 시 source를 다시 pull하고 `clean build`를 실행한다.
+* 배포 health check는 Actuator가 아니라 root 경로의 HEAD 요청을 사용한다.
+* rollback과 무중단 배포 절차가 없다.
+* Docker 실행 stage도 JRE가 아닌 JDK image를 사용한다.
 
 ## 현재 기능상 제한
 
-- 활성 JSON REST API 없음.
-- 한 단계 대댓글만 허용하며 정렬·삭제 제약에 명시적 DB 정책 없음.
-- 관리자 목록 pagination, 자기 삭제/최후 ADMIN 보호 없음.
-- profile별 datasource/OAuth 설정이 Git 추적 파일에 없어 저장소 단독 실행 계약이 완결되지 않음.
-- SOCIAL 비밀번호 정책과 회원 탈퇴 확인이 서버에서 완전히 강제되지 않음.
+* 활성 JSON REST API가 없다.
+* 대댓글은 한 단계만 허용한다.
+* 대댓글 정렬과 삭제 제약에 명시적인 DB 정책이 없다.
+* 관리자 회원·게시글 목록에 pagination이 없다.
+* 관리자의 자기 계정 삭제와 최후 ADMIN 보호 정책이 없다.
+* profile별 datasource와 OAuth 설정이 Git 추적 파일에 포함되지 않아 저장소 단독 실행 계약이 완결되지 않았다.
+* SOCIAL 비밀번호 정책과 회원 탈퇴 확인이 서버에서 완전히 강제되지 않는다.
 
 ## 테스트와 문서 검증
 
-| 검증 | 결과 |
-| --- | --- |
-| `.\gradlew.bat clean test` (M0 코드 단독) | 성공, 57개 테스트 |
-| `.\gradlew.bat clean build` (M0 코드 단독) | 성공, test/check 및 Boot JAR 생성 |
-| View Controller/Mapping 검색 | 다섯 View Controller와 local test route 확인 |
-| Entity annotation 검색 | Member/Post/Comment/BaseEntity와 네 관계 확인 |
-| 문서 class/method/URI 교차 검색 | 현재 공개 이름과 대조 |
-| `git diff --check` | whitespace 오류 없음; LF→CRLF 경고만 허용 |
+| 검증                          | 결과                                              |
+| --------------------------- | ----------------------------------------------- |
+| `.\gradlew.bat clean test`  | 성공, 57개 테스트                                     |
+| `.\gradlew.bat clean build` | 성공, 57개 테스트와 Boot JAR 생성                        |
+| View Controller·Mapping 검색  | 다섯 View Controller와 local test route 확인         |
+| Entity annotation 검색        | Member, Post, Comment, BaseEntity와 네 개의 연관관계 확인 |
+| 문서 class·method·URI 교차 검색   | 현재 공개 클래스명과 Mapping을 코드와 대조                     |
+| `git diff --check`          | whitespace 오류 없음. LF→CRLF 경고만 확인                |
+| PR #97                      | `recover → develop` merge commit 방식으로 병합 완료     |
 
-문서 최종 수정 후에도 `clean test`, `clean build`, `git diff --check`를 다시 실행해 커밋 전 결과를 확정한다.
+M0 복구 코드와 M1 문서에 대한 정적 검증, 테스트와 빌드는 완료됐다.
 
-## 실행하지 못한 검증
+## 런타임·외부 환경 검증
 
-- `bootRun`/실제 MySQL: M0 실행에서 local MySQL 연결 거부가 기록됐고 이번 M1에서는 DB를 임의 구성하지 않았다.
-- 실제 Google/Naver/Kakao login: 외부 provider와 비밀값 필요.
-- 실제 Discord Webhook: 외부 전송과 secret 필요.
-- EC2 deploy/Docker image 실행: 배포 환경과 별도 실행 시간이 필요.
-- 운영 MySQL 실행계획/대용량 성능: H2 기반 테스트 범위 밖이다.
+### 로컬 MySQL과 `bootRun`
+
+로컬 MySQL과 Docker를 함께 실행할 때 개발 장비의 리소스 부담이 예상돼 사용자 승인에 따라 실제 실행을 생략했다.
+
+이 항목은 실제 실행 성공을 의미하지 않는다. 다만 사용자 승인에 따라 M1 릴리스 차단 조건에서는 통과로 간주하며, 실제 런타임 검증은 `master` 병합 후 EC2 배포와 Health Check로 대체한다.
+
+### 외부 연동
+
+다음 검증은 외부 계정이나 Secret이 필요해 실행하지 않았다.
+
+* Google·Naver·Kakao 실제 OAuth2 login
+* 실제 Discord Webhook 전송
+
+해당 설정이 준비되지 않은 경우 M1 완료를 막는 필수 조건으로 취급하지 않는다.
+
+### 배포와 운영 환경
+
+다음 항목은 아직 완료되지 않았다.
+
+* `develop → master` Pull Request
+* master 대상 GitHub Actions
+* EC2 배포
+* 배포 후 애플리케이션 Health Check
+* 외부 서비스 기본 화면 확인
+* Docker image 직접 실행
+* 운영 MySQL 실행계획과 대용량 성능 검증
+
+Docker image 직접 실행과 운영 MySQL 성능 검증은 각각 운영 개선 단계와 M4 성능 검증 단계로 이관할 수 있다.
+
+## M1 완료 조건
+
+M1 문서화와 코드 기준선 통합은 완료됐지만, 마일스톤을 최종 완료하려면 다음 작업이 남아 있다.
+
+```text
+develop → master Pull Request 생성
+→ master 대상 GitHub Actions 성공
+→ merge commit 방식으로 master 병합
+→ master Push 배포 Job 성공
+→ EC2 애플리케이션 Health Check 성공
+→ 외부 서비스 기본 응답 확인
+```
+
+다음 조건을 만족하면 M1을 완료 처리한다.
+
+* M0 복구 코드와 M1 문서가 `master`에 반영됨
+* master 대상 테스트와 Boot JAR 빌드 성공
+* EC2 배포 Job 성공
+* 배포된 애플리케이션 Health Check 성공
+* 실행하지 못한 OAuth와 Discord 검증이 보고서에 명확히 기록됨
 
 ## 후속 단계 이관
 
-1. 남은 Validation/Security/JPA/Pagination 부채를 현재 코드 품질 단계에서 정리한다.
-2. profile별 설정 계약, secret 외부화·회전과 CI artifact/health/rollback 전략을 명시한다.
-3. 현재 SSR 기능을 안정화한 뒤 M2 REST 계약을 별도로 설계한다.
-4. React와 풋살 도메인은 로드맵 순서까지 보류한다.
+1. M1 릴리스 검증을 수행하고 `develop → master` PR과 배포를 완료한다.
+2. Validation과 Security 계약을 기존 SSR 동작을 유지하는 범위에서 우선 정리한다.
+3. JPA 삭제 무결성과 Pagination·검색 계약을 독립된 작업으로 정리한다.
+4. profile별 설정 계약과 Secret 외부화·회전 정책을 명시한다.
+5. CI artifact 전달, Actuator Health Check와 rollback 전략을 순차적으로 개선한다.
+6. 현재 SSR 기능과 서버 계약을 안정화한 뒤 M2 REST API 계약을 별도로 설계한다.
+7. React 전환과 풋살 도메인 설계는 로드맵 순서까지 보류한다.
 
-## 문서 커밋 직전 Git 범위
+## 현재 Git 상태와 기준선
 
-변경은 `docs/**`에만 한정한다. Java, 테스트, View, Gradle, Dockerfile과 `.github`의 M0 변경은 이미 `d333e38`에 포함된 기준 코드이며 M1 문서 커밋에서 다시 수정하지 않는다. M1 문서 11개를 생성·갱신하고 legacy `docs/erd/board.dbml`만 제거한다.
+M0 복구와 M1 문서 변경은 PR #97을 통해 `develop`에 병합됐다.
+
+현재 기준은 다음과 같다.
+
+```text
+master
+└── develop
+    └── M0 프로젝트 복구
+    └── M1 As-Is 문서화
+```
+
+`develop`은 현재 `master`보다 앞서 있으며, 다음 작업은 M1 릴리스 검증 후 `develop → master` PR을 생성하는 것이다.
+
+`recover` 브랜치는 `master` 반영과 배포 검증이 끝날 때까지 유지할 수 있다. M1이 완료되면 로컬과 원격 `recover` 브랜치를 정리한다.
