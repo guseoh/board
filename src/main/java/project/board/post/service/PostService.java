@@ -62,6 +62,13 @@ public class PostService {
         return PostDetailResponse.from(post, comments);
     }
 
+    public PostDetailResponse getPostForEdit(Long postId, Long memberId) {
+        Post post = getPost(postId);
+        validateWriter(post, memberId);
+
+        return PostDetailResponse.from(post, List.of());
+    }
+
     public PageResultDto<PostListResponse, Post> getPosts(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
 

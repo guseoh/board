@@ -30,4 +30,10 @@ public class MemberPasswordUpdateRequest {
     )
     @NotBlank(message = "비밀번호 입력은 필수입니다.")
     private String newPasswordConfirm;
+
+    public void clearSensitiveValues() {
+        currentPassword = null;
+        newPassword = null;
+        newPasswordConfirm = null;
+    }
 }

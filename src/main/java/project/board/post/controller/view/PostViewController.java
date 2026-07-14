@@ -34,7 +34,7 @@ public class PostViewController {
     private final CommentService commentService;
 
     @GetMapping({"", "/"})
-    public String list(PageRequestDto request, Model model,
+    public String list(@Valid PageRequestDto request, Model model,
                        @AuthenticationPrincipal UnifiedPrincipal user) {
 
         var page = postService.getPosts(request);
@@ -170,9 +170,10 @@ public class PostViewController {
 
     @GetMapping("/post/{id}/edit")
     public String editForm(@PathVariable Long id,
+                           @AuthenticationPrincipal UnifiedPrincipal user,
                            Model model) {
 
-        PostDetailResponse post = postService.getPostDetail(id);
+        PostDetailResponse post = postService.getPostForEdit(id, user.getMemberId());
 
         model.addAttribute("mode", "edit");
         model.addAttribute("form", PostRequest.from(post));

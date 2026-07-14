@@ -67,10 +67,10 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeMemberRole(String role, Long memberId) {
+    public void changeMemberRole(Role role, Long memberId) {
         Member member = validateMember(memberId);
 
-        member.changeRole(Role.valueOf(role));
+        member.changeRole(role);
     }
 
     @Transactional
@@ -81,7 +81,11 @@ public class MemberService {
     }
 
     @Transactional
-    public void withdraw(Long memberId) {
+    public void withdraw(Long memberId, String confirmText) {
+        if (!"회원탈퇴".equals(confirmText)) {
+            throw new CustomException(ErrorCode.WITHDRAW_CONFIRM_MISMATCH);
+        }
+
         validateMember(memberId);
 
         // 회원이 작성한 댓글
@@ -103,6 +107,10 @@ public class MemberService {
     public void updatePassword(Long memberId, MemberPasswordUpdateRequest request) {
 
         Member member = validateMember(memberId);
+
+        if (member.getLoginType() == LoginType.SOCIAL) {
+            throw new CustomException(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED);
+        }
 
         if (StringUtils.hasText(request.getNewPassword())) {
             // 현재 비밀번호 입력하지 않은 경우

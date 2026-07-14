@@ -137,6 +137,19 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("게시글 수정 화면 데이터는 작성자에게만 제공한다")
+    void editFormOwnerOnly() {
+        Member writer = member(1L);
+        Post post = post(10L, "title", "content", writer);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        assertThat(postService.getPostForEdit(10L, 1L).getTitle()).isEqualTo("title");
+        assertThatThrownBy(() -> postService.getPostForEdit(10L, 2L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+    }
+
+    @Test
     @DisplayName("댓글 삭제 후 작성자만 게시글을 삭제할 수 있다")
     void deleteOwner() {
         Member writer = member(1L);

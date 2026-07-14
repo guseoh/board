@@ -22,7 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static project.board.testsupport.TestFixtures.principal;
 
-@SpringBootTest(properties = "spring.thymeleaf.enabled=false")
+@SpringBootTest(properties = {
+        "spring.thymeleaf.enabled=false",
+        "management.endpoints.web.exposure.include=health,info,metrics,mappings"
+})
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class SecurityConfigTest {
@@ -38,6 +41,10 @@ class SecurityConfigTest {
                 .andExpect(redirectedUrl("/loginForm"));
 
         mockMvc.perform(post("/post/new").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/post/1/edit"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/loginForm"));
     }
@@ -60,6 +67,32 @@ class SecurityConfigTest {
                         .param("title", "title")
                         .param("content", "content"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("health만 익명 공개하고 상세 Actuator는 관리자에게만 허용한다")
+    void actuatorAccessControl() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/actuator/metrics"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/actuator/mappings")
+                        .with(authentication(authToken(Role.USER))))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/actuator/metrics")
+                        .with(authentication(authToken(Role.ADMIN))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("local 테스트 route는 test profile에 등록되지 않는다")
+    void localTestRouteIsNotRegistered() throws Exception {
+        mockMvc.perform(get("/test/discord-error"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

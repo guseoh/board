@@ -127,6 +127,11 @@ class MemberServiceTest {
         MemberUpdateResponse profile = memberService.getMyProfile(2L);
 
         assertThat(profile.isPasswordChangeable()).isFalse();
+        assertThatThrownBy(() -> memberService.updatePassword(
+                2L, passwordRequest("current1", "newpass1", "newpass1")))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED.getMessage());
+        verify(passwordEncoder, never()).matches(any(), any());
     }
 
     @Test
@@ -184,10 +189,10 @@ class MemberServiceTest {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        memberService.changeMemberRole("ADMIN", 1L);
+        memberService.changeMemberRole(Role.ADMIN, 1L);
 
         assertThat(member.getRole()).isEqualTo(Role.ADMIN);
-        assertThatThrownBy(() -> memberService.changeMemberRole("ADMIN", 99L))
+        assertThatThrownBy(() -> memberService.changeMemberRole(Role.ADMIN, 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -198,13 +203,24 @@ class MemberServiceTest {
         Member member = member(1L);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
-        memberService.withdraw(1L);
+        memberService.withdraw(1L, "회원탈퇴");
         memberService.deleteMemberByAdmin(1L);
 
         verify(commentRepository, times(2)).deleteAllByMemberId(1L);
         verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);
         verify(postRepository, times(2)).deleteAllByMemberId(1L);
         verify(memberRepository, times(2)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 확인 문구가 다르면 삭제를 시작하지 않는다")
+    void withdrawConfirmationRequired() {
+        assertThatThrownBy(() -> memberService.withdraw(1L, "탈퇴"))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.WITHDRAW_CONFIRM_MISMATCH.getMessage());
+
+        verify(memberRepository, never()).findById(any());
+        verify(memberRepository, never()).deleteById(any());
     }
 
     @Test
