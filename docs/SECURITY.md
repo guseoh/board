@@ -1,6 +1,6 @@
 # 현재 Security 구조
 
-> 기준: 로컬 `recover` / `d333e3868e5bb94073030780ce0910a65b3ef4d8` / 2026-07-13
+> 기준: `refactor/pre-m2-quality-baseline` / 2026-07-14
 
 ## 인증 모델
 
@@ -16,7 +16,10 @@ Spring Security의 서버 Session 인증을 사용한다. JWT나 API token은 �
 | --- | --- |
 | `/`, `/login`, `/loginForm`, `/signup`, 정적 자원, `/error` | permitAll |
 | `/oauth2/**`, `/login/oauth2/**` | permitAll |
+| `/actuator/health` | permitAll |
+| `/actuator/**` | `hasRole("ADMIN")` |
 | `/admin/**` | `hasRole("ADMIN")` |
+| `GET /post/*/edit` | authenticated |
 | `POST /post/**` | authenticated |
 | `/my/**` | authenticated |
 | 그 외 | permitAll |
@@ -29,13 +32,16 @@ Spring Security의 서버 Session 인증을 사용한다. JWT나 API token은 �
 | --- | ---: | ---: | ---: |
 | `/`, 게시글 목록·검색·상세 | 허용 | 허용 | 허용 |
 | `/signup`, `/loginForm`, OAuth2 시작 | 허용 | 허용 | 허용 |
-| `GET /post/new`, `GET /post/{id}/edit` | 허용 | 허용 | 허용 |
+| `GET /post/new` | 허용 | 허용 | 허용 |
+| `GET /post/{id}/edit` | 로그인 이동 | 작성자만 허용 | 작성자인 경우 허용 |
 | `POST /post/**` (작성·수정·삭제·댓글) | 로그인 이동 | 허용(소유권은 Service) | 허용(소유권은 동일 적용) |
 | `/my/**` | 로그인 이동 | 허용 | 허용 |
 | `/admin/**` | 로그인 이동 | 403 | 허용 |
-| Actuator와 local test route | 허용 | 허용 | 허용 |
+| `/actuator/health` | 허용 | 허용 | 허용 |
+| 그 외 노출된 Actuator | 로그인 이동 | 403 | 허용 |
+| local test route | local profile에서만 허용 | local profile에서만 허용 | local profile에서만 허용 |
 
-ADMIN도 일반 게시글/댓글 수정·삭제 시 작성자 검증을 우회하지 않는다. 관리자 전용 삭제 route를 사용해야 한다.
+ADMIN도 일반 게시글/댓글 수정·삭제 시 작성자 검증을 우회하지 않는다. GET 수정 화면과 POST 수정·삭제 모두 SecurityContext principal의 member ID를 Service가 Entity 작성자와 비교하며, 관리자는 관리자 전용 삭제 route를 사용해야 한다.
 
 ## form login
 
@@ -62,7 +68,7 @@ OAuth2 성공은 `defaultSuccessUrl("/")`이다. form login의 custom role redir
 | OAuth2 login | 계정 자동 연결 없음 | provider ID로 가능 |
 | nickname 변경 | 가능 | 가능 |
 | password 변경 화면 | 표시 | `passwordChangeable=false`로 숨김 |
-| password 변경 endpoint | 가능 | 서버에서 LoginType을 막지 않아 호출 가능 |
+| password 변경 endpoint | 가능 | Service에서 차단 |
 | 탈퇴 | 가능 | 가능 |
 
 ## CSRF, logout, 접근 거부
@@ -74,12 +80,11 @@ OAuth2 성공은 `defaultSuccessUrl("/")`이다. form login의 custom role redir
 
 ## 현재 보안 한계
 
-- Actuator의 health 상세, metrics, mappings가 `anyRequest().permitAll()` 아래 공개된다.
-- local `/test/discord-error`도 별도 권한이 없다.
-- 게시글 수정 form GET은 인증/소유권 검증 없이 공개된다.
-- 회원 탈퇴 확인 문구는 client-side에서만 검증된다.
-- SOCIAL password 변경 제한이 View에만 있다.
+- 공통 profile은 Actuator `health,info,metrics,mappings`를 노출하지만 health만 익명 허용하고 나머지는 ADMIN으로 제한한다. prod profile은 `health,info`만 노출하고 health detail을 숨긴다.
+- local `/test/discord-error`는 `@Profile("local")`에서만 등록된다. local 환경의 익명 접근은 의도된 개발용 동작이다.
+- 회원 탈퇴 확인 문구는 화면과 Service 양쪽에서 검증한다.
 - OAuth provider 데이터의 필수값/중복 정책이 충분히 명시되지 않았고 `(provider,providerId)` DB unique가 없다.
+- LOCAL/SOCIAL 동일 이메일 연결, provider별 계정 통합과 로그인 후 redirect parameter 처리는 제품 결정이 필요하다.
 - 조회수 cookie는 HttpOnly이지만 Secure/SameSite를 지정하지 않는다.
-- 관리자 role form 문자열은 allow-list 바인딩 DTO 없이 `Role.valueOf`로 처리된다.
-- health 상세 공개와 `ddl-auto=update`는 운영 프로필별 재검토가 필요하지만 현재 저장소에는 profile별 설정 파일이 없다.
+- 관리자 role form은 `Role` enum으로 직접 바인딩해 허용값을 제한한다. 자기 계정 삭제와 최후 ADMIN 보호 정책은 별도 제품 정책이다.
+- `ddl-auto=update`와 Secret 외부화·회전은 운영 정책으로 남아 있다.

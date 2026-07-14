@@ -1,10 +1,10 @@
 # 테스트 및 운영 구성
 
-> 기준: 로컬 `recover` / `d333e3868e5bb94073030780ce0910a65b3ef4d8` / 2026-07-13
+> 기준: `refactor/pre-m2-quality-baseline` / 2026-07-14
 
 ## 테스트 기술과 현재 수
 
-JUnit 5, AssertJ, Mockito, Spring Boot Test, MockMvc, Spring Security Test와 `@DataJpaTest`를 사용한다. `src/test/java`에는 12개 테스트 클래스와 57개 `@Test` 메서드가 있다. H2는 `testRuntimeOnly`이며 저장소에 `application-test.properties`는 없다. JPA slice는 내장 DB 자동 구성을 사용하고 `JpaConfig`를 import한다.
+JUnit 5, AssertJ, Mockito, Spring Boot Test, MockMvc, Spring Security Test와 `@DataJpaTest`를 사용한다. `src/test/java`에는 13개 테스트 클래스와 69개 `@Test` 메서드가 있다. H2는 `testRuntimeOnly`이며 `application-test.properties`가 test datasource와 외부 연동 비활성 값을 제공한다. JPA slice는 내장 DB 자동 구성을 사용하고 `JpaConfig`를 import한다.
 
 | 테스트 클래스 | 메서드 수 | 소스가 의도한 보장 범위 |
 | --- | ---: | --- |
@@ -12,14 +12,15 @@ JUnit 5, AssertJ, Mockito, Spring Boot Test, MockMvc, Spring Security Test와 `@
 | `EntityDomainTest` | 4 | Member 생성/변경, Post 검증·연결, Comment tree/변경 |
 | `MemberRepositoryTest` | 2 | email/중복 및 provider 조회 |
 | `PostRepositoryTest` | 3 | fetch 목록·검색, 내 글/count, 조회수 bulk update·회원 글 delete |
-| `CommentRepositoryTest` | 2 | bulk deletes, 내 댓글 통계·projection query |
-| `MemberServiceTest` | 9 | 가입 정책, 조회, profile, nickname/password, role, 삭제 순서, not found |
-| `PostServiceTest` | 9 | CRUD, 상세/list, 소유권, 관리자 삭제, 조회수, 검색·내 글 |
+| `CommentRepositoryTest` | 4 | 자기참조 답글 우선 bulk delete, 회원·게시글 삭제, 자동 clear, 내 댓글 query |
+| `MemberServiceTest` | 10 | 가입 정책, 조회, SOCIAL password 차단, role, 탈퇴 확인·삭제 순서, not found |
+| `PostServiceTest` | 11 | CRUD, 수정 화면 소유권, 삭제 순서, 조회수, 검색 pagination·범위 초과 page, 내 글 |
 | `CommentServiceTest` | 6 | 댓글/대댓글, parent/owner 규칙, 내 댓글 조회 |
-| `ControllerMvcTest` | 6 | 다섯 View Controller와 익명 댓글 분기 |
-| `ExceptionAndValidationTest` | 6 | CustomException, Advice, DTO/Bean Validation, 가입 오류의 비밀번호 제외 입력 보존 |
-| `SecurityConfigTest` | 4 | 익명 제한, ADMIN 권한, CSRF, 역할별 login redirect |
+| `ControllerMvcTest` | 7 | View Controller, 검색어·page 전달, 민감 입력 제거, 잘못된 page/role, 익명 댓글 분기 |
+| `ExceptionAndValidationTest` | 7 | CustomException, Advice, DTO 길이·필수값·page 범위, 가입 비밀번호 제외 입력 보존 |
+| `SecurityConfigTest` | 6 | 익명/ADMIN/CSRF, 수정 GET, Actuator 접근, local route profile, login redirect |
 | `OAuthTest` | 5 | provider 파싱, Kakao fallback, 신규/기존 OAuth 회원, Naver 오류 |
+| `PageResultDtoTest` | 3 | 빈 결과, 10개 미만 page 블록, 첫·마지막 page 블록 |
 
 ### Security filter와 외부 호출
 
@@ -29,15 +30,13 @@ JUnit 5, AssertJ, Mockito, Spring Boot Test, MockMvc, Spring Security Test와 `@
 
 ## 요구 명령 실행 결과
 
-원격 M0 복구 반영 후 2026-07-13에 다음 명령을 실행했다.
+PRE-M2 품질 개선 후 2026-07-14에 최종 검증으로 다음 명령을 실행했다.
 
 ```powershell
-.\gradlew.bat test
+.\gradlew.bat clean build
 ```
 
-결과: **성공**, 57개 테스트 실행. `compileTestJava`, H2 Repository query, context load, MVC, Security와 OAuth 테스트가 모두 완료됐다. 이어서 `.\gradlew.bat clean build`도 성공하여 test/check와 Boot JAR 생성을 확인했다.
-
-M0에서 테스트의 과거 이름을 `createComment`, `getMyCommentPage`, `countMyComment`, `createPost`, `getPostDetail`, `getPosts`, `getPostsForAdmin`, `countMyPosts`, `getMyPosts` 등 현재 공개 메서드명으로 복구했다. M1 문서 적용 후에도 같은 두 명령을 다시 실행해 성공 여부를 최종 확인한다.
+결과: **성공**, 69개 실행, 실패 0, error 0, skip 0. 실행 가능한 `board-0.0.1-SNAPSHOT.jar`와 plain JAR가 생성됐다.
 
 ## 로컬 실행
 
@@ -64,11 +63,12 @@ $env:SPRING_PROFILES_ACTIVE='local'
 .\gradlew.bat bootRun
 ```
 
-외부 설정이 준비된 뒤 `http://localhost:8080/actuator/health`에서 health를 확인한다. 공통 설정은 `health,info,metrics,mappings`를 노출하고 health detail을 항상 표시한다. 인증 제한이 없다는 점에 주의한다.
+외부 설정이 준비된 뒤 `http://localhost:8080/actuator/health`에서 health를 확인한다. 공통 설정은 `health,info,metrics,mappings`를 노출하지만 health만 익명 허용하고 나머지는 ADMIN으로 제한한다. `prod` profile은 `health,info`만 노출하고 health detail을 숨긴다.
 
 ## JPA, P6Spy와 로그
 
 - 공통 `ddl-auto=update`, `show-sql=false`.
+- 댓글과 회원 삭제는 cascade 대신 답글→부모 댓글→게시글→회원 명시 순서를 사용한다. 관련 bulk delete와 회원 게시글 bulk delete는 `clearAutomatically=true`로 실행 후 영속성 컨텍스트를 비운다. 조회수 bulk update는 기존의 자동 flush/clear를 유지한다.
 - P6Spy starter 2.0.0과 `P6SpyFormatter`; local Logback profile에서 `p6spy` INFO.
 - console, `logs/{app}.log`, error 전용 rolling file. 일반 로그는 30일/총 1GB, error는 60일/총 1GB 정책.
 - `JpaConfig` audit는 principal nickname 또는 `system`.
