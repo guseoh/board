@@ -79,7 +79,7 @@ class OAuthTest {
                 "kakao_account", Map.of("profile", Map.of("nickname", "Kakao User"))
         ));
 
-        assertThat(kakao.getEmail()).isEqualTo("kakao_12345oauth.lcoal");
+        assertThat(kakao.getEmail()).isEqualTo("kakao_12345@oauth.local");
         assertThat(kakao.getName()).isEqualTo("Kakao User");
     }
 

@@ -28,8 +28,11 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew clean build -x test
+      - name: Run tests
+        run: ./gradlew clean test
+
+      - name: Build boot jar
+        run: ./gradlew bootJar
 
   deploy:
     name: Deploy to EC2
@@ -71,7 +74,7 @@ jobs:
             chmod +x ./gradlew
 
             echo "[5] Build project"
-            ./gradlew clean build -x test
+            ./gradlew clean build
 
             echo "[5-1] Stop Gradle daemon"
             ./gradlew --stop || true

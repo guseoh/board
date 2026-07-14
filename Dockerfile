@@ -8,7 +8,7 @@ COPY build.gradle settings.gradle ./
 COPY src src
 
 RUN chmod +x gradlew
-RUN ./gradlew clean bootJar -x test
+RUN ./gradlew clean build
 
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
