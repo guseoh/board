@@ -67,29 +67,25 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeMemberRole(Role role, Long memberId) {
+    public void changeMemberRole(String role, Long memberId) {
         Member member = validateMember(memberId);
 
-        member.changeRole(role);
+        member.changeRole(Role.valueOf(role));
     }
 
     @Transactional
     public void deleteMemberByAdmin(Long memberId) {
         validateMember(memberId);
 
-        memberRemovalPolicy(memberId);
+        MemberRemovalPolicy(memberId);
     }
 
     @Transactional
-    public void withdraw(Long memberId, String confirmText) {
-        if (!"회원탈퇴".equals(confirmText)) {
-            throw new CustomException(ErrorCode.WITHDRAW_CONFIRM_MISMATCH);
-        }
-
+    public void withdraw(Long memberId) {
         validateMember(memberId);
 
         // 회원이 작성한 댓글
-        memberRemovalPolicy(memberId);
+        MemberRemovalPolicy(memberId);
     }
 
 
@@ -107,10 +103,6 @@ public class MemberService {
     public void updatePassword(Long memberId, MemberPasswordUpdateRequest request) {
 
         Member member = validateMember(memberId);
-
-        if (member.getLoginType() == LoginType.SOCIAL) {
-            throw new CustomException(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED);
-        }
 
         if (StringUtils.hasText(request.getNewPassword())) {
             // 현재 비밀번호 입력하지 않은 경우
@@ -161,15 +153,12 @@ public class MemberService {
                 () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
-    private void memberRemovalPolicy(Long memberId) {
-        // 회원이 작성한 게시글의 답글과 부모 댓글
-        commentRepository.deleteRepliesByPostMemberId(memberId);
-        commentRepository.deleteRootCommentsByPostMemberId(memberId);
+    private void MemberRemovalPolicy(Long memberId) {
+        // 회원이 작성한 댓글
+        commentRepository.deleteAllByMemberId(memberId);
 
-        // 다른 게시글에서 회원이 작성한 부모 댓글의 답글, 회원의 답글과 부모 댓글
-        commentRepository.deleteRepliesToCommentsByMemberId(memberId);
-        commentRepository.deleteRepliesByMemberId(memberId);
-        commentRepository.deleteRootCommentsByMemberId(memberId);
+        // 회원이 작성한 게시글에 달린 댓글
+        commentRepository.deleteAllByPostMemberId(memberId);
 
         // 회원이 작성한 게시글
         postRepository.deleteAllByMemberId(memberId);

@@ -62,27 +62,10 @@ public class PostService {
         return PostDetailResponse.from(post, comments);
     }
 
-    public PostDetailResponse getPostForEdit(Long postId, Long memberId) {
-        Post post = getPost(postId);
-        validateWriter(post, memberId);
-
-        return PostDetailResponse.from(post, List.of());
-    }
-
     public PageResultDto<PostListResponse, Post> getPosts(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
-        String keyword = pageRequestDto.hasKeyword() ? pageRequestDto.getKeyword().trim() : null;
 
-        Page<Post> result = postRepository.findAllWithMember(keyword, pageable);
-
-        if (result.getTotalPages() > 0 && pageRequestDto.getPage() > result.getTotalPages()) {
-            pageable = PageRequest.of(
-                    result.getTotalPages() - 1,
-                    pageRequestDto.getSize(),
-                    Sort.by("id").descending()
-            );
-            result = postRepository.findAllWithMember(keyword, pageable);
-        }
+        Page<Post> result = postRepository.findAllWithMember(pageable);
 
         Function<Post, PostListResponse> fn = PostListResponse::from;
 
@@ -111,18 +94,16 @@ public class PostService {
 
         validateWriter(find, memberId);
 
-        commentRepository.deleteRepliesByPostId(id);
-        commentRepository.deleteRootCommentsByPostId(id);
+        commentRepository.deleteByPostId(id);
 
-        postRepository.deleteById(id);
+        postRepository.delete(find);
     }
 
     @Transactional
     public void deleteForAdmin(Long postId) {
-        getPost(postId);
+        Post find = getPost(postId);
 
-        commentRepository.deleteRepliesByPostId(postId);
-        commentRepository.deleteRootCommentsByPostId(postId);
+        commentRepository.deleteByPostId(postId);
 
         postRepository.deleteById(postId);
 
@@ -149,6 +130,13 @@ public class PostService {
         LocalDateTime nextDay = today.plusDays(1).atStartOfDay();
 
         return postRepository.countTodayPosts(startDay, nextDay);
+    }
+
+    public List<PostListResponse> search(String keyword) {
+        return postRepository.findByTitleContaining(keyword)
+                .stream()
+                .map(PostListResponse::from)
+                .toList();
     }
 
     public Long countMyPosts(Long memberId) {

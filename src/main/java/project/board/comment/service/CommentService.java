@@ -92,8 +92,7 @@ public class CommentService {
 
         validateOwner(comment, memberId);
 
-        commentRepository.deleteRepliesByParentId(commentId);
-        commentRepository.deleteById(commentId);
+        commentRepository.delete(comment);
     }
 
     // 내가 작성한 댓글 조회

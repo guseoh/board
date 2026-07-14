@@ -1,6 +1,6 @@
 # SSR HTTP Routing / Form Contract
 
-> 기준: `refactor/pre-m2-quality-baseline` / 2026-07-14
+> 기준: 로컬 `recover` / `d333e3868e5bb94073030780ce0910a65b3ef4d8` / 2026-07-13
 
 이 문서는 JSON REST API 명세가 아니다. 현재 요청은 주로 `application/x-www-form-urlencoded`, 인증은 `JSESSIONID` Session, 응답은 Thymeleaf View 또는 3xx Redirect다. 향후 REST API 계약은 M2에서 별도로 정의한다. `PostApiController`는 annotation과 Mapping이 없는 빈 클래스이므로 활성 API가 아니다.
 
@@ -11,7 +11,7 @@
 - `@Valid` 다음의 `BindingResult`로 form 오류를 분기한다.
 - `CustomException`은 `GlobalViewControllerAdvice`가 가입 오류를 제외하고 ErrorCode URL로 redirect하며 flash `msg`를 넣는다.
 - `/admin/**`는 filter와 `@PreAuthorize` 양쪽에서 ADMIN만 허용한다.
-- `GET /post/{id}/edit`, `POST /post/**`, `/my/**`는 인증이 필요하다. `/actuator/health`는 익명 허용, 그 외 Actuator는 ADMIN이다.
+- `POST /post/**`, `/my/**`는 인증이 필요하며, 그 외 Mapping은 기본 permitAll이다.
 
 ## Controller Mapping
 
@@ -20,30 +20,31 @@
 | 회원가입 화면 | GET | `/signup` | 불필요 | 전체 | 없음 | `Model` | 없음 | 없음 | `member/signup`; `form` | View 오류 |
 | 회원가입 | POST | `/signup` | 불필요 | 전체 | form | `@ModelAttribute("form") MemberCreateRequest` | `@Valid`, `BindingResult` | `MemberService.signUp` | `redirect:/loginForm`, flash | 같은 View 또는 전역 예외 |
 | 로그인 화면 | GET | `/loginForm` | 불필요 | 전체 | query 선택 | 없음 (`redirect`, `error`, `logout`는 View가 param 참조) | 없음 | 없음 | `member/loginForm` | View 오류 |
-| 게시글 목록·검색 | GET | `""`, `/`, `/posts/search` | 선택 | 전체 | query | `@Valid PageRequestDto(page,size,keyword)`, principal, Model | page≥1, size 1~100 | Post/Member/Comment Service | 통계+`page/posts/keyword`, `post/list` | 범위 오류 400; 초과 page는 마지막 page |
+| 게시글 목록 | GET | `""`, `/` | 선택 | 전체 | query | `PageRequestDto`, principal, Model | 없음 | Post/Member/Comment Service | `post/list` | 전역 예외 |
 | 게시글 상세 | GET | `/post/{id}` | 선택 | 전체 | path + cookie | `id`, principal, request/response | 없음 | `viewCount`, `getPostDetail` | `post/detail` | 없는 글 redirect |
+| 게시글 검색 | GET | `/posts/search` | 불필요 | 전체 | query | `@RequestParam keyword`, Model | required 바인딩만 | `PostService.search` | `post/list` | 400 또는 예외 |
 | 작성 화면 | GET | `/post/new` | 불필요 | 전체 | 없음 | Model | 없음 | 없음 | `post/form`, create mode | 없음 |
-| 게시글 작성 | POST | `/post/new` | 필요 | USER/ADMIN | form | `PostRequest`, principal, RedirectAttributes | NotBlank, 최대 500자, CSRF | `createPost` | `redirect:/post/{id}`, URI attribute+flash | `post/form` 또는 전역 예외 |
-| 수정 화면 | GET | `/post/{id}/edit` | 필요 | 작성자 | path | `id`, SecurityContext principal, Model | 인증·작성자 확인 | `getPostForEdit` | `post/form`, edit mode | login redirect/소유권 예외 |
+| 게시글 작성 | POST | `/post/new` | 필요 | USER/ADMIN | form | `PostRequest`, principal, RedirectAttributes | `@Valid`, `BindingResult`, CSRF | `createPost` | `redirect:/post/{id}`, URI attribute+flash | `post/form` 또는 전역 예외 |
+| 수정 화면 | GET | `/post/{id}/edit` | 불필요 | 전체 | path | `id`, Model | 없음 | `getPostDetail` | `post/form`, edit mode | 없는 글 redirect |
 | 게시글 수정 | POST | `/post/{id}/edit` | 필요 | 작성자 | form+path | `PostRequest`, principal, Model, RedirectAttributes | `@Valid`, `BindingResult`, CSRF | `PostService.update` | `redirect:/post/{id}`, flash | form 또는 소유권 예외 |
 | 게시글 삭제 | POST | `/post/{id}/delete` | 필요 | 작성자 | path | `id`, principal, RedirectAttributes | CSRF | `PostService.delete` | `redirect:/`, flash | 없는 글/소유권 예외 |
-| 댓글 작성 | POST | `/post/{postId}/comment` | 필요 | USER/ADMIN | form+path | `CommentCreateRequest`, principal, RA | NotBlank, 최대 500자, CSRF | `createComment` | 상세 redirect | null principal은 login redirect; Validation flash |
-| 대댓글 작성 | POST | `/post/{postId}/comment/{parentId}/replies` | 필요 | USER/ADMIN | form+path | `CommentCreateRequest`, `postId`, `parentId` | NotBlank, 최대 500자, CSRF | `createReply` | 상세 redirect | login/Validation/parent 예외 |
+| 댓글 작성 | POST | `/post/{postId}/comment` | 필요 | USER/ADMIN | form+path | `CommentCreateRequest`, principal, RA | `@Valid`, `BindingResult`, CSRF | `createComment` | 상세 redirect | null principal은 login redirect; Validation flash |
+| 대댓글 작성 | POST | `/post/{postId}/comment/{parentId}/replies` | 필요 | USER/ADMIN | form+path | `CommentCreateRequest`, `postId`, `parentId` | `@Valid`, BindingResult, CSRF | `createReply` | 상세 redirect | login/Validation/parent 예외 |
 | 댓글 수정 | POST | `/post/{postId}/comment/{commentId}/edit` | 필요 | 작성자 | form+path | `@ModelAttribute("commentUpdateForm") CommentCreateRequest` | `@Valid`, BindingResult, CSRF | `CommentService.update` | 상세 redirect | Validation/없음/소유권 예외 |
 | 댓글 삭제 | POST | `/post/{postId}/comment/{commentId}/delete` | 필요 | 작성자 | path | IDs, principal | CSRF | `CommentService.delete` | 상세 redirect | 없음/소유권 예외 |
 | 마이페이지 | GET | `/my` | 필요 | 인증 사용자 | 없음 | principal, Model | principal ID 직접 확인 | 4개 Post/Comment 조회 | `my/my` | 인증 예외 |
-| 내 게시글 | GET | `/my/posts` | 필요 | 인증 사용자 | query | `@Valid PageRequestDto`, principal, Model | page≥1, size 1~100 | `getMyPosts`, 글 수·오늘 글 수·누적 조회수 | `my/myPost` | 범위 오류 400/전역 예외 |
-| 내 댓글 | GET | `/my/comments` | 필요 | 인증 사용자 | query | `@Valid PageRequestDto`, 별도 `keyword`, principal | page≥1, size 1~100 | `getMyCommentPage` | `my/myComment` | 범위 오류 400/전역 예외 |
+| 내 게시글 | GET | `/my/posts` | 필요 | 인증 사용자 | query | `PageRequestDto`, principal, Model | 없음 | `getMyPosts`, 글 수·오늘 글 수·누적 조회수 | `my/myPost` | 전역 예외 |
+| 내 댓글 | GET | `/my/comments` | 필요 | 인증 사용자 | query | `PageRequestDto`, 별도 `keyword`, principal | 없음 | `getMyCommentPage` | `my/myComment` | 전역 예외 |
 | 탈퇴 화면 | GET | `/my/withdraw` | 필요 | 인증 사용자 | 없음 | 없음 | 없음 | 없음 | `my/withdraw` | Security login redirect |
-| 회원 탈퇴 | POST | `/my/withdraw` | 필요 | 본인 | form | principal, `confirmText`, request/response | CSRF; Service에서 `회원탈퇴` 정확히 일치 | `MemberService.withdraw` | logout 후 `redirect:/` | 불일치 `/my/withdraw` redirect |
+| 회원 탈퇴 | POST | `/my/withdraw` | 필요 | 본인 | form(path 인자 없음) | principal, request/response | CSRF; `confirmText` 서버 미검증 | `MemberService.withdraw` | logout 후 `redirect:/` | 전역 예외 |
 | 정보 수정 화면 | GET | `/my/edit` | 필요 | 본인 | 없음 | principal, Model | 없음 | `getMyProfile` | `my/myEdit` | 전역 예외 |
 | 닉네임 수정 | POST | `/my/edit/nickname` | 필요 | 본인 | form | `MemberNicknameUpdateRequest`, principal | `@Valid`, BindingResult, CSRF | `updateNickname` | `redirect:/`, flash | edit View 또는 전역 예외 |
-| 비밀번호 수정 | POST | `/my/edit/password` | 필요 | LOCAL 본인 | form | `MemberPasswordUpdateRequest`, principal | `@Valid`, SOCIAL Service 차단, CSRF | `updatePassword` | `redirect:/`, flash | 민감 필드를 비운 edit View 또는 전역 예외 |
+| 비밀번호 수정 | POST | `/my/edit/password` | 필요 | 본인 | form | `MemberPasswordUpdateRequest`, principal | `@Valid`, BindingResult, CSRF | `updatePassword` | `redirect:/`, flash | edit View 또는 전역 예외 |
 | 관리자 홈 | GET | `/admin` | 필요 | ADMIN | 없음 | Model | method security | count Service | `admin/index` | login redirect/403 |
 | 관리자 게시글 | GET | `/admin/posts` | 필요 | ADMIN | 없음 | Model | method security | `getPostsForAdmin` | `admin/posts` | login redirect/403 |
 | 관리자 게시글 삭제 | POST | `/admin/posts/{postId}/delete` | 필요 | ADMIN | path | `postId` | CSRF+method security | `deleteForAdmin` | `redirect:/admin` | 403/예외 |
 | 관리자 회원 | GET | `/admin/users` | 필요 | ADMIN | 없음 | Model | method security | `getMembersForAdmin` | `admin/users` | login redirect/403 |
-| 역할 변경 | POST | `/admin/users/{memberId}/role` | 필요 | ADMIN | form+path | `memberId`, `@RequestParam Role` | CSRF; `USER`/`ADMIN` enum 바인딩 | `changeMemberRole` | `redirect:/admin` | 잘못된 값 400/403 |
+| 역할 변경 | POST | `/admin/users/{memberId}/role` | 필요 | ADMIN | form+path | `memberId`, `@RequestParam role` | CSRF; enum 사전 검증 없음 | `changeMemberRole` | `redirect:/admin` | 403/예외 |
 | 회원 삭제 | POST | `/admin/users/{memberId}/delete` | 필요 | ADMIN | path | `memberId` | CSRF | `deleteMemberByAdmin` | `redirect:/admin` | 403/예외 |
 | 알림 오류 테스트 | GET | `/test/discord-error` | 불필요 | local profile | 없음 | 없음 | 없음 | 없음; 의도적 예외 | 없음 | `POST_NOT_FOUND` 전역 처리로 `/` redirect |
 
@@ -57,7 +58,7 @@
 
 ## Model과 Flash 핵심 계약
 
-- 목록: `totalCount`, `todayCount`, `memberCount`, 선택적 `myPostCount`, `myCommentCount`, `page`, `posts`, 선택적 `keyword`. 검색어는 페이지 링크에 유지된다.
+- 목록: `totalCount`, `todayCount`, `memberCount`, 선택적 `myPostCount`, `myCommentCount`, `page`, `posts`.
 - 상세: `post`, `comments`, `commentForm`, nullable `memberId`.
 - post form: `mode`, `form`, `actionUrl`, `submitLabel`.
 - my edit: `form`, `nicknameRequest`, `passwordRequest`.

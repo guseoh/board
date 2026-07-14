@@ -194,7 +194,7 @@
                 <li class="page-item" th:classappend="${page.prev} ? '' : ' disabled'">
                     <a class="page-link"
                        th:if="${page.prev}"
-                       th:href="@{/(page=${page.pageList[0]-1}, size=${page.size}, keyword=${keyword})}">
+                       th:href="@{/(page=${page.pageList[0]-1}, size=${page.size})}">
                         이전
                     </a>
                     <span class="page-link" th:unless="${page.prev}">이전</span>
@@ -204,14 +204,14 @@
                     th:each="p : ${page.pageList}"
                     th:classappend="${p == page.page} ? ' active'">
                     <a class="page-link"
-                       th:href="@{/(page=${p}, size=${page.size}, keyword=${keyword})}"
+                       th:href="@{/(page=${p}, size=${page.size})}"
                        th:text="${p}">1</a>
                 </li>
 
                 <li class="page-item" th:classappend="${page.next} ? '' : ' disabled'">
                     <a class="page-link"
                        th:if="${page.next}"
-                       th:href="@{/(page=${page.pageList[page.pageList.size()-1]+1}, size=${page.size}, keyword=${keyword})}">
+                       th:href="@{/(page=${page.pageList[page.pageList.size()-1]+1}, size=${page.size})}">
                         다음
                     </a>
                     <span class="page-link" th:unless="${page.next}">다음</span>

@@ -28,8 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static project.board.testsupport.TestFixtures.member;
 import static project.board.testsupport.TestFixtures.oauthMember;
@@ -127,11 +127,6 @@ class MemberServiceTest {
         MemberUpdateResponse profile = memberService.getMyProfile(2L);
 
         assertThat(profile.isPasswordChangeable()).isFalse();
-        assertThatThrownBy(() -> memberService.updatePassword(
-                2L, passwordRequest("current1", "newpass1", "newpass1")))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED.getMessage());
-        verify(passwordEncoder, never()).matches(any(), any());
     }
 
     @Test
@@ -189,41 +184,27 @@ class MemberServiceTest {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        memberService.changeMemberRole(Role.ADMIN, 1L);
+        memberService.changeMemberRole("ADMIN", 1L);
 
         assertThat(member.getRole()).isEqualTo(Role.ADMIN);
-        assertThatThrownBy(() -> memberService.changeMemberRole(Role.ADMIN, 99L))
+        assertThatThrownBy(() -> memberService.changeMemberRole("ADMIN", 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
     @Test
-    @DisplayName("회원 탈퇴 시 답글, 부모 댓글, 게시글, 회원 순서로 삭제한다")
+    @DisplayName("회원 탈퇴와 관리자 삭제 시 연관 댓글과 게시글을 먼저 삭제한다")
     void deletePolicies() {
         Member member = member(1L);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
-        memberService.withdraw(1L, "회원탈퇴");
+        memberService.withdraw(1L);
+        memberService.deleteMemberByAdmin(1L);
 
-        var ordered = inOrder(commentRepository, postRepository, memberRepository);
-        ordered.verify(commentRepository).deleteRepliesByPostMemberId(1L);
-        ordered.verify(commentRepository).deleteRootCommentsByPostMemberId(1L);
-        ordered.verify(commentRepository).deleteRepliesToCommentsByMemberId(1L);
-        ordered.verify(commentRepository).deleteRepliesByMemberId(1L);
-        ordered.verify(commentRepository).deleteRootCommentsByMemberId(1L);
-        ordered.verify(postRepository).deleteAllByMemberId(1L);
-        ordered.verify(memberRepository).deleteById(1L);
-    }
-
-    @Test
-    @DisplayName("회원 탈퇴 확인 문구가 다르면 삭제를 시작하지 않는다")
-    void withdrawConfirmationRequired() {
-        assertThatThrownBy(() -> memberService.withdraw(1L, "탈퇴"))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.WITHDRAW_CONFIRM_MISMATCH.getMessage());
-
-        verify(memberRepository, never()).findById(any());
-        verify(memberRepository, never()).deleteById(any());
+        verify(commentRepository, times(2)).deleteAllByMemberId(1L);
+        verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);
+        verify(postRepository, times(2)).deleteAllByMemberId(1L);
+        verify(memberRepository, times(2)).deleteById(1L);
     }
 
     @Test

@@ -22,6 +22,8 @@ import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.service.PostService;
 
+import java.util.List;
+
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -31,8 +33,8 @@ public class PostViewController {
     private final PostService postService;
     private final CommentService commentService;
 
-    @GetMapping({"", "/", "/posts/search"})
-    public String list(@Valid PageRequestDto request, Model model,
+    @GetMapping({"", "/"})
+    public String list(PageRequestDto request, Model model,
                        @AuthenticationPrincipal UnifiedPrincipal user) {
 
         var page = postService.getPosts(request);
@@ -49,7 +51,6 @@ public class PostViewController {
 
         model.addAttribute("page", page);
         model.addAttribute("posts", page.getDtoList());
-        model.addAttribute("keyword", request.getKeyword());
 
         return "post/list";
     }
@@ -120,6 +121,15 @@ public class PostViewController {
         return true;
     }
 
+    @GetMapping("/posts/search")
+    public String search(@RequestParam String keyword, Model model) {
+        List<PostListResponse> posts = postService.search(keyword);
+        model.addAttribute("posts", posts);
+        model.addAttribute("keyword", keyword);
+
+        return "post/list";
+    }
+
     @PostMapping("/post/new")
     public String create(@Valid @ModelAttribute("form") PostRequest request,
                          BindingResult bindingResult,
@@ -160,10 +170,9 @@ public class PostViewController {
 
     @GetMapping("/post/{id}/edit")
     public String editForm(@PathVariable Long id,
-                           @AuthenticationPrincipal UnifiedPrincipal user,
                            Model model) {
 
-        PostDetailResponse post = postService.getPostForEdit(id, user.getMemberId());
+        PostDetailResponse post = postService.getPostDetail(id);
 
         model.addAttribute("mode", "edit");
         model.addAttribute("form", PostRequest.from(post));

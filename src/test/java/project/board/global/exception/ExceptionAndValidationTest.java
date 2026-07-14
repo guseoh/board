@@ -16,9 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import project.board.comment.dto.request.CommentCreateRequest;
 import project.board.global.exception.handler.GlobalViewControllerAdvice;
 import project.board.global.notification.discord.DiscordNotifier;
-import project.board.global.pagination.PageRequestDto;
 import project.board.member.dto.request.MemberCreateRequest;
-import project.board.member.dto.request.MemberNicknameUpdateRequest;
 import project.board.post.dto.request.PostRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -128,26 +126,6 @@ class ExceptionAndValidationTest {
         assertThat(validator.validate(postRequest)).hasSizeGreaterThanOrEqualTo(2);
         assertThat(validator.validate(commentRequest)).hasSize(1);
         assertThat(validator.validate(memberRequest)).hasSizeGreaterThanOrEqualTo(3);
-    }
-
-    @Test
-    @DisplayName("DTO 길이, 필수 입력과 페이지 범위를 검증한다")
-    void dtoBoundaryValidation() {
-        PostRequest postRequest = new PostRequest("t".repeat(501), "c".repeat(501));
-        CommentCreateRequest commentRequest = new CommentCreateRequest();
-        commentRequest.setContent("c".repeat(501));
-        MemberCreateRequest memberRequest = new MemberCreateRequest();
-        memberRequest.setEmail(" ");
-        MemberNicknameUpdateRequest nicknameRequest = new MemberNicknameUpdateRequest();
-        nicknameRequest.setNickname(" ");
-        PageRequestDto pageRequest = PageRequestDto.builder().page(0).size(101).build();
-
-        assertThat(validator.validate(postRequest)).hasSize(2);
-        assertThat(validator.validate(commentRequest)).hasSize(1);
-        assertThat(validator.validate(memberRequest)).anyMatch(v -> v.getPropertyPath().toString().equals("email"));
-        assertThat(validator.validate(nicknameRequest)).anyMatch(v -> v.getPropertyPath().toString().equals("nickname"));
-        assertThat(validator.validate(pageRequest)).hasSize(2);
-        assertThat(validator.validate(PageRequestDto.builder().build())).isEmpty();
     }
 
     @Controller

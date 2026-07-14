@@ -14,20 +14,15 @@ import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
+    List<Post> findByTitleContaining(String keyword);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Post p set p.viewCount = p.viewCount + 1 where p.id = :postId")
     int incrementViewCount(@Param("postId") Long postId);
 
-    @Query(value = """
-            select p from Post p
-            join fetch p.member
-            where (:keyword is null or :keyword = '' or p.title like concat('%', :keyword, '%'))
-            """,
-            countQuery = """
-            select count(p) from Post p
-            where (:keyword is null or :keyword = '' or p.title like concat('%', :keyword, '%'))
-            """)
-    Page<Post> findAllWithMember(@Param("keyword") String keyword, Pageable pageable);
+    //todo: 아래 메서드와 비교
+    @Query("select p from Post p join fetch p.member")
+    Page<Post> findAllWithMember(Pageable pageable);
 
     @Query("select p from Post p join fetch p.member")
     List<Post> findAllWithMemberForAdmin();
@@ -63,7 +58,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             Pageable pageable
     );
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("delete from Post p where p.member.id = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
 

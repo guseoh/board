@@ -3,13 +3,11 @@ package project.board.post.service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
 import project.board.global.pagination.PageRequestDto;
@@ -111,7 +109,7 @@ class PostServiceTest {
         Member writer = member(1L);
         Post post = post(10L, "list title", "content", writer);
         PageRequestDto request = PageRequestDto.builder().page(1).size(5).build();
-        given(postRepository.findAllWithMember(any(), any()))
+        given(postRepository.findAllWithMember(any()))
                 .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1));
 
         PageResultDto<PostListResponse, Post> result = postService.getPosts(request);
@@ -139,19 +137,6 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("게시글 수정 화면 데이터는 작성자에게만 제공한다")
-    void editFormOwnerOnly() {
-        Member writer = member(1L);
-        Post post = post(10L, "title", "content", writer);
-        given(postRepository.findById(10L)).willReturn(Optional.of(post));
-
-        assertThat(postService.getPostForEdit(10L, 1L).getTitle()).isEqualTo("title");
-        assertThatThrownBy(() -> postService.getPostForEdit(10L, 2L))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
-    }
-
-    @Test
     @DisplayName("댓글 삭제 후 작성자만 게시글을 삭제할 수 있다")
     void deleteOwner() {
         Member writer = member(1L);
@@ -160,9 +145,8 @@ class PostServiceTest {
 
         postService.delete(10L, 1L);
 
-        verify(commentRepository).deleteRepliesByPostId(10L);
-        verify(commentRepository).deleteRootCommentsByPostId(10L);
-        verify(postRepository).deleteById(10L);
+        verify(commentRepository).deleteByPostId(10L);
+        verify(postRepository).delete(post);
     }
 
     @Test
@@ -173,8 +157,7 @@ class PostServiceTest {
 
         postService.deleteForAdmin(10L);
 
-        verify(commentRepository).deleteRepliesByPostId(10L);
-        verify(commentRepository).deleteRootCommentsByPostId(10L);
+        verify(commentRepository).deleteByPostId(10L);
         verify(postRepository).deleteById(10L);
     }
 
@@ -203,6 +186,7 @@ class PostServiceTest {
                 .viewCount(0)
                 .createdAt(LocalDateTime.now())
                 .build();
+        given(postRepository.findByTitleContaining("S")).willReturn(List.of(first));
         given(postRepository.countMyPosts(1L)).willReturn(2L);
         given(postRepository.sumViewCountByMemberId(1L)).willReturn(7L);
         given(postRepository.countTodayPosts(any(), any())).willReturn(3L);
@@ -212,6 +196,7 @@ class PostServiceTest {
                 .willReturn(new PageImpl<>(List.of(first, second), PageRequest.of(0, 5), 2));
         given(postRepository.findMyRecentPosts(any(), any())).willReturn(List.of(recent));
 
+        assertThat(postService.search("S")).extracting(PostListResponse::getTitle).containsExactly("Spring");
         assertThat(postService.countTodayPosts()).isEqualTo(3L);
         assertThat(postService.countMyPosts(1L)).isEqualTo(2L);
         assertThat(postService.countMyPostViews(1L)).isEqualTo(7L);
@@ -226,32 +211,5 @@ class PostServiceTest {
         assertThatThrownBy(() -> postService.countMyPostViews(null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
-    }
-
-    @Test
-    @DisplayName("검색을 페이징하고 범위를 벗어난 페이지는 마지막 페이지로 조회한다")
-    void searchPaginationAndOutOfRangePage() {
-        Member writer = member(1L);
-        Post last = post(12L, "Spring last", "content", writer);
-        PageImpl<Post> outOfRange = new PageImpl<>(List.of(), PageRequest.of(99, 5), 12);
-        PageImpl<Post> lastPage = new PageImpl<>(List.of(last), PageRequest.of(2, 5), 12);
-        given(postRepository.findAllWithMember(any(), any()))
-                .willReturn(outOfRange, lastPage);
-
-        PageResultDto<PostListResponse, Post> result = postService.getPosts(
-                PageRequestDto.builder().page(100).size(5).keyword(" Spring ").build()
-        );
-
-        assertThat(result.getPage()).isEqualTo(3);
-        assertThat(result.getDtoList()).extracting(PostListResponse::getTitle)
-                .containsExactly("Spring last");
-
-        ArgumentCaptor<String> keywordCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-        verify(postRepository, org.mockito.Mockito.times(2))
-                .findAllWithMember(keywordCaptor.capture(), pageableCaptor.capture());
-        assertThat(keywordCaptor.getAllValues()).containsOnly("Spring");
-        assertThat(pageableCaptor.getAllValues()).extracting(Pageable::getPageNumber)
-                .containsExactly(99, 2);
     }
 }

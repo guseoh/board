@@ -3,7 +3,6 @@ package project.board.controller;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -36,13 +35,11 @@ import project.board.post.service.PostService;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -135,8 +132,8 @@ class ControllerMvcTest {
         given(postService.countMyPosts(1L)).willReturn(3L);
         given(commentService.countMyComment(1L)).willReturn(4L);
         given(postService.getPostDetail(10L)).willReturn(detail);
-        given(postService.getPostForEdit(10L, 1L)).willReturn(detail);
         given(postService.createPost(any(), eq(1L))).willReturn(PostListResponse.from(post));
+        given(postService.search("title")).willReturn(List.of(PostListResponse.from(post)));
 
         mockMvc.perform(get("/").with(authenticated(user)))
                 .andExpect(status().isOk())
@@ -149,17 +146,10 @@ class ControllerMvcTest {
                 .andExpect(model().attributeExists("post", "comments", "commentForm", "memberId"));
         verify(postService).viewCount(10L);
 
-        mockMvc.perform(get("/posts/search")
-                        .param("keyword", "title")
-                        .param("page", "2"))
+        mockMvc.perform(get("/posts/search").param("keyword", "title"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("post/list"))
                 .andExpect(model().attributeExists("posts", "keyword"));
-
-        ArgumentCaptor<PageRequestDto> pageRequestCaptor = ArgumentCaptor.forClass(PageRequestDto.class);
-        verify(postService, times(2)).getPosts(pageRequestCaptor.capture());
-        assertThat(pageRequestCaptor.getAllValues().get(1).getKeyword()).isEqualTo("title");
-        assertThat(pageRequestCaptor.getAllValues().get(1).getPage()).isEqualTo(2);
 
         mockMvc.perform(get("/post/new"))
                 .andExpect(status().isOk())
@@ -182,7 +172,7 @@ class ControllerMvcTest {
                 .andExpect(view().name("post/form"))
                 .andExpect(model().attributeHasErrors("form"));
 
-        mockMvc.perform(get("/post/10/edit").with(authenticated(user)))
+        mockMvc.perform(get("/post/10/edit"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("post/form"))
                 .andExpect(model().attribute("mode", "edit"));
@@ -314,25 +304,10 @@ class ControllerMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("my/withdraw"));
 
-        mockMvc.perform(post("/my/withdraw")
-                        .with(authenticated(user))
-                        .param("confirmText", "회원탈퇴"))
+        mockMvc.perform(post("/my/withdraw").with(authenticated(user)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
-        verify(memberService).withdraw(1L, "회원탈퇴");
-
-        mockMvc.perform(post("/my/edit/password")
-                        .with(authenticated(user))
-                        .param("currentPassword", "short")
-                        .param("newPassword", "short")
-                        .param("newPasswordConfirm", "short"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("my/myEdit"))
-                .andExpect(model().attribute("passwordRequest",
-                        org.hamcrest.Matchers.allOf(
-                                org.hamcrest.Matchers.hasProperty("currentPassword", org.hamcrest.Matchers.nullValue()),
-                                org.hamcrest.Matchers.hasProperty("newPassword", org.hamcrest.Matchers.nullValue()),
-                                org.hamcrest.Matchers.hasProperty("newPasswordConfirm", org.hamcrest.Matchers.nullValue()))));
+        verify(memberService).withdraw(1L);
     }
 
     @Test
@@ -368,10 +343,7 @@ class ControllerMvcTest {
         mockMvc.perform(post("/admin/users/1/role").param("role", "ADMIN"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"));
-        verify(memberService).changeMemberRole(Role.ADMIN, 1L);
-
-        mockMvc.perform(post("/admin/users/1/role").param("role", "ROOT"))
-                .andExpect(status().isBadRequest());
+        verify(memberService).changeMemberRole("ADMIN", 1L);
 
         mockMvc.perform(post("/admin/users/1/delete"))
                 .andExpect(status().is3xxRedirection())
@@ -387,15 +359,6 @@ class ControllerMvcTest {
                 .andExpect(redirectedUrlPattern("/loginForm?redirect=*"));
 
         verify(commentService, never()).createComment(any(), any(), any());
-    }
-
-    @Test
-    @DisplayName("페이지 번호와 크기의 비정상 값은 요청 검증에서 거부한다")
-    void invalidPageRequest() throws Exception {
-        mockMvc.perform(get("/").param("page", "0"))
-                .andExpect(status().isBadRequest());
-        mockMvc.perform(get("/").param("size", "101"))
-                .andExpect(status().isBadRequest());
     }
 
     private UsernamePasswordAuthenticationToken authToken(UnifiedPrincipal principal) {

@@ -43,63 +43,29 @@ class CommentRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    @DisplayName("게시글 댓글은 답글을 먼저 삭제하고 bulk delete 후 영속성 컨텍스트를 비운다")
-    void deletePostCommentsInHierarchyOrder() {
+    @DisplayName("게시글, 회원, 작성자 기준으로 댓글을 일괄 삭제한다")
+    void deleteQueries() {
         Member writer = saveMember("writer", "writer@example.com");
         Member commenter = saveMember("commenter", "commenter@example.com");
         Post post = postRepository.save(Post.create("post", "content", writer));
-        Comment root = commentRepository.save(Comment.create("root", commenter, post, null));
-        Comment reply = commentRepository.save(Comment.create("reply", writer, post, root));
+        Comment comment = commentRepository.save(Comment.create("comment", commenter, post, null));
         flushAndClear();
 
-        Comment managedRoot = commentRepository.findById(root.getId()).orElseThrow();
-        assertThat(entityManager.contains(managedRoot)).isTrue();
-
-        assertThat(commentRepository.deleteRepliesByPostId(post.getId())).isEqualTo(1);
-        assertThat(entityManager.contains(managedRoot)).isFalse();
-        assertThat(commentRepository.deleteRootCommentsByPostId(post.getId())).isEqualTo(1);
-
-        assertThat(commentRepository.findById(root.getId())).isEmpty();
-        assertThat(commentRepository.findById(reply.getId())).isEmpty();
-    }
-
-    @Test
-    @DisplayName("회원 댓글 삭제는 부모의 답글, 회원 답글, 회원 부모 댓글 순서를 지원한다")
-    void deleteMemberCommentsInHierarchyOrder() {
-        Member retiring = saveMember("retiring", "retiring@example.com");
-        Member other = saveMember("other", "other@example.com");
-        Post post = postRepository.save(Post.create("other post", "content", other));
-        Comment retiringRoot = commentRepository.save(Comment.create("retiring root", retiring, post, null));
-        Comment replyToRetiring = commentRepository.save(Comment.create("other reply", other, post, retiringRoot));
-        Comment otherRoot = commentRepository.save(Comment.create("other root", other, post, null));
-        Comment retiringReply = commentRepository.save(Comment.create("retiring reply", retiring, post, otherRoot));
+        commentRepository.deleteByPostId(post.getId());
         flushAndClear();
+        assertThat(commentRepository.findById(comment.getId())).isEmpty();
 
-        assertThat(commentRepository.deleteRepliesToCommentsByMemberId(retiring.getId())).isEqualTo(1);
-        assertThat(commentRepository.deleteRepliesByMemberId(retiring.getId())).isEqualTo(1);
-        assertThat(commentRepository.deleteRootCommentsByMemberId(retiring.getId())).isEqualTo(1);
-
-        assertThat(commentRepository.findById(retiringRoot.getId())).isEmpty();
-        assertThat(commentRepository.findById(replyToRetiring.getId())).isEmpty();
-        assertThat(commentRepository.findById(retiringReply.getId())).isEmpty();
-        assertThat(commentRepository.findById(otherRoot.getId())).isPresent();
-    }
-
-    @Test
-    @DisplayName("회원이 작성한 게시글의 댓글은 답글과 부모 댓글 순서로 삭제한다")
-    void deleteCommentsOnMemberPostsInHierarchyOrder() {
-        Member retiring = saveMember("retiring", "retiring@example.com");
-        Member other = saveMember("other", "other@example.com");
-        Post post = postRepository.save(Post.create("retiring post", "content", retiring));
-        Comment root = commentRepository.save(Comment.create("root", other, post, null));
-        Comment reply = commentRepository.save(Comment.create("reply", other, post, root));
+        Comment memberComment = commentRepository.save(Comment.create("member comment", commenter, post, null));
         flushAndClear();
+        commentRepository.deleteAllByMemberId(commenter.getId());
+        flushAndClear();
+        assertThat(commentRepository.findById(memberComment.getId())).isEmpty();
 
-        assertThat(commentRepository.deleteRepliesByPostMemberId(retiring.getId())).isEqualTo(1);
-        assertThat(commentRepository.deleteRootCommentsByPostMemberId(retiring.getId())).isEqualTo(1);
-
-        assertThat(commentRepository.findById(root.getId())).isEmpty();
-        assertThat(commentRepository.findById(reply.getId())).isEmpty();
+        Comment postWriterComment = commentRepository.save(Comment.create("writer post comment", commenter, post, null));
+        flushAndClear();
+        commentRepository.deleteAllByPostMemberId(writer.getId());
+        flushAndClear();
+        assertThat(commentRepository.findById(postWriterComment.getId())).isEmpty();
     }
 
     @Test
