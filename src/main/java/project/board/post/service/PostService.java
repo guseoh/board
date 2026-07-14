@@ -71,8 +71,18 @@ public class PostService {
 
     public PageResultDto<PostListResponse, Post> getPosts(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
+        String keyword = pageRequestDto.hasKeyword() ? pageRequestDto.getKeyword().trim() : null;
 
-        Page<Post> result = postRepository.findAllWithMember(pageable);
+        Page<Post> result = postRepository.findAllWithMember(keyword, pageable);
+
+        if (result.getTotalPages() > 0 && pageRequestDto.getPage() > result.getTotalPages()) {
+            pageable = PageRequest.of(
+                    result.getTotalPages() - 1,
+                    pageRequestDto.getSize(),
+                    Sort.by("id").descending()
+            );
+            result = postRepository.findAllWithMember(keyword, pageable);
+        }
 
         Function<Post, PostListResponse> fn = PostListResponse::from;
 
@@ -101,16 +111,18 @@ public class PostService {
 
         validateWriter(find, memberId);
 
-        commentRepository.deleteByPostId(id);
+        commentRepository.deleteRepliesByPostId(id);
+        commentRepository.deleteRootCommentsByPostId(id);
 
-        postRepository.delete(find);
+        postRepository.deleteById(id);
     }
 
     @Transactional
     public void deleteForAdmin(Long postId) {
-        Post find = getPost(postId);
+        getPost(postId);
 
-        commentRepository.deleteByPostId(postId);
+        commentRepository.deleteRepliesByPostId(postId);
+        commentRepository.deleteRootCommentsByPostId(postId);
 
         postRepository.deleteById(postId);
 
@@ -137,13 +149,6 @@ public class PostService {
         LocalDateTime nextDay = today.plusDays(1).atStartOfDay();
 
         return postRepository.countTodayPosts(startDay, nextDay);
-    }
-
-    public List<PostListResponse> search(String keyword) {
-        return postRepository.findByTitleContaining(keyword)
-                .stream()
-                .map(PostListResponse::from)
-                .toList();
     }
 
     public Long countMyPosts(Long memberId) {

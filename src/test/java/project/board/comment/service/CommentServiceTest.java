@@ -134,7 +134,8 @@ class CommentServiceTest {
         commentService.delete(1L, 100L, 10L);
 
         assertThat(response.getContent()).isEqualTo("changed");
-        verify(commentRepository).delete(comment);
+        verify(commentRepository).deleteRepliesByParentId(100L);
+        verify(commentRepository).deleteById(100L);
         assertThatThrownBy(() -> commentService.update(100L, 2L, 10L, request("fail")))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.COMMENT_NOT_OWNER.getMessage());

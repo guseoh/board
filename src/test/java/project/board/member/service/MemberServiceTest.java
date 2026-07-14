@@ -28,8 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static project.board.testsupport.TestFixtures.member;
 import static project.board.testsupport.TestFixtures.oauthMember;
@@ -198,18 +198,21 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴와 관리자 삭제 시 연관 댓글과 게시글을 먼저 삭제한다")
+    @DisplayName("회원 탈퇴 시 답글, 부모 댓글, 게시글, 회원 순서로 삭제한다")
     void deletePolicies() {
         Member member = member(1L);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
         memberService.withdraw(1L, "회원탈퇴");
-        memberService.deleteMemberByAdmin(1L);
 
-        verify(commentRepository, times(2)).deleteAllByMemberId(1L);
-        verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);
-        verify(postRepository, times(2)).deleteAllByMemberId(1L);
-        verify(memberRepository, times(2)).deleteById(1L);
+        var ordered = inOrder(commentRepository, postRepository, memberRepository);
+        ordered.verify(commentRepository).deleteRepliesByPostMemberId(1L);
+        ordered.verify(commentRepository).deleteRootCommentsByPostMemberId(1L);
+        ordered.verify(commentRepository).deleteRepliesToCommentsByMemberId(1L);
+        ordered.verify(commentRepository).deleteRepliesByMemberId(1L);
+        ordered.verify(commentRepository).deleteRootCommentsByMemberId(1L);
+        ordered.verify(postRepository).deleteAllByMemberId(1L);
+        ordered.verify(memberRepository).deleteById(1L);
     }
 
     @Test

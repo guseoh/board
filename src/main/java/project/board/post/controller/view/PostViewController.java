@@ -22,8 +22,6 @@ import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.service.PostService;
 
-import java.util.List;
-
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -33,7 +31,7 @@ public class PostViewController {
     private final PostService postService;
     private final CommentService commentService;
 
-    @GetMapping({"", "/"})
+    @GetMapping({"", "/", "/posts/search"})
     public String list(@Valid PageRequestDto request, Model model,
                        @AuthenticationPrincipal UnifiedPrincipal user) {
 
@@ -51,6 +49,7 @@ public class PostViewController {
 
         model.addAttribute("page", page);
         model.addAttribute("posts", page.getDtoList());
+        model.addAttribute("keyword", request.getKeyword());
 
         return "post/list";
     }
@@ -119,15 +118,6 @@ public class PostViewController {
         response.addCookie(cookie);
 
         return true;
-    }
-
-    @GetMapping("/posts/search")
-    public String search(@RequestParam String keyword, Model model) {
-        List<PostListResponse> posts = postService.search(keyword);
-        model.addAttribute("posts", posts);
-        model.addAttribute("keyword", keyword);
-
-        return "post/list";
     }
 
     @PostMapping("/post/new")

@@ -45,14 +45,17 @@ class PostRepositoryTest {
         postRepository.save(Post.create("JPA board", "content2", writer));
         flushAndClear();
 
-        Page<Post> page = postRepository.findAllWithMember(PageRequest.of(0, 10));
-        List<Post> searched = postRepository.findByTitleContaining("Spring");
+        Page<Post> page = postRepository.findAllWithMember(null, PageRequest.of(0, 10));
+        Page<Post> searched = postRepository.findAllWithMember("Spring", PageRequest.of(0, 10));
+        Page<Post> noResult = postRepository.findAllWithMember("missing", PageRequest.of(0, 10));
 
         assertThat(page.getTotalElements()).isEqualTo(2);
         assertThat(page.getContent()).extracting(Post::getTitle)
                 .containsExactlyInAnyOrder("Spring board", "JPA board");
         assertThat(page.getContent()).allSatisfy(post -> assertThat(post.getMember().getNickname()).isEqualTo("writer"));
-        assertThat(searched).extracting(Post::getTitle).containsExactly("Spring board");
+        assertThat(searched.getContent()).extracting(Post::getTitle).containsExactly("Spring board");
+        assertThat(noResult.getContent()).isEmpty();
+        assertThat(noResult.getTotalElements()).isZero();
     }
 
     @Test

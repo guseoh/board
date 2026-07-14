@@ -77,7 +77,7 @@ public class MemberService {
     public void deleteMemberByAdmin(Long memberId) {
         validateMember(memberId);
 
-        MemberRemovalPolicy(memberId);
+        memberRemovalPolicy(memberId);
     }
 
     @Transactional
@@ -89,7 +89,7 @@ public class MemberService {
         validateMember(memberId);
 
         // 회원이 작성한 댓글
-        MemberRemovalPolicy(memberId);
+        memberRemovalPolicy(memberId);
     }
 
 
@@ -161,12 +161,15 @@ public class MemberService {
                 () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
-    private void MemberRemovalPolicy(Long memberId) {
-        // 회원이 작성한 댓글
-        commentRepository.deleteAllByMemberId(memberId);
+    private void memberRemovalPolicy(Long memberId) {
+        // 회원이 작성한 게시글의 답글과 부모 댓글
+        commentRepository.deleteRepliesByPostMemberId(memberId);
+        commentRepository.deleteRootCommentsByPostMemberId(memberId);
 
-        // 회원이 작성한 게시글에 달린 댓글
-        commentRepository.deleteAllByPostMemberId(memberId);
+        // 다른 게시글에서 회원이 작성한 부모 댓글의 답글, 회원의 답글과 부모 댓글
+        commentRepository.deleteRepliesToCommentsByMemberId(memberId);
+        commentRepository.deleteRepliesByMemberId(memberId);
+        commentRepository.deleteRootCommentsByMemberId(memberId);
 
         // 회원이 작성한 게시글
         postRepository.deleteAllByMemberId(memberId);

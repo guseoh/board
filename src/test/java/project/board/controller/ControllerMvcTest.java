@@ -3,6 +3,7 @@ package project.board.controller;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -35,11 +36,13 @@ import project.board.post.service.PostService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -134,7 +137,6 @@ class ControllerMvcTest {
         given(postService.getPostDetail(10L)).willReturn(detail);
         given(postService.getPostForEdit(10L, 1L)).willReturn(detail);
         given(postService.createPost(any(), eq(1L))).willReturn(PostListResponse.from(post));
-        given(postService.search("title")).willReturn(List.of(PostListResponse.from(post)));
 
         mockMvc.perform(get("/").with(authenticated(user)))
                 .andExpect(status().isOk())
@@ -147,10 +149,17 @@ class ControllerMvcTest {
                 .andExpect(model().attributeExists("post", "comments", "commentForm", "memberId"));
         verify(postService).viewCount(10L);
 
-        mockMvc.perform(get("/posts/search").param("keyword", "title"))
+        mockMvc.perform(get("/posts/search")
+                        .param("keyword", "title")
+                        .param("page", "2"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("post/list"))
                 .andExpect(model().attributeExists("posts", "keyword"));
+
+        ArgumentCaptor<PageRequestDto> pageRequestCaptor = ArgumentCaptor.forClass(PageRequestDto.class);
+        verify(postService, times(2)).getPosts(pageRequestCaptor.capture());
+        assertThat(pageRequestCaptor.getAllValues().get(1).getKeyword()).isEqualTo("title");
+        assertThat(pageRequestCaptor.getAllValues().get(1).getPage()).isEqualTo(2);
 
         mockMvc.perform(get("/post/new"))
                 .andExpect(status().isOk())
