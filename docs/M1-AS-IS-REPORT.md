@@ -1,24 +1,24 @@
 # M1 As-Is 조사 보고서
 
-> 현재 기준: `develop` / `63d3132eba49d60a1dc1f10ae1574e5cadb325f3` / 갱신일 2026-07-14 (Asia/Seoul)
+> 현재 기준: `master` / `d06ee0a71e2f35315c223b5e6975430387f51bed` / 갱신일 2026-07-14 (Asia/Seoul)
 
 ## 작업 기준
 
 | 항목               | 확인 결과                                                                     |
 | ---------------- | ------------------------------------------------------------------------- |
 | 저장소              | `guseoh/board`, `C:\Users\guseo\IdeaProjects\board`                       |
-| 현재 기준 브랜치        | `develop`                                                                 |
-| 현재 기준 HEAD       | `63d3132eba49d60a1dc1f10ae1574e5cadb325f3` (`Merge pull request #97`)     |
+| 현재 기준 브랜치        | `master`                                                                  |
+| 현재 기준 HEAD       | `d06ee0a71e2f35315c223b5e6975430387f51bed` (`Merge pull request #98`)     |
 | M1 작업 브랜치        | `recover`                                                                 |
 | M1 문서 작성 기준 HEAD | `d333e3868e5bb94073030780ce0910a65b3ef4d8` (`docs: M0 프로젝트 복구 결과 보고서 작성`) |
 | 최초 M1 조사 HEAD    | `31326e715d39d2a4af9153fb4ccbcf72dc4fb229`                                |
 | 동기화              | M1 문서를 stash로 보관하고 `pull --ff-only`로 원격 M0 복구 커밋 5개를 반영한 뒤 재검토            |
-| 통합 결과            | PR #97 `[M0-M1] 프로젝트 복구 및 As-Is 문서화`를 `recover → develop`으로 병합            |
-| `master` 반영 상태   | 미반영. M1 릴리스 검증 후 `develop → master` PR 필요                                 |
+| 통합 결과            | PR #97로 `recover → develop`, PR #98로 `develop → master` 병합 완료                  |
+| `master` 반영 상태   | 반영 완료. PR #98 merge commit이 현재 `master` 기준선                                 |
 
 반영된 M0 커밋은 회원가입·OAuth 오류 처리, 마이페이지 조회·통계, 테스트 코드, CI·Docker 검증과 M0 보고서를 복구한다. M1 문서는 동기화된 코드와 57개 테스트를 기준으로 작성했으며, PR #97을 통해 `develop`에 통합했다.
 
-현재 M0 복구 코드와 M1 문서는 `develop`의 기준선이다. 안정·배포 기준 브랜치인 `master`에는 아직 반영되지 않았다.
+현재 M0 복구 코드와 M1 문서는 PR #98을 통해 안정·배포 기준 브랜치인 `master`에 반영됐다.
 
 ## 조사 범위
 
@@ -103,7 +103,7 @@ M0에서 `/my/posts`가 회원, 검색어와 페이지 조건을 하나의 Repos
 
 * SOCIAL 회원의 비밀번호 변경 제한이 View에만 있고 Service에서 강제되지 않는다.
 * 게시글 수정 화면 GET 요청은 Security 설정상 공개되며 작성자 소유권 검증도 수행하지 않는다.
-* Actuator의 상세 health, metrics, mappings와 local test route가 공개될 수 있다.
+* Actuator의 상세 health, metrics, mappings는 익명 사용자에게 공개된다. local test route는 `local` profile에서만 등록되지만 해당 profile에서는 공개된다.
 * Google·Naver OAuth 필수 attribute의 null 처리 정책이 충분하지 않다.
 * 동일 이메일을 사용하는 LOCAL·SOCIAL 계정 연결 정책이 없다.
 * 로그인 form의 `redirect` parameter를 success handler가 사용하지 않는다.
@@ -153,8 +153,10 @@ M0에서 `/my/posts`가 회원, 검색어와 페이지 조건을 하나의 Repos
 | 문서 class·method·URI 교차 검색   | 현재 공개 클래스명과 Mapping을 코드와 대조                     |
 | `git diff --check`          | whitespace 오류 없음. LF→CRLF 경고만 확인                |
 | PR #97                      | `recover → develop` merge commit 방식으로 병합 완료     |
+| PR #98                      | `develop → master` merge commit `d06ee0a71e2f35315c223b5e6975430387f51bed`로 병합 완료 |
+| master Push Workflow        | Run `29306357220`의 build Job에서 테스트와 Boot JAR 생성 성공 |
 
-M0 복구 코드와 M1 문서에 대한 정적 검증, 테스트와 빌드는 완료됐다.
+M0 복구 코드와 M1 문서에 대한 정적 검증, 테스트, 빌드와 `master` 기준선 반영은 완료됐다.
 
 ## 런타임·외부 환경 검증
 
@@ -162,7 +164,7 @@ M0 복구 코드와 M1 문서에 대한 정적 검증, 테스트와 빌드는 �
 
 로컬 MySQL과 Docker를 함께 실행할 때 개발 장비의 리소스 부담이 예상돼 사용자 승인에 따라 실제 실행을 생략했다.
 
-이 항목은 실제 실행 성공을 의미하지 않는다. 다만 사용자 승인에 따라 M1 릴리스 차단 조건에서는 통과로 간주하며, 실제 런타임 검증은 `master` 병합 후 EC2 배포와 Health Check로 대체한다.
+이 항목은 실제 실행 성공을 의미하지 않는다. 사용자 승인에 따라 M1 완료를 막는 조건에서는 제외했으며, 로컬 애플리케이션 기동은 검증하지 않았다.
 
 ### 외부 연동
 
@@ -175,11 +177,13 @@ M0 복구 코드와 M1 문서에 대한 정적 검증, 테스트와 빌드는 �
 
 ### 배포와 운영 환경
 
-다음 항목은 아직 완료되지 않았다.
+PR #98로 `develop → master` 병합을 완료했고, master Push Workflow Run `29306357220`의 build Job에서 테스트와 Boot JAR 생성이 성공했다.
 
-* `develop → master` Pull Request
-* master 대상 GitHub Actions
-* EC2 배포
+Deploy Job은 사용자가 비용과 운영 관리를 위해 의도적으로 중지한 EC2 인스턴스에 SSH 연결을 시도하다 timeout됐다. 따라서 애플리케이션 배포 명령은 실행되지 않았고, 애플리케이션 기동, 배포 후 Health Check와 외부 서비스 기본 화면은 실제로 검증하지 않았다. 이는 애플리케이션 오류로 판정하지 않으며, EC2를 다시 운영할 때 별도 운영 작업으로 검증한다.
+
+다음 항목은 미검증 또는 후속 운영 범위다.
+
+* EC2 애플리케이션 배포와 기동
 * 배포 후 애플리케이션 Health Check
 * 외부 서비스 기본 화면 확인
 * Docker image 직접 실행
@@ -187,50 +191,39 @@ M0 복구 코드와 M1 문서에 대한 정적 검증, 테스트와 빌드는 �
 
 Docker image 직접 실행과 운영 MySQL 성능 검증은 각각 운영 개선 단계와 M4 성능 검증 단계로 이관할 수 있다.
 
-## M1 완료 조건
+## M1 완료 결과
 
-M1 문서화와 코드 기준선 통합은 완료됐지만, 마일스톤을 최종 완료하려면 다음 작업이 남아 있다.
+M1은 다음 근거로 완료 처리한다.
 
-```text
-develop → master Pull Request 생성
-→ master 대상 GitHub Actions 성공
-→ merge commit 방식으로 master 병합
-→ master Push 배포 Job 성공
-→ EC2 애플리케이션 Health Check 성공
-→ 외부 서비스 기본 응답 확인
-```
+* M0 코드 복구와 M1 As-Is 문서화 완료
+* 관련 57개 테스트와 `clean build` 성공
+* PR #97의 `recover → develop` 및 PR #98의 `develop → master` 병합 완료
+* master Push Workflow Run `29306357220`에서 테스트와 Boot JAR 생성 성공
+* 로컬 MySQL, Docker, `bootRun`, 실제 OAuth2 login과 Discord Webhook 미검증 사실 기록
 
-다음 조건을 만족하면 M1을 완료 처리한다.
-
-* M0 복구 코드와 M1 문서가 `master`에 반영됨
-* master 대상 테스트와 Boot JAR 빌드 성공
-* EC2 배포 Job 성공
-* 배포된 애플리케이션 Health Check 성공
-* 실행하지 못한 OAuth와 Discord 검증이 보고서에 명확히 기록됨
+EC2 Deploy Job 실패는 의도적으로 중지된 인스턴스의 SSH timeout이며 애플리케이션 배포나 기동 실패가 아니다. EC2 애플리케이션 기동과 Health Check는 검증되지 않았으므로 성공으로 기록하지 않고, 인스턴스를 다시 운영할 때 수행할 별도 운영 작업으로 이관한다.
 
 ## 후속 단계 이관
 
-1. M1 릴리스 검증을 수행하고 `develop → master` PR과 배포를 완료한다.
-2. Validation과 Security 계약을 기존 SSR 동작을 유지하는 범위에서 우선 정리한다.
-3. JPA 삭제 무결성과 Pagination·검색 계약을 독립된 작업으로 정리한다.
-4. profile별 설정 계약과 Secret 외부화·회전 정책을 명시한다.
+1. Validation과 Security 계약을 기존 SSR 동작을 유지하는 범위에서 우선 정리한다.
+2. JPA 삭제 무결성과 Pagination·검색 계약을 독립된 작업으로 정리한다.
+3. profile별 설정 계약과 Secret 외부화·회전 정책을 명시한다.
+4. EC2를 다시 운영할 때 배포, 애플리케이션 기동과 Health Check를 별도 운영 작업으로 검증한다.
 5. CI artifact 전달, Actuator Health Check와 rollback 전략을 순차적으로 개선한다.
 6. 현재 SSR 기능과 서버 계약을 안정화한 뒤 M2 REST API 계약을 별도로 설계한다.
 7. React 전환과 풋살 도메인 설계는 로드맵 순서까지 보류한다.
 
 ## 현재 Git 상태와 기준선
 
-M0 복구와 M1 문서 변경은 PR #97을 통해 `develop`에 병합됐다.
+M0 복구와 M1 문서 변경은 PR #97을 통해 `develop`에, PR #98을 통해 `master`에 병합됐다.
 
 현재 기준은 다음과 같다.
 
 ```text
-master
-└── develop
+master (PR #98 merge commit d06ee0a7...)
+└── develop (PR #97 merge result)
     └── M0 프로젝트 복구
     └── M1 As-Is 문서화
 ```
 
-`develop`은 현재 `master`보다 앞서 있으며, 다음 작업은 M1 릴리스 검증 후 `develop → master` PR을 생성하는 것이다.
-
-`recover` 브랜치는 `master` 반영과 배포 검증이 끝날 때까지 유지할 수 있다. M1이 완료되면 로컬과 원격 `recover` 브랜치를 정리한다.
+`master`는 M1 코드·문서 기준선을 포함한다. 다음 작업은 M2 REST API 설계 전에 확정 가능한 Validation, Security, JPA와 Pagination 품질 부채를 정리하는 것이다.
