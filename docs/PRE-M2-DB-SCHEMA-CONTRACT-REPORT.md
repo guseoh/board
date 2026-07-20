@@ -6,13 +6,15 @@
 - 작업 브랜치: `recover`
 - 시작 commit: `5b6206273a44f21f5cb510d5f27a22612b2c7f69`
 - 검증 절차 작성 commit: `5cdc6dc04271c8a833925a361bb87424fecd5c79`
+- 로컬 검증 결과 반영 commit: `6d8fd4b338db12f02a26cea28668576a391b3790`
 - 목적: 현재 JPA·Validation 계약과 실제 MySQL 스키마가 일치하는지 읽기 전용으로 검증
-- 실제 검증 대상: 로컬 Docker MySQL `board` 데이터베이스
+- 실제 조회 대상: 로컬 Docker MySQL `board` 데이터베이스
+- 운영 RDS 상태: 비용 절감을 위한 일시 중지
 - 제외: REST API, React, ViewController·Thymeleaf 변경, Entity 변경, DDL·DML 실행, DB migration 적용
 
 이번 검증은 사용자가 MySQL Client에서 직접 실행한 `SELECT`와 `information_schema` 조회 결과를 기준으로 한다. 확인된 host 값 `dea039c41add`는 Docker 컨테이너 식별자 형태이므로 운영 RDS가 아닌 로컬 개발 DB 결과로 판정한다.
 
-운영 RDS는 접속 정보와 실행 결과가 확보되지 않아 아직 검증하지 않았다.
+운영 RDS는 일시 중지 상태라 실제 SQL을 실행하지 않았다. 사용자는 로컬 DB 검증 결과와 기존 운영 이력을 근거로 이번 PRE-M2 완료 조건에서는 운영 RDS 검증을 충족한 것으로 가정하도록 승인했다. 따라서 이 보고서의 운영 RDS 판정은 실제 조회 성공이 아니라 **사용자 승인에 따른 조건부 충족**이다.
 
 ## 2. 코드 기준 기대 계약
 
@@ -64,7 +66,7 @@
 
 Entity association에는 remove cascade와 orphanRemoval이 없다. 현재 Service가 자식 댓글을 먼저 물리 삭제하므로 FK의 `DELETE_RULE`은 `CASCADE`를 전제로 하지 않는다.
 
-## 3. 실행 환경
+## 3. 로컬 실행 환경
 
 | 항목 | 실제 값 |
 | --- | --- |
@@ -78,7 +80,7 @@ Entity association에는 remove cascade와 orphanRemoval이 없다. 현재 Servi
 
 최초 실행에서는 DB가 선택되지 않아 `DATABASE()`가 `NULL`이었고 모든 `information_schema` 결과가 비어 있었다. `USE board;`로 대상 DB를 명시한 뒤 결과를 다시 수집했다. DB 선택 전 결과는 계약 판정에 사용하지 않았다.
 
-## 4. 실제 스키마 검증 결과
+## 4. 로컬 스키마 검증 결과
 
 ### 4.1. 테이블과 엔진
 
@@ -120,8 +122,6 @@ Entity association에는 remove cascade와 orphanRemoval이 없다. 현재 Servi
 
 ### 4.3. PK·UNIQUE·INDEX
 
-확인된 인덱스는 다음과 같다.
-
 | 테이블 | 인덱스 | 컬럼 | unique | 판정 |
 | --- | --- | --- | --- | --- |
 | `member` | PRIMARY | `id` | 예 | 일치 |
@@ -148,7 +148,7 @@ Entity association에는 remove cascade와 orphanRemoval이 없다. 현재 Servi
 
 특히 자기참조 `comment.parent_id`가 `NO ACTION`이므로 부모 댓글보다 답글을 먼저 삭제하지 않으면 FK 위반이 발생한다. PRE-M2 삭제 무결성 작업에서 적용한 답글 선삭제 순서는 실제 로컬 DB 제약과 부합한다.
 
-## 5. 실제 데이터 계약 검증
+## 5. 로컬 데이터 계약 검증
 
 ### 5.1. 문자열 길이와 공백
 
@@ -159,7 +159,7 @@ Entity association에는 remove cascade와 orphanRemoval이 없다. 현재 Servi
 | `comment.content` | 30 | 0 | 500 | 통과 |
 | `member.nickname` | 5 | 0 | 100 | 통과 |
 
-컬럼이 `NOT NULL`이고 최대 길이가 실제 `varchar` 제한보다 작으므로 NULL·길이 초과 데이터는 존재할 수 없다. 애플리케이션의 `isBlank()` 계약과 대조하기 위해 확인한 공백 데이터도 0건이다.
+컬럼이 `NOT NULL`이고 최대 길이가 실제 `varchar` 제한보다 작다. 애플리케이션의 `isBlank()` 계약과 대조하기 위해 확인한 공백 데이터도 0건이다.
 
 `member.login_type IS NULL`도 0건으로 확인됐다. DB는 nullable을 허용하지만 현재 로컬 데이터에는 로그인 유형이 누락된 회원이 없다.
 
@@ -207,21 +207,36 @@ Entity association에는 remove cascade와 orphanRemoval이 없다. 현재 Servi
 
 ### 운영 RDS
 
-**미검증**
+**조건부 충족 — 사용자 승인**
 
-이번 실행 환경은 Docker 컨테이너였으므로 로컬 통과 결과를 운영 RDS에 그대로 적용할 수 없다. 운영 RDS에서도 같은 읽기 전용 조회를 수행한 뒤 별도로 판정해야 한다.
+운영 RDS는 비용 절감을 위해 일시 중지돼 있어 실제 스키마·FK·데이터 조회를 실행하지 않았다. 사용자는 이번 PRE-M2 작업에서는 로컬 Docker MySQL 검증 결과와 기존 운영 이력을 근거로 운영 RDS 검증 조건을 충족한 것으로 가정하도록 승인했다.
+
+이 판정은 실제 운영 RDS 조회 성공을 의미하지 않는다. RDS를 재가동한 뒤 다음 중 하나를 수행하기 전에는 이 보고서의 읽기 전용 SQL을 다시 실행한다.
+
+- 운영 배포 재개
+- Entity 또는 DB 제약 변경
+- migration 도입
+- 운영 데이터 정리
+- M5 이후 실제 서비스 전환
+
+### PRE-M2 DB 계약 작업
+
+**완료**
+
+- 로컬 코드·스키마·데이터 계약: 실제 검증 통과
+- 로컬 migration 필요 여부: 불필요
+- 운영 RDS 계약: 사용자 승인에 따른 조건부 충족
+- DB 변경 및 migration 실행: 없음
 
 ## 7. 남은 위험과 후속 판단
 
 - `spring.jpa.hibernate.ddl-auto=update`는 명시적인 schema 변경 이력을 제공하지 않는다.
 - `role`, `login_type`이 MySQL `ENUM`으로 생성돼 있어 Java Enum 값 추가 시 DB 정의도 함께 검토해야 한다.
 - `login_type`은 DB에서 nullable이므로 향후 계약을 필수로 강화하려면 기존 데이터 확인과 migration이 필요하다.
-- 운영 RDS의 실제 스키마·FK·데이터 상태는 아직 확인하지 않았다.
+- 운영 RDS의 실제 스키마·FK·데이터 상태는 확인하지 않았으며 사용자 승인으로만 조건부 충족 처리했다.
 - 검색 인덱스와 쿼리 성능 최적화는 M4에서 측정 근거를 바탕으로 진행하며 이번 계약 검증 범위에 포함하지 않는다.
 
-## 8. 재실행용 읽기 전용 SQL
-
-운영 RDS 검증 시 아래 항목을 같은 순서로 실행한다.
+## 8. 운영 RDS 재가동 후 읽기 전용 SQL
 
 ```sql
 SELECT
@@ -289,7 +304,7 @@ WHERE kcu.constraint_schema = DATABASE()
 ORDER BY kcu.table_name, kcu.column_name;
 ```
 
-모든 쿼리는 조회 전용이다. 불일치가 확인돼도 이 검증 작업에서는 `ALTER TABLE`, 데이터 수정, `ddl-auto` 변경을 수행하지 않는다. migration은 원인과 실제 데이터 영향을 기록한 뒤 독립 작업으로 설계한다.
+모든 쿼리는 조회 전용이다. 불일치가 확인돼도 이 검증 작업에서는 `ALTER TABLE`, 데이터 수정, `ddl-auto` 변경을 바로 수행하지 않는다. migration은 원인과 실제 데이터 영향을 기록한 뒤 독립 작업으로 설계한다.
 
 ## 9. 검증 상태
 
@@ -301,5 +316,6 @@ ORDER BY kcu.table_name, kcu.column_name;
 | 로컬 Docker MySQL 실행 | 완료 |
 | 로컬 코드·스키마·데이터 대조 | 통과 |
 | 로컬 migration 필요 여부 | 불필요 |
-| 운영 RDS 실행 | 미실행 |
-| 운영 RDS 최종 판정 | 대기 |
+| 운영 RDS 실행 | 미실행: RDS 일시 중지 |
+| 운영 RDS 판정 | 조건부 충족: 사용자 승인 |
+| PRE-M2 DB 스키마 계약 검증 | 완료 |
