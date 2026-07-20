@@ -16,4 +16,9 @@ public class LocalTestController {
     public String discordErrorTest() {
         throw new CustomException(ErrorCode.POST_NOT_FOUND);
     }
+
+    @GetMapping("/social-password-not-allowed")
+    String socialPasswordNotAllowed() {
+        throw new CustomException(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED);
+    }
 }

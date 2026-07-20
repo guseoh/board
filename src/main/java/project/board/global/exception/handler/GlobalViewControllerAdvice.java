@@ -64,6 +64,7 @@ public class GlobalViewControllerAdvice {
     private static boolean isShouldNotify(ErrorCode errorCode) {
         return errorCode != ErrorCode.DUPLICATE_EMAIL
                 && errorCode != ErrorCode.DUPLICATE_NICKNAME
-                && errorCode != ErrorCode.PASSWORD_MISMATCH;
+                && errorCode != ErrorCode.PASSWORD_MISMATCH
+                && errorCode != ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED;
     }
 }
