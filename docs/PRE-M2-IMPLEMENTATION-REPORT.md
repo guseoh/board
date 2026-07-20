@@ -525,5 +525,5 @@ PRE-M2 Security 경계 구현 결과는 다음과 같다.
 * Boot JAR 생성 확인
 * 최종 profile 변경 후 `clean test` 성공
 * `git diff --check` 통과
-* commit `0b634ef` (`fix: 게시글 수정 화면 접근 경계 보강`) 생성 완료
-* `git push origin recover` 성공, 원격 `recover`가 `0b634ef30e2d7778b8874caa1535db700c31736c`를 가리킴
+* 지정 메시지 `fix: 게시글 수정 화면 접근 경계 보강`으로 commit 생성 완료
+* `git push origin recover` 성공
