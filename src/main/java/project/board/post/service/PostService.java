@@ -71,7 +71,7 @@ public class PostService {
     public PageResultDto<PostListResponse, Post> getPosts(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
 
-        Page<Post> result = postRepository.findAllWithMember(pageable);
+        Page<Post> result = postRepository.findPosts(pageRequestDto.getKeyword(), pageable);
 
         Function<Post, PostListResponse> fn = PostListResponse::from;
 
