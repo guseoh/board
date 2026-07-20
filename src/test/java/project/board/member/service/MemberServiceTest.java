@@ -27,6 +27,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -215,6 +216,28 @@ class MemberServiceTest {
         assertThatThrownBy(() -> memberService.getMyProfile(404L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("소셜 회원은 비밀번호를 변경할 수 없다")
+    void socialMemberCannotUpdatePassword() {
+        Member socialMember = oauthMember(2L, "google", "google-1");
+        String originalPassword = socialMember.getPassword();
+
+        MemberPasswordUpdateRequest request =
+                passwordRequest("current1", "newpass1", "newpass1");
+
+        given(memberRepository.findById(2L))
+                .willReturn(Optional.of(socialMember));
+
+        assertThatThrownBy(() -> memberService.updatePassword(2L, request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED.getMessage());
+
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+        verify(passwordEncoder, never()).encode(anyString());
+
+        assertThat(socialMember.getPassword()).isEqualTo(originalPassword);
     }
 
     private MemberCreateRequest createRequest(String email, String nickname, String password, String confirm) {

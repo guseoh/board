@@ -25,7 +25,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class MemberService {
 
-    private final MemberRepository  memberRepository;
+    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
@@ -103,6 +103,11 @@ public class MemberService {
     public void updatePassword(Long memberId, MemberPasswordUpdateRequest request) {
 
         Member member = validateMember(memberId);
+
+        // 소셜회원은 비밀번호 변경 차단
+        if (member.getLoginType() != LoginType.LOCAL) {
+            throw new CustomException(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED);
+        }
 
         if (StringUtils.hasText(request.getNewPassword())) {
             // 현재 비밀번호 입력하지 않은 경우
