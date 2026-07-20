@@ -67,6 +67,12 @@ class SecurityConfigTest {
 
         mockMvc.perform(get("/admin").with(authentication(authToken(Role.ADMIN))))
                 .andExpect(status().isOk());
+
+        mockMvc.perform(post("/admin/users/1/role")
+                        .with(authentication(authToken(Role.USER)))
+                        .with(csrf())
+                        .param("role", "ADMIN"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -34,7 +34,7 @@ public class PostViewController {
     private final CommentService commentService;
 
     @GetMapping({"", "/"})
-    public String list(PageRequestDto request, Model model,
+    public String list(@Valid PageRequestDto request, Model model,
                        @AuthenticationPrincipal UnifiedPrincipal user) {
 
         var page = postService.getPosts(request);

@@ -185,10 +185,10 @@ class MemberServiceTest {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        memberService.changeMemberRole("ADMIN", 1L);
+        memberService.changeMemberRole(Role.ADMIN, 1L);
 
         assertThat(member.getRole()).isEqualTo(Role.ADMIN);
-        assertThatThrownBy(() -> memberService.changeMemberRole("ADMIN", 99L))
+        assertThatThrownBy(() -> memberService.changeMemberRole(Role.ADMIN, 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }

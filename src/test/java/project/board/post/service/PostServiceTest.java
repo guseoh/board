@@ -87,6 +87,26 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("Controller 검증을 우회한 501자 게시글은 저장하거나 기존 내용을 변경하지 않는다")
+    void rejectsOverlongPostAtDomainBoundary() {
+        Member writer = member(1L);
+        Post post = post(10L, "title", "content", writer);
+        String tooLong = "a".repeat(501);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(writer));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.createPost(new PostRequest(tooLong, "content"), 1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_TITLE_TOO_LONG.getMessage());
+        assertThatThrownBy(() -> postService.update(new PostRequest("title", tooLong), 10L, 1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_CONTENT_TOO_LONG.getMessage());
+
+        assertThat(post.getContent()).isEqualTo("content");
+        verify(postRepository, never()).save(any(Post.class));
+    }
+
+    @Test
     @DisplayName("최상위 댓글과 답글을 포함한 상세 정보를 조회한다")
     void getPostDetailSuccess() {
         Member writer = member(1L);

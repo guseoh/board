@@ -69,10 +69,10 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeMemberRole(String role, Long memberId) {
+    public void changeMemberRole(Role role, Long memberId) {
         Member member = validateMember(memberId);
 
-        member.changeRole(Role.valueOf(role));
+        member.changeRole(role);
     }
 
     @Transactional

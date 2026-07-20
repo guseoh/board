@@ -40,6 +40,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -107,11 +108,54 @@ class ControllerMvcTest {
                         .param("passwordConfirm", ""))
                 .andExpect(status().isOk())
                 .andExpect(view().name("member/signup"))
-                .andExpect(model().attributeHasErrors("form"));
+                .andExpect(model().attributeHasErrors("form"))
+                .andExpect(model().attribute("form", org.hamcrest.Matchers.hasProperty("password", org.hamcrest.Matchers.nullValue())))
+                .andExpect(model().attribute("form", org.hamcrest.Matchers.hasProperty("passwordConfirm", org.hamcrest.Matchers.nullValue())));
 
         mockMvc.perform(get("/loginForm"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("member/loginForm"));
+    }
+
+    @Test
+    @DisplayName("회원 수정 Validation 실패는 비밀번호를 model에 남기지 않고 닉네임 요청은 필수값을 요구한다")
+    void memberValidationClearsPasswords() throws Exception {
+        UnifiedPrincipal user = principal(1L, Role.USER);
+        given(memberService.getMyProfile(1L)).willReturn(MemberUpdateResponse.builder()
+                .nickname("user1").email("user1@example.com").passwordChangeable(true).build());
+
+        mockMvc.perform(post("/my/edit/password")
+                        .with(authenticated(user))
+                        .param("currentPassword", "short")
+                        .param("newPassword", "newpass1")
+                        .param("newPasswordConfirm", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("my/myEdit"))
+                .andExpect(model().attribute("passwordRequest", org.hamcrest.Matchers.hasProperty("currentPassword", org.hamcrest.Matchers.nullValue())))
+                .andExpect(model().attribute("passwordRequest", org.hamcrest.Matchers.hasProperty("newPassword", org.hamcrest.Matchers.nullValue())))
+                .andExpect(model().attribute("passwordRequest", org.hamcrest.Matchers.hasProperty("newPasswordConfirm", org.hamcrest.Matchers.nullValue())));
+        verify(memberService, never()).updatePassword(any(), any());
+
+        mockMvc.perform(post("/my/edit/nickname")
+                        .with(authenticated(user))
+                        .param("nickname", " "))
+                .andExpect(status().isOk())
+                .andExpect(view().name("my/myEdit"))
+                .andExpect(model().attributeHasErrors("nicknameRequest"));
+        verify(memberService, never()).updateNickname(any(), any());
+    }
+
+    @Test
+    @DisplayName("잘못된 Pagination 입력은 화면 Service에 도달하지 않고 400을 반환한다")
+    void invalidPaginationReturnsBadRequestBeforeService() throws Exception {
+        mockMvc.perform(get("/").param("page", "0"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/my/posts").with(authenticated(principal(1L, Role.USER))).param("size", "101"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/my/comments").with(authenticated(principal(1L, Role.USER))).param("page", "not-a-number"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(postService, commentService, memberService);
     }
 
     @Test
@@ -191,6 +235,35 @@ class ControllerMvcTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
         verify(postService).delete(10L, 1L);
+    }
+
+    @Test
+    @DisplayName("500자 게시글과 댓글은 통과하고 501자 입력은 Service에 전달하지 않는다")
+    void postAndCommentLengthValidation() throws Exception {
+        UnifiedPrincipal user = principal(1L, Role.USER);
+        String max = "a".repeat(500);
+        String tooLong = "a".repeat(501);
+        Member writer = member(1L);
+        Post post = post(10L, max, max, writer);
+        given(postService.createPost(any(), eq(1L))).willReturn(PostListResponse.from(post));
+
+        mockMvc.perform(post("/post/new").with(authenticated(user)).param("title", max).param("content", max))
+                .andExpect(status().is3xxRedirection());
+        mockMvc.perform(post("/post/new").with(authenticated(user)).param("title", tooLong).param("content", max))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeHasErrors("form"));
+        verify(postService).createPost(any(), eq(1L));
+
+        mockMvc.perform(post("/post/10/comment").with(authenticated(user)).param("content", max))
+                .andExpect(status().is3xxRedirection());
+        verify(commentService).createComment(any(), eq(1L), eq(10L));
+        mockMvc.perform(post("/post/10/comment/100/replies").with(authenticated(user)).param("content", max))
+                .andExpect(status().is3xxRedirection());
+        verify(commentService).createReply(any(), eq(1L), eq(10L), eq(100L));
+        mockMvc.perform(post("/post/10/comment/100/replies").with(authenticated(user)).param("content", tooLong))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attributeExists("error"));
+        verify(commentService, org.mockito.Mockito.times(1)).createReply(any(), eq(1L), eq(10L), eq(100L));
     }
 
     @Test
@@ -347,12 +420,25 @@ class ControllerMvcTest {
         mockMvc.perform(post("/admin/users/1/role").param("role", "ADMIN"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"));
-        verify(memberService).changeMemberRole("ADMIN", 1L);
+        verify(memberService).changeMemberRole(Role.ADMIN, 1L);
+
+        mockMvc.perform(post("/admin/users/1/role").param("role", "USER"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"));
+        verify(memberService).changeMemberRole(Role.USER, 1L);
 
         mockMvc.perform(post("/admin/users/1/delete"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"));
         verify(memberService).deleteMemberByAdmin(1L);
+    }
+
+    @Test
+    @DisplayName("관리자 역할에 허용되지 않은 enum 값은 Service 호출 전 400으로 거부된다")
+    void invalidAdminRoleReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/admin/users/1/role").param("role", "admin"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(memberService);
     }
 
     @Test

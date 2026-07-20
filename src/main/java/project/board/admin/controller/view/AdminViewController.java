@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.board.member.entity.Member;
+import project.board.member.entity.Role;
 import project.board.member.service.MemberService;
 import project.board.post.entity.Post;
 import project.board.post.service.PostService;
@@ -58,7 +59,7 @@ public class AdminViewController {
 
     @PostMapping("/users/{memberId}/role")
     public String memberUpdate(@PathVariable Long memberId,
-                               @RequestParam String role) {
+                               @RequestParam Role role) {
         memberService.changeMemberRole(role, memberId);
 
         return "redirect:/admin";

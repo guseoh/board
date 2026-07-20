@@ -90,6 +90,28 @@ class CommentServiceTest {
     }
 
     @Test
+    @DisplayName("Controller 검증을 우회한 501자 댓글은 저장하거나 기존 내용을 변경하지 않는다")
+    void rejectsOverlongCommentAtDomainBoundary() {
+        Member owner = member(1L);
+        Post post = post(10L, member(2L));
+        Comment existing = comment(100L, "old", owner, post);
+        String tooLong = "a".repeat(501);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(owner));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+        given(commentRepository.findById(100L)).willReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> commentService.createComment(request(tooLong), 1L, 10L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_CONTENT_TOO_LONG.getMessage());
+        assertThatThrownBy(() -> commentService.update(100L, 1L, 10L, request(tooLong)))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_CONTENT_TOO_LONG.getMessage());
+
+        assertThat(existing.getContent()).isEqualTo("old");
+        verify(commentRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("같은 게시글의 최상위 댓글에만 답글을 생성한다")
     void createReplySuccessAndInvalidParent() {
         Member member = member(1L);

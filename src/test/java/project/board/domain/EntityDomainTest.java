@@ -81,6 +81,16 @@ class EntityDomainTest {
         assertThatThrownBy(() -> post.change("title", ""))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.POST_NOT_CONTENT.getMessage());
+
+        String tooLong = "a".repeat(501);
+        assertThatThrownBy(() -> Post.create(tooLong, "content", writer))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_TITLE_TOO_LONG.getMessage());
+        assertThatThrownBy(() -> post.change("title", tooLong))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_CONTENT_TOO_LONG.getMessage());
+        assertThat(post.getTitle()).isEqualTo("new title");
+        assertThat(post.getContent()).isEqualTo("new content");
     }
 
     @Test
@@ -103,5 +113,14 @@ class EntityDomainTest {
         assertThat(reply.getParent()).isSameAs(root);
         assertThat(root.getChildren()).contains(reply);
         assertThat(post.getComments()).contains(root, reply);
+
+        String tooLong = "a".repeat(501);
+        assertThatThrownBy(() -> Comment.create(tooLong, commenter, post, null))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_CONTENT_TOO_LONG.getMessage());
+        assertThatThrownBy(() -> root.changeContent(tooLong))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_CONTENT_TOO_LONG.getMessage());
+        assertThat(root.getContent()).isEqualTo("changed comment");
     }
 }

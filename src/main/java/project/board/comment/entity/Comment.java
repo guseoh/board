@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import project.board.global.entity.BaseEntity;
+import project.board.global.exception.CustomException;
+import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
 import project.board.post.entity.Post;
 
@@ -41,6 +43,8 @@ public class Comment extends BaseEntity {
 
     public static Comment create(String content, Member member, Post post, Comment parent) {
 
+        validateContent(content);
+
         Comment c = new Comment();
         c.content = content;
         c.member = member;
@@ -64,7 +68,17 @@ public class Comment extends BaseEntity {
     }
 
     public void changeContent(String content) {
+        validateContent(content);
         this.content = content;
+    }
+
+    private static void validateContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new CustomException(ErrorCode.COMMENT_NOT_CONTENT);
+        }
+        if (content.length() > 500) {
+            throw new CustomException(ErrorCode.COMMENT_CONTENT_TOO_LONG);
+        }
     }
 
     public boolean rootComment() {
