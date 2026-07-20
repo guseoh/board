@@ -94,6 +94,7 @@ public class CommentService {
         validateCommentPost(comment, postId);
         validateOwner(comment, memberId);
 
+        commentRepository.deleteRepliesByParentId(commentId);
         commentRepository.delete(comment);
     }
 

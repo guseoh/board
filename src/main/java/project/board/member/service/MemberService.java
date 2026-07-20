@@ -165,16 +165,15 @@ public class MemberService {
     }
 
     private void MemberRemovalPolicy(Long memberId) {
-        // 회원이 작성한 댓글
-        commentRepository.deleteAllByMemberId(memberId);
+        commentRepository.deleteRepliesByPostMemberId(memberId);
+        commentRepository.deleteRootCommentsByPostMemberId(memberId);
 
-        // 회원이 작성한 게시글에 달린 댓글
-        commentRepository.deleteAllByPostMemberId(memberId);
+        commentRepository.deleteRepliesToRootsByMemberId(memberId);
+        commentRepository.deleteRepliesByMemberId(memberId);
+        commentRepository.deleteRootCommentsByMemberId(memberId);
 
-        // 회원이 작성한 게시글
-        postRepository.deleteAllByMemberId(memberId);
+        postRepository.deletePostsByMemberId(memberId);
 
-        // 회원 제거
         memberRepository.deleteById(memberId);
     }
 }

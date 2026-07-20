@@ -100,7 +100,7 @@ class PostRepositoryTest {
                 .extracting(Post::getViewCount)
                 .isEqualTo(1);
 
-        postRepository.deleteAllByMemberId(writer.getId());
+        postRepository.deletePostsByMemberId(writer.getId());
         flushAndClear();
 
         assertThat(postRepository.findAllByMemberId(writer.getId())).isEmpty();

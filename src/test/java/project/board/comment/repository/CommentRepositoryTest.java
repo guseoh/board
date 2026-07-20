@@ -43,29 +43,30 @@ class CommentRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    @DisplayName("게시글, 회원, 작성자 기준으로 댓글을 일괄 삭제한다")
+    @DisplayName("답글과 부모 댓글을 명시적인 대상별 쿼리로 삭제한다")
     void deleteQueries() {
         Member writer = saveMember("writer", "writer@example.com");
         Member commenter = saveMember("commenter", "commenter@example.com");
+        Member other = saveMember("other", "other@example.com");
         Post post = postRepository.save(Post.create("post", "content", writer));
-        Comment comment = commentRepository.save(Comment.create("comment", commenter, post, null));
+        Comment root = commentRepository.save(Comment.create("root", commenter, post, null));
+        Comment reply = commentRepository.save(Comment.create("reply", other, post, root));
         flushAndClear();
 
-        commentRepository.deleteByPostId(post.getId());
+        commentRepository.deleteRepliesByParentId(root.getId());
         flushAndClear();
-        assertThat(commentRepository.findById(comment.getId())).isEmpty();
+        assertThat(commentRepository.findById(reply.getId())).isEmpty();
+        assertThat(commentRepository.findById(root.getId())).isPresent();
 
-        Comment memberComment = commentRepository.save(Comment.create("member comment", commenter, post, null));
+        Comment secondRoot = commentRepository.save(Comment.create("second root", commenter, post, null));
+        Comment secondReply = commentRepository.save(Comment.create("second reply", other, post, secondRoot));
         flushAndClear();
-        commentRepository.deleteAllByMemberId(commenter.getId());
+        commentRepository.deleteRepliesByPostId(post.getId());
+        commentRepository.deleteRootCommentsByPostId(post.getId());
         flushAndClear();
-        assertThat(commentRepository.findById(memberComment.getId())).isEmpty();
-
-        Comment postWriterComment = commentRepository.save(Comment.create("writer post comment", commenter, post, null));
-        flushAndClear();
-        commentRepository.deleteAllByPostMemberId(writer.getId());
-        flushAndClear();
-        assertThat(commentRepository.findById(postWriterComment.getId())).isEmpty();
+        assertThat(commentRepository.findById(secondReply.getId())).isEmpty();
+        assertThat(commentRepository.findById(root.getId())).isEmpty();
+        assertThat(commentRepository.findById(secondRoot.getId())).isEmpty();
     }
 
     @Test

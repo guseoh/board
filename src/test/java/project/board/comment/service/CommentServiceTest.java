@@ -156,6 +156,7 @@ class CommentServiceTest {
         commentService.delete(1L, 100L, 10L);
 
         assertThat(response.getContent()).isEqualTo("changed");
+        verify(commentRepository).deleteRepliesByParentId(100L);
         verify(commentRepository).delete(comment);
         assertThatThrownBy(() -> commentService.update(100L, 2L, 10L, request("fail")))
                 .isInstanceOf(CustomException.class)
@@ -183,6 +184,7 @@ class CommentServiceTest {
                 .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
 
         assertThat(comment.getContent()).isEqualTo("old");
+        verify(commentRepository, never()).deleteRepliesByParentId(100L);
         verify(commentRepository, never()).delete(comment);
     }
 

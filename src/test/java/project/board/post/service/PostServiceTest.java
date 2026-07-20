@@ -207,8 +207,10 @@ class PostServiceTest {
 
         postService.delete(10L, 1L);
 
-        verify(commentRepository).deleteByPostId(10L);
-        verify(postRepository).delete(post);
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(commentRepository, postRepository);
+        order.verify(commentRepository).deleteRepliesByPostId(10L);
+        order.verify(commentRepository).deleteRootCommentsByPostId(10L);
+        order.verify(postRepository).delete(post);
     }
 
     @Test
@@ -228,7 +230,8 @@ class PostServiceTest {
 
         assertThat(post.getTitle()).isEqualTo("title");
         assertThat(post.getContent()).isEqualTo("content");
-        verify(commentRepository, never()).deleteByPostId(10L);
+        verify(commentRepository, never()).deleteRepliesByPostId(10L);
+        verify(commentRepository, never()).deleteRootCommentsByPostId(10L);
         verify(postRepository, never()).delete(post);
     }
 
@@ -240,8 +243,10 @@ class PostServiceTest {
 
         postService.deleteForAdmin(10L);
 
-        verify(commentRepository).deleteByPostId(10L);
-        verify(postRepository).deleteById(10L);
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(commentRepository, postRepository);
+        order.verify(commentRepository).deleteRepliesByPostId(10L);
+        order.verify(commentRepository).deleteRootCommentsByPostId(10L);
+        order.verify(postRepository).deleteById(10L);
     }
 
     @Test
