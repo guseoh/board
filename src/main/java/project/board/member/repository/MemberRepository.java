@@ -1,6 +1,7 @@
 package project.board.member.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import project.board.member.entity.LoginType;
 import project.board.member.entity.Member;
 
 import java.util.Optional;
@@ -8,6 +9,8 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByEmail(String username);
+
+    Optional<Member> findByEmailAndLoginType(String email, LoginType loginType);
 
     Optional<Member> findByProviderAndProviderId(String provider, String providerId);
 

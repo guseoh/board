@@ -30,6 +30,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -87,6 +89,26 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("Controller 검증을 우회한 501자 게시글은 저장하거나 기존 내용을 변경하지 않는다")
+    void rejectsOverlongPostAtDomainBoundary() {
+        Member writer = member(1L);
+        Post post = post(10L, "title", "content", writer);
+        String tooLong = "a".repeat(501);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(writer));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.createPost(new PostRequest(tooLong, "content"), 1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_TITLE_TOO_LONG.getMessage());
+        assertThatThrownBy(() -> postService.update(new PostRequest("title", tooLong), 10L, 1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_CONTENT_TOO_LONG.getMessage());
+
+        assertThat(post.getContent()).isEqualTo("content");
+        verify(postRepository, never()).save(any(Post.class));
+    }
+
+    @Test
     @DisplayName("최상위 댓글과 답글을 포함한 상세 정보를 조회한다")
     void getPostDetailSuccess() {
         Member writer = member(1L);
@@ -104,12 +126,52 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("페이징된 게시글을 페이지 결과 객체로 변환한다")
+    @DisplayName("작성자만 수정 화면용 게시글을 조회한다")
+    void getPostForEditOwner() {
+        Post post = post(10L, "edit title", "edit content", member(1L));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        PostDetailResponse response = postService.getPostForEdit(10L, 1L);
+
+        assertThat(response.getId()).isEqualTo(10L);
+        assertThat(response.getTitle()).isEqualTo("edit title");
+        verify(postRepository).findById(10L);
+    }
+
+    @Test
+    @DisplayName("수정 화면 조회도 비작성자와 ADMIN 비작성자를 허용하지 않는다")
+    void getPostForEditRejectsNonOwnerAndAdmin() {
+        Post post = post(10L, "title", "content", member(1L));
+        Member admin = member(2L, "admin", "admin@example.com", project.board.member.entity.Role.ADMIN);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.getPostForEdit(10L, 2L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        assertThatThrownBy(() -> postService.getPostForEdit(10L, admin.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        verify(postRepository, org.mockito.Mockito.times(2)).findById(10L);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글의 수정 화면 조회는 게시글 없음 오류를 반환한다")
+    void getPostForEditNotFound() {
+        given(postRepository.findById(99L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> postService.getPostForEdit(99L, 1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+        verify(postRepository).findById(99L);
+    }
+
+    @Test
+    @DisplayName("키워드가 없으면 전체 게시글을 페이지 결과로 변환한다")
     void findAllSuccess() {
         Member writer = member(1L);
         Post post = post(10L, "list title", "content", writer);
         PageRequestDto request = PageRequestDto.builder().page(1).size(5).build();
-        given(postRepository.findAllWithMember(any()))
+        given(postRepository.findPosts(isNull(), any()))
                 .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1));
 
         PageResultDto<PostListResponse, Post> result = postService.getPosts(request);
@@ -117,6 +179,28 @@ class PostServiceTest {
         assertThat(result.getTotalCount()).isEqualTo(1);
         assertThat(result.getDtoList()).extracting(PostListResponse::getTitle)
                 .containsExactly("list title");
+        verify(postRepository).findPosts(isNull(), any());
+    }
+
+    @Test
+    @DisplayName("키워드가 있으면 같은 페이지 계약으로 제목을 검색한다")
+    void findByKeywordSuccess() {
+        Member writer = member(1L);
+        Post post = post(10L, "Spring board", "content", writer);
+        PageRequestDto request = PageRequestDto.builder()
+                .page(1)
+                .size(5)
+                .keyword("Spring")
+                .build();
+        given(postRepository.findPosts(eq("Spring"), any()))
+                .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1));
+
+        PageResultDto<PostListResponse, Post> result = postService.getPosts(request);
+
+        assertThat(result.getTotalCount()).isEqualTo(1);
+        assertThat(result.getDtoList()).extracting(PostListResponse::getTitle)
+                .containsExactly("Spring board");
+        verify(postRepository).findPosts(eq("Spring"), any());
     }
 
     @Test
@@ -134,6 +218,8 @@ class PostServiceTest {
         assertThatThrownBy(() -> postService.update(new PostRequest("other title", "content"), 10L, 2L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        assertThat(post.getTitle()).isEqualTo("new title");
+        assertThat(post.getContent()).isEqualTo("new content");
     }
 
     @Test
@@ -145,8 +231,32 @@ class PostServiceTest {
 
         postService.delete(10L, 1L);
 
-        verify(commentRepository).deleteByPostId(10L);
-        verify(postRepository).delete(post);
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(commentRepository, postRepository);
+        order.verify(commentRepository).deleteRepliesByPostId(10L);
+        order.verify(commentRepository).deleteRootCommentsByPostId(10L);
+        order.verify(postRepository).delete(post);
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 ADMIN도 일반 게시글을 수정하거나 삭제할 수 없다")
+    void adminCannotBypassOwnership() {
+        Member writer = member(1L);
+        Member admin = member(2L, "admin", "admin@example.com", project.board.member.entity.Role.ADMIN);
+        Post post = post(10L, "title", "content", writer);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.update(new PostRequest("changed", "changed"), 10L, admin.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        assertThatThrownBy(() -> postService.delete(10L, admin.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+
+        assertThat(post.getTitle()).isEqualTo("title");
+        assertThat(post.getContent()).isEqualTo("content");
+        verify(commentRepository, never()).deleteRepliesByPostId(10L);
+        verify(commentRepository, never()).deleteRootCommentsByPostId(10L);
+        verify(postRepository, never()).delete(post);
     }
 
     @Test
@@ -157,8 +267,10 @@ class PostServiceTest {
 
         postService.deleteForAdmin(10L);
 
-        verify(commentRepository).deleteByPostId(10L);
-        verify(postRepository).deleteById(10L);
+        org.mockito.InOrder order = org.mockito.Mockito.inOrder(commentRepository, postRepository);
+        order.verify(commentRepository).deleteRepliesByPostId(10L);
+        order.verify(commentRepository).deleteRootCommentsByPostId(10L);
+        order.verify(postRepository).deleteById(10L);
     }
 
     @Test

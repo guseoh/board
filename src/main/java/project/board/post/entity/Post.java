@@ -61,11 +61,17 @@ public class Post extends BaseEntity {
         if (content == null || content.isBlank()) {
             throw new CustomException(ErrorCode.POST_NOT_CONTENT);
         }
+        if (content.length() > 500) {
+            throw new CustomException(ErrorCode.POST_CONTENT_TOO_LONG);
+        }
     }
 
     private static void validateTitle(String title) {
         if (title == null || title.isBlank()) {
             throw new CustomException(ErrorCode.POST_NOT_TITLE);
+        }
+        if (title.length() > 500) {
+            throw new CustomException(ErrorCode.POST_TITLE_TOO_LONG);
         }
     }
 

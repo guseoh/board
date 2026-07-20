@@ -19,6 +19,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static project.board.testsupport.TestFixtures.principal;
 
@@ -40,6 +41,22 @@ class SecurityConfigTest {
         mockMvc.perform(post("/post/new").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/post/10/edit"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/post/10"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    @DisplayName("인증 사용자의 게시글 수정 GET은 Security 단계에서 통과한다")
+    void authenticatedEditGetPassesSecurity() throws Exception {
+        mockMvc.perform(get("/post/10/edit").with(authentication(authToken(Role.USER))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
     }
 
     @Test
@@ -50,6 +67,12 @@ class SecurityConfigTest {
 
         mockMvc.perform(get("/admin").with(authentication(authToken(Role.ADMIN))))
                 .andExpect(status().isOk());
+
+        mockMvc.perform(post("/admin/users/1/role")
+                        .with(authentication(authToken(Role.USER)))
+                        .with(csrf())
+                        .param("role", "ADMIN"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -59,6 +82,30 @@ class SecurityConfigTest {
                         .with(authentication(authToken(Role.USER)))
                         .param("title", "title")
                         .param("content", "content"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Actuator는 익명 health만 노출하고 상세와 다른 endpoint를 차단한다")
+    void actuatorAccessIsRestricted() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.details").doesNotExist());
+
+        mockMvc.perform(get("/actuator/metrics"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+        mockMvc.perform(get("/actuator/mappings"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+        mockMvc.perform(get("/actuator/info"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+        mockMvc.perform(get("/actuator/env"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/actuator/metrics").with(authentication(authToken(Role.USER))))
                 .andExpect(status().isForbidden());
     }
 

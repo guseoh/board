@@ -34,6 +34,7 @@ public class MemberViewController {
                          RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
+            form.clearPasswords();
             return "member/signup";
         }
 

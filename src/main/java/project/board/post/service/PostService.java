@@ -62,10 +62,16 @@ public class PostService {
         return PostDetailResponse.from(post, comments);
     }
 
+    public PostDetailResponse getPostForEdit(Long postId, Long memberId) {
+        Post post = getPost(postId);
+        validateWriter(post, memberId);
+        return PostDetailResponse.from(post, List.of());
+    }
+
     public PageResultDto<PostListResponse, Post> getPosts(PageRequestDto pageRequestDto) {
         Pageable pageable = pageRequestDto.getPageable(Sort.by("id").descending());
 
-        Page<Post> result = postRepository.findAllWithMember(pageable);
+        Page<Post> result = postRepository.findPosts(pageRequestDto.getKeyword(), pageable);
 
         Function<Post, PostListResponse> fn = PostListResponse::from;
 
@@ -94,7 +100,7 @@ public class PostService {
 
         validateWriter(find, memberId);
 
-        commentRepository.deleteByPostId(id);
+        deleteCommentsByPost(id);
 
         postRepository.delete(find);
     }
@@ -103,7 +109,7 @@ public class PostService {
     public void deleteForAdmin(Long postId) {
         Post find = getPost(postId);
 
-        commentRepository.deleteByPostId(postId);
+        deleteCommentsByPost(postId);
 
         postRepository.deleteById(postId);
 
@@ -180,6 +186,11 @@ public class PostService {
         if (writerId == null || memberId == null || !writerId.equals(memberId)) {
             throw new CustomException(ErrorCode.NOT_POST_OWNER);
         }
+    }
+
+    private void deleteCommentsByPost(Long postId) {
+        commentRepository.deleteRepliesByPostId(postId);
+        commentRepository.deleteRootCommentsByPostId(postId);
     }
 
     public long count() {

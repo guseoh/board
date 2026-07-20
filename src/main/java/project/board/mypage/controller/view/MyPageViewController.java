@@ -59,7 +59,7 @@ public class MyPageViewController {
     }
 
     @GetMapping("/my/posts")
-    public String myPostsForm(PageRequestDto pageRequestDto,
+    public String myPostsForm(@Valid PageRequestDto pageRequestDto,
                               Model model,
                               @AuthenticationPrincipal UnifiedPrincipal user) {
 
@@ -79,7 +79,7 @@ public class MyPageViewController {
     }
 
     @GetMapping("/my/comments")
-    public String myCommentForm(PageRequestDto request,
+    public String myCommentForm(@Valid PageRequestDto request,
                                 @RequestParam(required = false) String keyword,
                                 Model model,
                                 @AuthenticationPrincipal UnifiedPrincipal user) {
@@ -99,10 +99,11 @@ public class MyPageViewController {
 
     @PostMapping("/my/withdraw")
     public String withdraw(@AuthenticationPrincipal UnifiedPrincipal user,
+                           @RequestParam(required = false) String confirmText,
                            HttpServletRequest request,
                            HttpServletResponse response) {
 
-        memberService.withdraw(user.getMemberId());
+        memberService.withdraw(user.getMemberId(), confirmText);
 
         new SecurityContextLogoutHandler().logout(request, response, null);
 
@@ -183,10 +184,15 @@ public class MyPageViewController {
 
         if (bindingResult.hasErrors()) {
 
+            request.clearPasswords();
+
             MemberUpdateResponse form = memberService.getMyProfile(user.getMemberId());
 
             model.addAttribute("form", form);
-            model.addAttribute("nicknameRequest", form.getNickname());
+            MemberNicknameUpdateRequest nicknameRequest = new MemberNicknameUpdateRequest();
+            nicknameRequest.setNickname(form.getNickname());
+            model.addAttribute("nicknameRequest", nicknameRequest);
+            model.addAttribute("passwordRequest", request);
 
             return "my/myEdit";
         }

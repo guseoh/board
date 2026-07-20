@@ -95,7 +95,7 @@ class ExceptionAndValidationTest {
                 .andExpect(redirectedUrl("/"))
                 .andExpect(flash().attributeExists("msg"));
 
-        verify(discordNotifier).send(org.mockito.ArgumentMatchers.contains("POST_NOT_FOUND"));
+        verify(discordNotifier, never()).send(org.mockito.ArgumentMatchers.anyString());
     }
 
     @Test
@@ -156,5 +156,28 @@ class ExceptionAndValidationTest {
             }
             return "redirect:/";
         }
+
+        @GetMapping("/social-password-not-allowed")
+        String socialPasswordNotAllowed() {
+            throw new CustomException(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED);
+        }
+    }
+
+    @Test
+    @DisplayName("소셜 회원 비밀번호 변경 정책 오류는 Discord로 전송하지 않는다")
+    void socialPasswordPolicyErrorDoesNotNotifyDiscord() throws Exception {
+        DiscordNotifier discordNotifier = mock(DiscordNotifier.class);
+
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ThrowingController())
+                .setControllerAdvice(new GlobalViewControllerAdvice(discordNotifier))
+                .build();
+
+        mockMvc.perform(get("/social-password-not-allowed"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/my/edit"))
+                .andExpect(flash().attributeExists("msg"));
+
+        verify(discordNotifier, never())
+                .send(org.mockito.ArgumentMatchers.anyString());
     }
 }

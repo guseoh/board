@@ -27,6 +27,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -184,10 +185,10 @@ class MemberServiceTest {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        memberService.changeMemberRole("ADMIN", 1L);
+        memberService.changeMemberRole(Role.ADMIN, 1L);
 
         assertThat(member.getRole()).isEqualTo(Role.ADMIN);
-        assertThatThrownBy(() -> memberService.changeMemberRole("ADMIN", 99L))
+        assertThatThrownBy(() -> memberService.changeMemberRole(Role.ADMIN, 99L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -198,13 +199,38 @@ class MemberServiceTest {
         Member member = member(1L);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
-        memberService.withdraw(1L);
+        memberService.withdraw(1L, "회원탈퇴");
         memberService.deleteMemberByAdmin(1L);
 
-        verify(commentRepository, times(2)).deleteAllByMemberId(1L);
-        verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);
-        verify(postRepository, times(2)).deleteAllByMemberId(1L);
+        verify(commentRepository, times(2)).deleteRepliesByPostMemberId(1L);
+        verify(commentRepository, times(2)).deleteRootCommentsByPostMemberId(1L);
+        verify(commentRepository, times(2)).deleteRepliesToRootsByMemberId(1L);
+        verify(commentRepository, times(2)).deleteRepliesByMemberId(1L);
+        verify(commentRepository, times(2)).deleteRootCommentsByMemberId(1L);
+        verify(postRepository, times(2)).deletePostsByMemberId(1L);
         verify(memberRepository, times(2)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 확인 문구가 다르면 어떤 삭제도 수행하지 않는다")
+    void withdrawRejectsInvalidConfirmation() {
+        Member member = member(1L);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> memberService.withdraw(1L, "회원 탈퇴"))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.WITHDRAW_CONFIRMATION_MISMATCH.getMessage());
+        assertThatThrownBy(() -> memberService.withdraw(1L, ""))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.WITHDRAW_CONFIRMATION_MISMATCH.getMessage());
+
+        verify(commentRepository, never()).deleteRepliesByPostMemberId(1L);
+        verify(commentRepository, never()).deleteRootCommentsByPostMemberId(1L);
+        verify(commentRepository, never()).deleteRepliesToRootsByMemberId(1L);
+        verify(commentRepository, never()).deleteRepliesByMemberId(1L);
+        verify(commentRepository, never()).deleteRootCommentsByMemberId(1L);
+        verify(postRepository, never()).deletePostsByMemberId(1L);
+        verify(memberRepository, never()).deleteById(1L);
     }
 
     @Test
@@ -215,6 +241,28 @@ class MemberServiceTest {
         assertThatThrownBy(() -> memberService.getMyProfile(404L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("소셜 회원은 비밀번호를 변경할 수 없다")
+    void socialMemberCannotUpdatePassword() {
+        Member socialMember = oauthMember(2L, "google", "google-1");
+        String originalPassword = socialMember.getPassword();
+
+        MemberPasswordUpdateRequest request =
+                passwordRequest("current1", "newpass1", "newpass1");
+
+        given(memberRepository.findById(2L))
+                .willReturn(Optional.of(socialMember));
+
+        assertThatThrownBy(() -> memberService.updatePassword(2L, request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED.getMessage());
+
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+        verify(passwordEncoder, never()).encode(anyString());
+
+        assertThat(socialMember.getPassword()).isEqualTo(originalPassword);
     }
 
     private MemberCreateRequest createRequest(String email, String nickname, String password, String confirm) {

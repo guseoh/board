@@ -12,10 +12,14 @@ import project.board.global.exception.ErrorCode;
 import project.board.global.notification.discord.DiscordNotifier;
 import project.board.member.dto.request.MemberCreateRequest;
 
+import java.util.Set;
+
 @ControllerAdvice
 @Slf4j
 @RequiredArgsConstructor
 public class GlobalViewControllerAdvice {
+
+    private static final Set<ErrorCode> DISCORD_NOTIFICATION_ERROR_CODES = Set.of();
 
     private final DiscordNotifier discordNotifier;
 
@@ -62,8 +66,6 @@ public class GlobalViewControllerAdvice {
     }
 
     private static boolean isShouldNotify(ErrorCode errorCode) {
-        return errorCode != ErrorCode.DUPLICATE_EMAIL
-                && errorCode != ErrorCode.DUPLICATE_NICKNAME
-                && errorCode != ErrorCode.PASSWORD_MISMATCH;
+        return DISCORD_NOTIFICATION_ERROR_CODES.contains(errorCode);
     }
 }

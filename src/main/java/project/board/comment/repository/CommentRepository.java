@@ -16,16 +16,36 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Modifying
-    @Query("delete from Comment c where c.post.id = :id")
-    void deleteByPostId(@Param("id") Long postId);
+    @Query("delete from Comment c where c.parent.id = :parentId")
+    void deleteRepliesByParentId(@Param("parentId") Long parentId);
 
     @Modifying
-    @Query("delete from Comment c where c.member.id = :memberId")
-    void deleteAllByMemberId(@Param("memberId") Long memberId);
+    @Query("delete from Comment c where c.post.id = :postId and c.parent is not null")
+    void deleteRepliesByPostId(@Param("postId") Long postId);
 
     @Modifying
-    @Query("delete from Comment c where c.post.member.id = :memberId")
-    void deleteAllByPostMemberId(@Param("memberId") Long memberId);
+    @Query("delete from Comment c where c.post.id = :postId and c.parent is null")
+    void deleteRootCommentsByPostId(@Param("postId") Long postId);
+
+    @Modifying
+    @Query("delete from Comment c where c.post.member.id = :memberId and c.parent is not null")
+    void deleteRepliesByPostMemberId(@Param("memberId") Long memberId);
+
+    @Modifying
+    @Query("delete from Comment c where c.post.member.id = :memberId and c.parent is null")
+    void deleteRootCommentsByPostMemberId(@Param("memberId") Long memberId);
+
+    @Modifying
+    @Query("delete from Comment c where c.parent.member.id = :memberId")
+    void deleteRepliesToRootsByMemberId(@Param("memberId") Long memberId);
+
+    @Modifying
+    @Query("delete from Comment c where c.member.id = :memberId and c.parent is not null")
+    void deleteRepliesByMemberId(@Param("memberId") Long memberId);
+
+    @Modifying
+    @Query("delete from Comment c where c.member.id = :memberId and c.parent is null")
+    void deleteRootCommentsByMemberId(@Param("memberId") Long memberId);
 
     // 전체 작성 댓글 (내가 쓴)
     long countByMemberId(Long memberId);
