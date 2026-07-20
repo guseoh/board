@@ -132,6 +132,7 @@ class ControllerMvcTest {
         given(postService.countMyPosts(1L)).willReturn(3L);
         given(commentService.countMyComment(1L)).willReturn(4L);
         given(postService.getPostDetail(10L)).willReturn(detail);
+        given(postService.getPostForEdit(10L, 1L)).willReturn(detail);
         given(postService.createPost(any(), eq(1L))).willReturn(PostListResponse.from(post));
         given(postService.search("title")).willReturn(List.of(PostListResponse.from(post)));
 
@@ -172,10 +173,11 @@ class ControllerMvcTest {
                 .andExpect(view().name("post/form"))
                 .andExpect(model().attributeHasErrors("form"));
 
-        mockMvc.perform(get("/post/10/edit"))
+        mockMvc.perform(get("/post/10/edit").with(authenticated(user)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("post/form"))
                 .andExpect(model().attribute("mode", "edit"));
+        verify(postService).getPostForEdit(10L, 1L);
 
         mockMvc.perform(post("/post/10/edit")
                         .with(authenticated(user))

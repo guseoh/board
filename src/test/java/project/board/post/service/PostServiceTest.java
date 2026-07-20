@@ -104,6 +104,46 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("작성자만 수정 화면용 게시글을 조회한다")
+    void getPostForEditOwner() {
+        Post post = post(10L, "edit title", "edit content", member(1L));
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        PostDetailResponse response = postService.getPostForEdit(10L, 1L);
+
+        assertThat(response.getId()).isEqualTo(10L);
+        assertThat(response.getTitle()).isEqualTo("edit title");
+        verify(postRepository).findById(10L);
+    }
+
+    @Test
+    @DisplayName("수정 화면 조회도 비작성자와 ADMIN 비작성자를 허용하지 않는다")
+    void getPostForEditRejectsNonOwnerAndAdmin() {
+        Post post = post(10L, "title", "content", member(1L));
+        Member admin = member(2L, "admin", "admin@example.com", project.board.member.entity.Role.ADMIN);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.getPostForEdit(10L, 2L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        assertThatThrownBy(() -> postService.getPostForEdit(10L, admin.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        verify(postRepository, org.mockito.Mockito.times(2)).findById(10L);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시글의 수정 화면 조회는 게시글 없음 오류를 반환한다")
+    void getPostForEditNotFound() {
+        given(postRepository.findById(99L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> postService.getPostForEdit(99L, 1L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+        verify(postRepository).findById(99L);
+    }
+
+    @Test
     @DisplayName("페이징된 게시글을 페이지 결과 객체로 변환한다")
     void findAllSuccess() {
         Member writer = member(1L);

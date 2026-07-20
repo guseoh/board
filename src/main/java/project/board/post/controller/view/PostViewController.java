@@ -170,9 +170,10 @@ public class PostViewController {
 
     @GetMapping("/post/{id}/edit")
     public String editForm(@PathVariable Long id,
+                           @AuthenticationPrincipal UnifiedPrincipal user,
                            Model model) {
 
-        PostDetailResponse post = postService.getPostDetail(id);
+        PostDetailResponse post = postService.getPostForEdit(id, user.getMemberId());
 
         model.addAttribute("mode", "edit");
         model.addAttribute("form", PostRequest.from(post));

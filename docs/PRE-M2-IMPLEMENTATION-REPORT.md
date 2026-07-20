@@ -97,6 +97,12 @@ form login 조회만 LOCAL 회원으로 제한했으므로 SOCIAL 회원은 기�
 
 관리자 삭제는 일반 사용자용 Service에 role 우회를 추가하지 않고 별도의 관리자 경로로 유지한다.
 
+### 3.2.1. 게시글 수정 화면 GET 경계
+
+수정 전에는 `GET /post/{id}/edit`가 공개되어 익명·비작성자도 수정 form을 조회할 수 있었다. 이번 보강에서는 SecurityConfig에서 `GET /post/*/edit`만 authenticated로 제한하고, `PostService.getPostForEdit(postId, memberId)`가 게시글을 한 번 조회한 뒤 작성자 ID를 검증하도록 했다.
+
+비작성자와 ADMIN 비작성자는 `NOT_POST_OWNER`, 게시글 부재는 `POST_NOT_FOUND`로 거부한다. Controller는 `UnifiedPrincipal.memberId`만 전달하며, 공개 `getPostDetail()`과 `GET /post/{id}` 및 기존 POST 수정 계약은 변경하지 않았다.
+
 ### 3.3. 댓글 소유권과 게시글 관계
 
 #### 수정 전
@@ -275,6 +281,7 @@ Discord payload는 기존과 동일하게 다음 정적 정보만 사용한다.
 | `SecurityConfig`                   | health만 익명 공개하고 나머지 Actuator 경로 차단                           |
 | `application.properties`           | Actuator exposure 축소, health details 제한, 기본 local profile 제거 |
 | `GlobalViewControllerAdvice`       | 현재 CustomException에 빈 Discord allow-list 적용                  |
+| `PostService`, `PostViewController`, 관련 테스트 | 수정 화면 GET의 인증·소유권 경계와 공개 상세 회귀 고정 |
 | Service·Security·Exception·MVC 테스트 | 인증, 소유권, 탈퇴, Actuator, profile, Discord 회귀 고정                |
 | `PRE-M2-IMPLEMENTATION-REPORT.md`  | 구현 의도, 영향과 검증 결과 기록                                          |
 
@@ -312,7 +319,7 @@ Codex 구현 완료 시점의 검증 결과:
 
 | 명령                        | 결과                                        |
 | ------------------------- | ----------------------------------------- |
-| `gradlew.bat clean test`  | 66 tests, failures 0, errors 0, skipped 0 |
+| `gradlew.bat clean test`  | 70 tests, failures 0, errors 0, skipped 0 |
 | `gradlew.bat clean build` | 66 tests, failures 0, errors 0, skipped 0 |
 | Boot JAR 생성               | 성공                                        |
 | `git diff --check`        | 통과                                        |
@@ -327,6 +334,15 @@ Codex 구현 완료 시점의 검증 결과:
 | `git diff --check`         | 공백 오류 없이 통과        |
 
 `git diff --check`에서는 일부 Java 파일에 대해 다음 줄바꿈 경고가 출력됐다.
+
+이번 게시글 수정 GET 변경 후 대상 검증 결과:
+
+| 명령 | 결과 |
+| --- | --- |
+| `gradlew.bat compileTestJava` | BUILD SUCCESSFUL |
+| `gradlew.bat test --tests project.board.post.service.PostServiceTest --tests project.board.global.security.SecurityConfigTest --tests project.board.controller.ControllerMvcTest` | BUILD SUCCESSFUL |
+| `gradlew.bat clean test` | 테스트 XML 14개, 70 tests, failures 0, errors 0, skipped 0 확인 |
+| `git diff --check` | 통과 |
 
 ```text
 LF will be replaced by CRLF the next time Git touches it
@@ -504,8 +520,9 @@ PRE-M2 Security 경계 구현 결과는 다음과 같다.
 * LocalTestController profile 경계 검증
 * 기본 local profile 자동 활성화 제거
 * 현재 CustomException의 Discord 전송 차단
-* 66개 테스트 통과
+* 게시글 수정 GET 인증·소유권 경계 추가
+* 70개 테스트 통과
 * Boot JAR 생성 확인
 * 최종 profile 변경 후 `clean test` 성공
 * `git diff --check` 통과
-* Git 쓰기 작업 미수행
+* 지정 메시지 `fix: 게시글 수정 화면 접근 경계 보강`으로 commit 후 `origin/recover` push 예정

@@ -41,6 +41,22 @@ class SecurityConfigTest {
         mockMvc.perform(post("/post/new").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/post/10/edit"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/post/10"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
+    }
+
+    @Test
+    @DisplayName("인증 사용자의 게시글 수정 GET은 Security 단계에서 통과한다")
+    void authenticatedEditGetPassesSecurity() throws Exception {
+        mockMvc.perform(get("/post/10/edit").with(authentication(authToken(Role.USER))))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
     }
 
     @Test
