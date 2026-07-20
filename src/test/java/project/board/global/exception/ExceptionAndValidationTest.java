@@ -156,6 +156,11 @@ class ExceptionAndValidationTest {
             }
             return "redirect:/";
         }
+
+        @GetMapping("/social-password-not-allowed")
+        String socialPasswordNotAllowed() {
+            throw new CustomException(ErrorCode.SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED);
+        }
     }
 
     @Test
