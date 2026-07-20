@@ -50,6 +50,15 @@ public class PageResultDto<DTO, EN> {
         this.page = pageable.getPageNumber() + 1;
         this.size = pageable.getPageSize();
 
+        if (totalPage == 0) {
+            start = 0;
+            end = 0;
+            prev = false;
+            next = false;
+            pageList = List.of();
+            return;
+        }
+
         int tempEnd = (int) ((Math.ceil(page / 10.0)) * 10);
         start = tempEnd - 9;
 
@@ -59,5 +68,4 @@ public class PageResultDto<DTO, EN> {
 
         pageList = IntStream.rangeClosed(start, end).boxed().toList();
     }
-
 }
