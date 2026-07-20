@@ -134,6 +134,8 @@ class PostServiceTest {
         assertThatThrownBy(() -> postService.update(new PostRequest("other title", "content"), 10L, 2L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        assertThat(post.getTitle()).isEqualTo("new title");
+        assertThat(post.getContent()).isEqualTo("new content");
     }
 
     @Test
@@ -147,6 +149,27 @@ class PostServiceTest {
 
         verify(commentRepository).deleteByPostId(10L);
         verify(postRepository).delete(post);
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 ADMIN도 일반 게시글을 수정하거나 삭제할 수 없다")
+    void adminCannotBypassOwnership() {
+        Member writer = member(1L);
+        Member admin = member(2L, "admin", "admin@example.com", project.board.member.entity.Role.ADMIN);
+        Post post = post(10L, "title", "content", writer);
+        given(postRepository.findById(10L)).willReturn(Optional.of(post));
+
+        assertThatThrownBy(() -> postService.update(new PostRequest("changed", "changed"), 10L, admin.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+        assertThatThrownBy(() -> postService.delete(10L, admin.getId()))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.NOT_POST_OWNER.getMessage());
+
+        assertThat(post.getTitle()).isEqualTo("title");
+        assertThat(post.getContent()).isEqualTo("content");
+        verify(commentRepository, never()).deleteByPostId(10L);
+        verify(postRepository, never()).delete(post);
     }
 
     @Test

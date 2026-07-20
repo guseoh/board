@@ -26,6 +26,7 @@ public enum ErrorCode {
     PASSWORD_CURRENT_REQUIRED("/my/edit", "비밀번호를 입력해야 합니다."),
     PASSWORD_INVALID("/my/edit", "비밀번호가 일치하지 않습니다."),
     SOCIAL_PASSWORD_CHANGE_NOT_ALLOWED("/my/edit", "소셜 로그인 회원은 비밀번호를 변경할 수 없습니다."),
+    WITHDRAW_CONFIRMATION_MISMATCH("/my/withdraw", "회원 탈퇴 확인 문구가 일치하지 않습니다."),
 
     // comment
     COMMENT_NOT_FOUND("/", "해당 댓글은 존재하지 않습니다."),

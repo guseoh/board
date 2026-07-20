@@ -19,6 +19,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static project.board.testsupport.TestFixtures.principal;
 
@@ -59,6 +60,30 @@ class SecurityConfigTest {
                         .with(authentication(authToken(Role.USER)))
                         .param("title", "title")
                         .param("content", "content"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Actuator는 익명 health만 노출하고 상세와 다른 endpoint를 차단한다")
+    void actuatorAccessIsRestricted() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.details").doesNotExist());
+
+        mockMvc.perform(get("/actuator/metrics"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+        mockMvc.perform(get("/actuator/mappings"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+        mockMvc.perform(get("/actuator/info"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+        mockMvc.perform(get("/actuator/env"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/loginForm"));
+
+        mockMvc.perform(get("/actuator/metrics").with(authentication(authToken(Role.USER))))
                 .andExpect(status().isForbidden());
     }
 

@@ -25,6 +25,8 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class MemberService {
 
+    private static final String WITHDRAW_CONFIRMATION_TEXT = "회원탈퇴";
+
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final PostRepository postRepository;
@@ -81,8 +83,12 @@ public class MemberService {
     }
 
     @Transactional
-    public void withdraw(Long memberId) {
+    public void withdraw(Long memberId, String confirmText) {
         validateMember(memberId);
+
+        if (!WITHDRAW_CONFIRMATION_TEXT.equals(confirmText)) {
+            throw new CustomException(ErrorCode.WITHDRAW_CONFIRMATION_MISMATCH);
+        }
 
         // 회원이 작성한 댓글
         MemberRemovalPolicy(memberId);

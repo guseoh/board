@@ -95,7 +95,7 @@ class ExceptionAndValidationTest {
                 .andExpect(redirectedUrl("/"))
                 .andExpect(flash().attributeExists("msg"));
 
-        verify(discordNotifier).send(org.mockito.ArgumentMatchers.contains("POST_NOT_FOUND"));
+        verify(discordNotifier, never()).send(org.mockito.ArgumentMatchers.anyString());
     }
 
     @Test

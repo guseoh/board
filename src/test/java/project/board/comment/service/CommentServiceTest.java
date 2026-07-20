@@ -138,6 +138,30 @@ class CommentServiceTest {
         assertThatThrownBy(() -> commentService.update(100L, 2L, 10L, request("fail")))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.COMMENT_NOT_OWNER.getMessage());
+        assertThat(comment.getContent()).isEqualTo("changed");
+    }
+
+    @Test
+    @DisplayName("다른 게시글 경로의 댓글은 수정하거나 삭제할 수 없고 ADMIN도 우회하지 못한다")
+    void updateAndDeleteRejectCommentFromAnotherPost() {
+        Member owner = member(1L);
+        Member admin = member(2L, "admin", "admin@example.com", project.board.member.entity.Role.ADMIN);
+        Post actualPost = post(10L, member(3L));
+        Comment comment = comment(100L, "old", owner, actualPost);
+        given(commentRepository.findById(100L)).willReturn(Optional.of(comment));
+
+        assertThatThrownBy(() -> commentService.update(100L, owner.getId(), 20L, request("changed")))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+        assertThatThrownBy(() -> commentService.delete(admin.getId(), 100L, 10L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_NOT_OWNER.getMessage());
+        assertThatThrownBy(() -> commentService.delete(owner.getId(), 100L, 20L))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.COMMENT_NOT_FOUND.getMessage());
+
+        assertThat(comment.getContent()).isEqualTo("old");
+        verify(commentRepository, never()).delete(comment);
     }
 
     @Test

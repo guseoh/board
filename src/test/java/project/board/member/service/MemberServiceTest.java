@@ -199,13 +199,32 @@ class MemberServiceTest {
         Member member = member(1L);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
-        memberService.withdraw(1L);
+        memberService.withdraw(1L, "회원탈퇴");
         memberService.deleteMemberByAdmin(1L);
 
         verify(commentRepository, times(2)).deleteAllByMemberId(1L);
         verify(commentRepository, times(2)).deleteAllByPostMemberId(1L);
         verify(postRepository, times(2)).deleteAllByMemberId(1L);
         verify(memberRepository, times(2)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 확인 문구가 다르면 어떤 삭제도 수행하지 않는다")
+    void withdrawRejectsInvalidConfirmation() {
+        Member member = member(1L);
+        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> memberService.withdraw(1L, "회원 탈퇴"))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.WITHDRAW_CONFIRMATION_MISMATCH.getMessage());
+        assertThatThrownBy(() -> memberService.withdraw(1L, ""))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.WITHDRAW_CONFIRMATION_MISMATCH.getMessage());
+
+        verify(commentRepository, never()).deleteAllByMemberId(1L);
+        verify(commentRepository, never()).deleteAllByPostMemberId(1L);
+        verify(postRepository, never()).deleteAllByMemberId(1L);
+        verify(memberRepository, never()).deleteById(1L);
     }
 
     @Test

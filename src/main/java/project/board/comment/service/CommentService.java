@@ -77,6 +77,7 @@ public class CommentService {
                 () -> new CustomException(ErrorCode.COMMENT_NOT_FOUND, "/post/" + postId)
         );
 
+        validateCommentPost(comment, postId);
         validateOwner(comment, memberId);
 
         comment.changeContent(dto.getContent());
@@ -90,6 +91,7 @@ public class CommentService {
                 () -> new CustomException(ErrorCode.COMMENT_NOT_FOUND, "/post/" + postId)
         );
 
+        validateCommentPost(comment, postId);
         validateOwner(comment, memberId);
 
         commentRepository.delete(comment);
@@ -145,6 +147,12 @@ public class CommentService {
     private void validateOwner(Comment comment, Long memberId) {
         if (!comment.getMember().getId().equals(memberId)) {
             throw new CustomException(ErrorCode.COMMENT_NOT_OWNER);
+        }
+    }
+
+    private static void validateCommentPost(Comment comment, Long postId) {
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new CustomException(ErrorCode.COMMENT_NOT_FOUND, "/post/" + postId);
         }
     }
 

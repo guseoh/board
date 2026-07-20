@@ -304,10 +304,12 @@ class ControllerMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("my/withdraw"));
 
-        mockMvc.perform(post("/my/withdraw").with(authenticated(user)))
+        mockMvc.perform(post("/my/withdraw")
+                        .with(authenticated(user))
+                        .param("confirmText", "회원탈퇴"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
-        verify(memberService).withdraw(1L);
+        verify(memberService).withdraw(1L, "회원탈퇴");
     }
 
     @Test

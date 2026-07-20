@@ -99,10 +99,11 @@ public class MyPageViewController {
 
     @PostMapping("/my/withdraw")
     public String withdraw(@AuthenticationPrincipal UnifiedPrincipal user,
+                           @RequestParam(required = false) String confirmText,
                            HttpServletRequest request,
                            HttpServletResponse response) {
 
-        memberService.withdraw(user.getMemberId());
+        memberService.withdraw(user.getMemberId(), confirmText);
 
         new SecurityContextLogoutHandler().logout(request, response, null);
 
