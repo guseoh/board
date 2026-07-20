@@ -30,6 +30,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -164,12 +166,12 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("페이징된 게시글을 페이지 결과 객체로 변환한다")
+    @DisplayName("키워드가 없으면 전체 게시글을 페이지 결과로 변환한다")
     void findAllSuccess() {
         Member writer = member(1L);
         Post post = post(10L, "list title", "content", writer);
         PageRequestDto request = PageRequestDto.builder().page(1).size(5).build();
-        given(postRepository.findAllWithMember(any()))
+        given(postRepository.findPosts(isNull(), any()))
                 .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1));
 
         PageResultDto<PostListResponse, Post> result = postService.getPosts(request);
@@ -177,6 +179,28 @@ class PostServiceTest {
         assertThat(result.getTotalCount()).isEqualTo(1);
         assertThat(result.getDtoList()).extracting(PostListResponse::getTitle)
                 .containsExactly("list title");
+        verify(postRepository).findPosts(isNull(), any());
+    }
+
+    @Test
+    @DisplayName("키워드가 있으면 같은 페이지 계약으로 제목을 검색한다")
+    void findByKeywordSuccess() {
+        Member writer = member(1L);
+        Post post = post(10L, "Spring board", "content", writer);
+        PageRequestDto request = PageRequestDto.builder()
+                .page(1)
+                .size(5)
+                .keyword("Spring")
+                .build();
+        given(postRepository.findPosts(eq("Spring"), any()))
+                .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 5), 1));
+
+        PageResultDto<PostListResponse, Post> result = postService.getPosts(request);
+
+        assertThat(result.getTotalCount()).isEqualTo(1);
+        assertThat(result.getDtoList()).extracting(PostListResponse::getTitle)
+                .containsExactly("Spring board");
+        verify(postRepository).findPosts(eq("Spring"), any());
     }
 
     @Test
