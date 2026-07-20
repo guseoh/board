@@ -20,9 +20,19 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("update Post p set p.viewCount = p.viewCount + 1 where p.id = :postId")
     int incrementViewCount(@Param("postId") Long postId);
 
-    //todo: 아래 메서드와 비교
-    @Query("select p from Post p join fetch p.member")
-    Page<Post> findAllWithMember(Pageable pageable);
+    @Query(value = """
+            select p from Post p
+            join fetch p.member
+            where (:keyword is null or :keyword = '' or p.title like concat('%', :keyword, '%'))
+            """,
+            countQuery = """
+            select count(p) from Post p
+            where (:keyword is null or :keyword = '' or p.title like concat('%', :keyword, '%'))
+            """)
+    Page<Post> findPosts(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 
     @Query("select p from Post p join fetch p.member")
     List<Post> findAllWithMemberForAdmin();
