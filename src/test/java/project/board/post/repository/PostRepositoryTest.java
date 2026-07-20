@@ -8,6 +8,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import project.board.global.security.config.JpaConfig;
 import project.board.member.entity.LoginType;
@@ -38,21 +39,35 @@ class PostRepositoryTest {
     private EntityManager entityManager;
 
     @Test
-    @DisplayName("작성자와 함께 게시글 목록을 조회하고 제목으로 검색한다")
-    void findAllWithMemberAndSearch() {
+    @DisplayName("키워드 유무에 따라 작성자와 함께 게시글을 페이지 조회한다")
+    void findPostsWithMemberAndKeyword() {
         Member writer = saveMember("writer", "writer@example.com");
         postRepository.save(Post.create("Spring board", "content1", writer));
         postRepository.save(Post.create("JPA board", "content2", writer));
+        postRepository.save(Post.create("Spring Security", "content3", writer));
         flushAndClear();
 
-        Page<Post> page = postRepository.findAllWithMember(PageRequest.of(0, 10));
-        List<Post> searched = postRepository.findByTitleContaining("Spring");
+        Page<Post> all = postRepository.findPosts(
+                null,
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"))
+        );
+        Page<Post> searched = postRepository.findPosts(
+                "Spring",
+                PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "id"))
+        );
+        List<Post> legacySearch = postRepository.findByTitleContaining("Spring");
 
-        assertThat(page.getTotalElements()).isEqualTo(2);
-        assertThat(page.getContent()).extracting(Post::getTitle)
-                .containsExactlyInAnyOrder("Spring board", "JPA board");
-        assertThat(page.getContent()).allSatisfy(post -> assertThat(post.getMember().getNickname()).isEqualTo("writer"));
-        assertThat(searched).extracting(Post::getTitle).containsExactly("Spring board");
+        assertThat(all.getTotalElements()).isEqualTo(3);
+        assertThat(all.getContent()).extracting(Post::getTitle)
+                .containsExactly("Spring Security", "JPA board", "Spring board");
+        assertThat(all.getContent()).allSatisfy(post ->
+                assertThat(post.getMember().getNickname()).isEqualTo("writer"));
+
+        assertThat(searched.getTotalElements()).isEqualTo(2);
+        assertThat(searched.getContent()).extracting(Post::getTitle)
+                .containsExactly("Spring Security");
+        assertThat(legacySearch).extracting(Post::getTitle)
+                .containsExactlyInAnyOrder("Spring board", "Spring Security");
     }
 
     @Test
