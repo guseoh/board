@@ -19,6 +19,7 @@ import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.dto.request.PostRequest;
+import project.board.post.dto.response.PostDetailApiResponse;
 import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
@@ -195,5 +196,12 @@ public class PostService {
 
     public long count() {
         return postRepository.count();
+    }
+
+
+    public PostDetailApiResponse getPostApiDetail(Long postId) {
+        Post post = getPost(postId);
+
+        return PostDetailApiResponse.from(post);
     }
 }

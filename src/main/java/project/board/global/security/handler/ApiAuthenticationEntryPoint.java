@@ -15,6 +15,7 @@ import java.io.IOException;
 
 /**
  * 인증이 안된 익명의 사용자가 인증이 필요한 엔드포인트로 접근한다면 401 UNAUTHORIZED 오류 발생
+ *
  */
 @Component
 @RequiredArgsConstructor
