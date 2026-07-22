@@ -28,7 +28,7 @@ import static project.board.testsupport.TestFixtures.principal;
 @ActiveProfiles("test")
 class SecurityConfigTest {
 
-    private static final String LOGIN_FORM_URL = "http://localhost/loginForm";
+    private static final String LOGIN_FORM_URL = "/loginForm";
 
     @Autowired
     private MockMvc mockMvc;
