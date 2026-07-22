@@ -68,7 +68,7 @@ class CommentServiceTest {
             return saved;
         });
 
-        CommentResponse response = commentService.createComment(request, 1L, 10L);
+        CommentResponse response = commentService.create(request, 1L, 10L);
 
         assertThat(response.getId()).isEqualTo(100L);
         assertThat(response.getContent()).isEqualTo("comment content");
@@ -82,7 +82,7 @@ class CommentServiceTest {
     void createMemberNotFound() {
         given(memberRepository.findById(1L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> commentService.createComment(request("comment"), 1L, 10L))
+        assertThatThrownBy(() -> commentService.create(request("comment"), 1L, 10L))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
         verify(postRepository, never()).findById(any());
@@ -217,13 +217,13 @@ class CommentServiceTest {
                 .willReturn(new PageImpl<>(List.of(myComment), PageRequest.of(0, 5), 1));
         given(commentRepository.findRecentComments(any(), any())).willReturn(List.of(recent));
 
-        MyCommentPageResponse page = commentService.getMyCommentPage(
+        MyCommentPageResponse page = commentService.myCommentPage(
                 1L,
                 PageRequestDto.builder().page(1).size(5).build(),
                 "comment"
         );
 
-        assertThat(commentService.countMyComment(1L)).isEqualTo(3L);
+        assertThat(commentService.myCommentCount(1L)).isEqualTo(3L);
         assertThat(page.getMyCommentCount()).isEqualTo(3L);
         assertThat(page.getTodayMyCommentCount()).isEqualTo(1L);
         assertThat(page.getRecentCommentCount()).isEqualTo(2L);
@@ -231,7 +231,7 @@ class CommentServiceTest {
                 .containsExactly("comment");
         assertThat(commentService.recentComments(1L)).extracting(MyRecentCommentResponse::getTitle)
                 .containsExactly("post title");
-        assertThatThrownBy(() -> commentService.getMyCommentPage(null, PageRequestDto.builder().build(), null))
+        assertThatThrownBy(() -> commentService.myCommentPage(null, PageRequestDto.builder().build(), null))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }

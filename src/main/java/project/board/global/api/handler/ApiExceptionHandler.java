@@ -11,20 +11,16 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import project.board.comment.controller.api.CommentApiController;
 import project.board.global.api.error.ApiErrorResponse;
-import project.board.global.api.error.ApiErrorStatusMapper;
 import project.board.global.api.error.ApiFieldError;
+import project.board.global.api.error.ApiErrorStatusMapper;
 import project.board.global.exception.CustomException;
 import project.board.post.controller.api.PostApiController;
 
 import java.util.List;
 
 @Slf4j
-@RestControllerAdvice(basePackageClasses = {
-        PostApiController.class,
-        CommentApiController.class
-})
+@RestControllerAdvice(basePackageClasses = PostApiController.class)
 public class ApiExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
