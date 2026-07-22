@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import project.board.global.security.handler.ApiAccessDeniedHandler;
 import project.board.global.security.handler.ApiAuthenticationEntryPoint;
@@ -64,6 +66,11 @@ public class SecurityConfig {
                                            ApiAccessDeniedHandler apiAccessDeniedHandler) throws Exception {
 
         RequestMatcher apiRequestMatcher = pathPattern("/api/**");
+        RequestMatcher viewRequestMatcher = new NegatedRequestMatcher(apiRequestMatcher);
+
+        LoginUrlAuthenticationEntryPoint viewAuthenticationEntryPoint =
+                new LoginUrlAuthenticationEntryPoint("/loginForm");
+        viewAuthenticationEntryPoint.setFavorRelativeUris(true);
 
         http
                 .authenticationProvider(provider)
@@ -84,7 +91,12 @@ public class SecurityConfig {
                         .defaultAuthenticationEntryPointFor(
                                 apiAuthenticationEntryPoint,
                                 apiRequestMatcher
-                        ).defaultAccessDeniedHandlerFor(
+                        )
+                        .defaultAuthenticationEntryPointFor(
+                                viewAuthenticationEntryPoint,
+                                viewRequestMatcher
+                        )
+                        .defaultAccessDeniedHandlerFor(
                                 apiAccessDeniedHandler,
                                 apiRequestMatcher
                         )
