@@ -8,16 +8,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import project.board.comment.dto.request.CommentCreateRequest;
+import project.board.comment.dto.response.CommentListApiResponse;
 import project.board.comment.dto.response.CommentResponse;
 import project.board.comment.dto.response.MyCommentPageResponse;
 import project.board.comment.dto.response.MyCommentResponse;
 import project.board.comment.dto.response.MyRecentCommentResponse;
 import project.board.comment.entity.Comment;
 import project.board.comment.repository.CommentRepository;
-import project.board.global.pagination.PageRequestDto;
-import project.board.global.pagination.PageResultDto;
 import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
+import project.board.global.pagination.PageRequestDto;
+import project.board.global.pagination.PageResultDto;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
 import project.board.post.entity.Post;
@@ -36,6 +37,19 @@ public class CommentService {
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
 
+    @Transactional(readOnly = true)
+    public CommentListApiResponse getCommentsApi(Long postId) {
+        /*
+         * 댓글이 없는 게시글은 빈 배열을 반환하지만,
+         * 게시글 자체가 없으면 POST_NOT_FOUND로 구분해야 한다.
+         * 기존 Post.comments 연관관계를 사용해 현재 도메인 구조를 그대로 재사용한다.
+         */
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new CustomException(ErrorCode.POST_NOT_FOUND)
+        );
+
+        return CommentListApiResponse.from(post.getComments());
+    }
 
     public CommentResponse createComment(CommentCreateRequest commentDto, Long memberId, Long postId) {
 
