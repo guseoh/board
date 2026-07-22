@@ -12,9 +12,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import project.board.global.security.oauth.CustomOauth2UserService;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import project.board.global.security.handler.ApiAccessDeniedHandler;
+import project.board.global.security.handler.ApiAuthenticationEntryPoint;
 import project.board.global.security.handler.CustomLoginSuccessHandler;
+import project.board.global.security.oauth.CustomOauth2UserService;
 import project.board.global.security.user.CustomUserDetailsService;
+
+import static org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher.pathPattern;
 
 @Configuration
 @EnableWebSecurity
@@ -22,26 +29,55 @@ import project.board.global.security.user.CustomUserDetailsService;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String[] WHITE_LIST = {
+            "/",
+            "/login",
+            "/loginForm",
+            "/signup",
+            "/css/**",
+            "/js/**",
+            "/images/**",
+            "/error"
+    };
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider(PasswordEncoder passwordEncoder, CustomUserDetailsService customUserDetailsService) {
+    public DaoAuthenticationProvider daoAuthenticationProvider(
+            PasswordEncoder passwordEncoder,
+            CustomUserDetailsService customUserDetailsService) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
+
         provider.setPasswordEncoder(passwordEncoder);
+
         return provider;
     }
 
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, DaoAuthenticationProvider provider,
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           DaoAuthenticationProvider provider,
                                            CustomOauth2UserService customOauth2UserService,
-                                           CustomLoginSuccessHandler successHandler) throws Exception {
+                                           CustomLoginSuccessHandler successHandler,
+                                           ApiAuthenticationEntryPoint apiAuthenticationEntryPoint,
+                                           ApiAccessDeniedHandler apiAccessDeniedHandler) throws Exception {
+
+        RequestMatcher apiRequestMatcher = pathPattern("/api/**");
+        RequestMatcher viewRequestMatcher = new NegatedRequestMatcher(apiRequestMatcher);
+
+        LoginUrlAuthenticationEntryPoint viewAuthenticationEntryPoint =
+                new LoginUrlAuthenticationEntryPoint("/loginForm");
+        viewAuthenticationEntryPoint.setFavorRelativeUris(true);
+
         http
                 .authenticationProvider(provider)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/loginForm", "/signup", "/css/**", "/js/**", "/images/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").denyAll()
@@ -51,16 +87,33 @@ public class SecurityConfig {
                         .requestMatchers("/my/**").authenticated()
                         .anyRequest().permitAll()
                 )
+                .exceptionHandling(exception -> exception
+                        .defaultAuthenticationEntryPointFor(
+                                apiAuthenticationEntryPoint,
+                                apiRequestMatcher
+                        )
+                        .defaultAuthenticationEntryPointFor(
+                                viewAuthenticationEntryPoint,
+                                viewRequestMatcher
+                        )
+                        .defaultAccessDeniedHandlerFor(
+                                apiAccessDeniedHandler,
+                                apiRequestMatcher
+                        )
+                )
                 .formLogin(form -> form
                         .loginPage("/loginForm")
                         .loginProcessingUrl("/login")
                         .successHandler(successHandler)
-                        .failureUrl("/loginForm?error=true").permitAll()
+                        .failureUrl("/loginForm?error=true"
+                        ).permitAll()
                 )
                 .oauth2Login(oauth -> oauth
                         .loginPage("/loginForm")
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOauth2UserService)
+                                .userService(
+                                        customOauth2UserService
+                                )
                         )
                         .defaultSuccessUrl("/")
                 )
@@ -70,8 +123,12 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                 );
-
         return http.build();
+
+
     }
 
 }
+
+
+//todo: CSRF

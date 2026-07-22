@@ -27,6 +27,7 @@ import project.board.member.entity.Member;
 import project.board.member.entity.Role;
 import project.board.member.service.MemberService;
 import project.board.post.dto.request.PostRecent;
+import project.board.post.dto.request.PostRequest;
 import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
 import project.board.post.entity.Post;
@@ -177,7 +178,7 @@ class ControllerMvcTest {
         given(commentService.countMyComment(1L)).willReturn(4L);
         given(postService.getPostDetail(10L)).willReturn(detail);
         given(postService.getPostForEdit(10L, 1L)).willReturn(detail);
-        given(postService.createPost(any(), eq(1L))).willReturn(PostListResponse.from(post));
+        given(postService.createPost(any(PostRequest.class), eq(1L))).willReturn(PostListResponse.from(post));
         given(postService.search("title")).willReturn(List.of(PostListResponse.from(post)));
 
         mockMvc.perform(get("/").with(authenticated(user)))
@@ -207,7 +208,7 @@ class ControllerMvcTest {
                         .param("content", "content"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/post/10"));
-        verify(postService).createPost(any(), eq(1L));
+        verify(postService).createPost(any(PostRequest.class), eq(1L));
 
         mockMvc.perform(post("/post/new")
                         .with(authenticated(user))
@@ -229,7 +230,7 @@ class ControllerMvcTest {
                         .param("content", "updated content"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/post/10"));
-        verify(postService).update(any(), eq(10L), eq(1L));
+        verify(postService).update(any(PostRequest.class), eq(10L), eq(1L));
 
         mockMvc.perform(post("/post/10/delete").with(authenticated(user)))
                 .andExpect(status().is3xxRedirection())
@@ -245,14 +246,14 @@ class ControllerMvcTest {
         String tooLong = "a".repeat(501);
         Member writer = member(1L);
         Post post = post(10L, max, max, writer);
-        given(postService.createPost(any(), eq(1L))).willReturn(PostListResponse.from(post));
+        given(postService.createPost(any(PostRequest.class), eq(1L))).willReturn(PostListResponse.from(post));
 
         mockMvc.perform(post("/post/new").with(authenticated(user)).param("title", max).param("content", max))
                 .andExpect(status().is3xxRedirection());
         mockMvc.perform(post("/post/new").with(authenticated(user)).param("title", tooLong).param("content", max))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeHasErrors("form"));
-        verify(postService).createPost(any(), eq(1L));
+        verify(postService).createPost(any(PostRequest.class), eq(1L));
 
         mockMvc.perform(post("/post/10/comment").with(authenticated(user)).param("content", max))
                 .andExpect(status().is3xxRedirection());

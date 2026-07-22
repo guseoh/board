@@ -28,6 +28,8 @@ import static project.board.testsupport.TestFixtures.principal;
 @ActiveProfiles("test")
 class SecurityConfigTest {
 
+    private static final String LOGIN_FORM_URL = "/loginForm";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -36,15 +38,15 @@ class SecurityConfigTest {
     void anonymousAccessIsRestricted() throws Exception {
         mockMvc.perform(get("/my"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/loginForm"));
+                .andExpect(redirectedUrl(LOGIN_FORM_URL));
 
         mockMvc.perform(post("/post/new").with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/loginForm"));
+                .andExpect(redirectedUrl(LOGIN_FORM_URL));
 
         mockMvc.perform(get("/post/10/edit"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/loginForm"));
+                .andExpect(redirectedUrl(LOGIN_FORM_URL));
 
         mockMvc.perform(get("/post/10"))
                 .andExpect(status().is3xxRedirection())
@@ -94,16 +96,16 @@ class SecurityConfigTest {
 
         mockMvc.perform(get("/actuator/metrics"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/loginForm"));
+                .andExpect(redirectedUrl(LOGIN_FORM_URL));
         mockMvc.perform(get("/actuator/mappings"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/loginForm"));
+                .andExpect(redirectedUrl(LOGIN_FORM_URL));
         mockMvc.perform(get("/actuator/info"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/loginForm"));
+                .andExpect(redirectedUrl(LOGIN_FORM_URL));
         mockMvc.perform(get("/actuator/env"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/loginForm"));
+                .andExpect(redirectedUrl(LOGIN_FORM_URL));
 
         mockMvc.perform(get("/actuator/metrics").with(authentication(authToken(Role.USER))))
                 .andExpect(status().isForbidden());
