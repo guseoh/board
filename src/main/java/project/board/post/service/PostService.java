@@ -1,5 +1,7 @@
 package project.board.post.service;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,8 +19,10 @@ import project.board.global.exception.CustomException;
 import project.board.global.exception.ErrorCode;
 import project.board.member.entity.Member;
 import project.board.member.repository.MemberRepository;
+import project.board.post.dto.request.PostCreateApiRequest;
 import project.board.post.dto.request.PostRecent;
 import project.board.post.dto.request.PostRequest;
+import project.board.post.dto.request.PostUpdateApiRequest;
 import project.board.post.dto.response.PostDetailApiResponse;
 import project.board.post.dto.response.PostDetailResponse;
 import project.board.post.dto.response.PostListResponse;
@@ -42,14 +46,36 @@ public class PostService {
     private final MemberRepository memberRepository;    // nullable = false
     private final CommentRepository commentRepository;
 
+    //todo: record는 필드명으로 getter 사용
     @Transactional
-    public PostListResponse createPost(PostRequest request, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() ->
-                new CustomException(LOGIN_REQUIRED));
+    public Long createPost(
+            PostCreateApiRequest request,
+            Long memberId) {
 
-        Post saved = postRepository.save(Post.create(request.getTitle(), request.getContent(), member));
+        Post saved = createPostEntity(
+                request.title(), request.content(), memberId
+        );
 
-        return PostListResponse.from(saved);
+        return saved.getId();
+    }
+
+    private Post createPostEntity(
+            String title, String content, Long memberId
+    ) {
+        Member member = getAuthenticatedMember(memberId);
+
+        return postRepository.save(Post.create(title, content, member));
+    }
+
+    private Member getAuthenticatedMember(Long memberId) {
+        if (memberId == null) {
+            throw new CustomException(LOGIN_REQUIRED);
+        }
+
+        return memberRepository.findById(memberId)
+                .orElseThrow(
+                        () -> new CustomException(LOGIN_REQUIRED)
+                );
     }
 
     public PostDetailResponse getPostDetail(Long postId){
@@ -84,15 +110,25 @@ public class PostService {
     }
 
     @Transactional
-    public void update(PostRequest request, Long postId, Long memberId) {
+    public void update(
+            PostUpdateApiRequest request,
+            Long postId,
+            Long memberId) {
 
+        updatePost(request.title(), request.content(), postId, memberId);
+    }
+
+    private void updatePost(
+             String title,
+             String content,
+             Long postId,
+             Long memberId)
+    {
         Post post = getPost(postId);
+
         validateWriter(post, memberId);
 
-        post.change(
-                request.getTitle(),
-                request.getContent()
-        );
+        post.change(title, content);
     }
 
     @Transactional
