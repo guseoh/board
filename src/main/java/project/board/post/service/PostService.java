@@ -1,7 +1,5 @@
 package project.board.post.service;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,6 +43,20 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;    // nullable = false
     private final CommentRepository commentRepository;
+
+    @Transactional
+    public PostListResponse createPost(
+            PostRequest request,
+            Long memberId
+    ) {
+        Post saved = createPostEntity(
+                request.getTitle(),
+                request.getContent(),
+                memberId
+        );
+
+        return PostListResponse.from(saved);
+    }
 
     //todo: record는 필드명으로 getter 사용
     @Transactional
@@ -107,6 +119,20 @@ public class PostService {
 
     public List<Post> getPostsForAdmin() {
         return postRepository.findAllWithMemberForAdmin();
+    }
+
+    @Transactional
+    public void update(
+            PostRequest request,
+            Long postId,
+            Long memberId
+    ) {
+        updatePost(
+                request.getTitle(),
+                request.getContent(),
+                postId,
+                memberId
+        );
     }
 
     @Transactional
