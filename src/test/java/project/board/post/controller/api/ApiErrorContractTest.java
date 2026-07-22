@@ -200,7 +200,7 @@ class ApiErrorContractTest {
             throw new CustomException(errorCode);
         }
 
-        @PostMapping(value = "/validation", consumes = MediaType.APPLICATION_JSON_VALUE)
+        @PostMapping("/validation")
         void validateRequest(@Valid @RequestBody TestCreateRequest request) {
         }
 
